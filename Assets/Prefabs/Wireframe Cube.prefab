@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8392690810186974059}
   - component: {fileID: 4825807295589331110}
   - component: {fileID: -2770273418346727713}
+  - component: {fileID: 2081608735674667454}
   m_Layer: 0
   m_Name: Wireframe Cube
   m_TagString: Untagged
@@ -28,7 +29,7 @@ Transform:
   m_GameObject: {fileID: 5974368335901426639}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -4}
-  m_LocalScale: {x: 0.06, y: 0.06, z: 0.06}
+  m_LocalScale: {x: 0.05, y: 0.05, z: 0.05}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -96,3 +97,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff5f8b6f79803a44cb75bd4968f4a8e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!64 &2081608735674667454
+MeshCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5974368335901426639}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 4
+  m_Convex: 0
+  m_CookingOptions: 30
+  m_Mesh: {fileID: 6862182960095266441, guid: a9ca3d5f7e10d2d40b69e58335b522ab, type: 3}

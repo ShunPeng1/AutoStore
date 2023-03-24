@@ -6,7 +6,7 @@ public class StackStorageGridItem
 {
     private GridXZ<StackStorageGridItem> _gridXZ;
     private readonly int _xIndex, _zIndex;
-    public float weight;
+    public float weight = 0f;
 
     public StackStorageGridItem(GridXZ<StackStorageGridItem> grid, int x, int z)
     {
