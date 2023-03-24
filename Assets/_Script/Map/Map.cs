@@ -7,15 +7,15 @@ public class Map : MonoBehaviour
 {
     [SerializeField] private int width = 20, height = 20;
     [SerializeField] private float cellWidthSize = 1f, cellHeightSize = 1f;
-    [SerializeField] private GridXZ<StackStorageGridItem> storageGrid = new();
+    public GridXZ<StackStorageGridItem> _storageGrid;
 
     void Start()
     {
-        storageGrid = new GridXZ<StackStorageGridItem>(width, height, cellWidthSize, cellHeightSize, transform.position,
+        _storageGrid = new GridXZ<StackStorageGridItem>(width, height, cellWidthSize, cellHeightSize, transform.position,
             (grid, x, z) =>
             {
                 StackStorage stackStorage = Instantiate(ResourceManager.Instance.stackStorage, grid.GetWorldPosition(x,z),Quaternion.identity ,transform);
-                StackStorageGridItem storageGridItem = new StackStorageGridItem(grid, x, z);
+                StackStorageGridItem storageGridItem = new StackStorageGridItem(grid, x, z, stackStorage);
                 stackStorage.Init(grid, x, z, storageGridItem);
                 return storageGridItem;
             });
@@ -37,7 +37,7 @@ public class Map : MonoBehaviour
             Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
             //Vector3 hitPosition = Physics.Raycast(mousePosition, )
-            storageGrid.GetItem(mousePosition).AddWeight(1f);
+            _storageGrid.GetItem(mousePosition).AddWeight(1f);
         }
     }
 }

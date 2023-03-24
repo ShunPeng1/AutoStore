@@ -4,21 +4,44 @@ using UnityEngine;
 
 public class StackStorageGridItem
 {
-    private GridXZ<StackStorageGridItem> _gridXZ;
+    private readonly GridXZ<StackStorageGridItem> _gridXZ;
     private readonly int _xIndex, _zIndex;
-    public float weight = 0f;
-
-    public StackStorageGridItem(GridXZ<StackStorageGridItem> grid, int x, int z)
+    private float _weight = 0f;
+    private List<StackStorageGridItem> _adjacentItems;
+    public StackStorage stackStorage;
+    public StackStorageGridItem(GridXZ<StackStorageGridItem> grid, int x, int z, StackStorage stackStorage)
     {
         _gridXZ = grid;
         _xIndex = x;
         _zIndex = z;
+        this.stackStorage = stackStorage;
+        //AddAdjacency();
+    }
+
+    public void AddAdjacency()
+    {
+        StackStorageGridItem[] adjacentRawItems =
+        {
+            _gridXZ.GetItem(_xIndex + 1, _zIndex),
+            _gridXZ.GetItem(_xIndex - 1, _zIndex),
+            _gridXZ.GetItem(_xIndex, _zIndex + 1),
+            _gridXZ.GetItem(_xIndex, _zIndex - 1),
+        };
+
+        foreach (var rawItem in adjacentRawItems)
+        {
+            if (rawItem != default(StackStorageGridItem)) _adjacentItems.Add(rawItem);
+            else
+            {
+                Debug.Log("Not adjacency "+ rawItem._xIndex + rawItem._zIndex);
+            }
+        }
     }
 
     public void AddWeight(float adding)
     {
-        weight += adding;
+        _weight += adding;
         Debug.Log("Weigth");
-        _gridXZ.TriggerGridObjectChanged(_xIndex,_zIndex);
+        _gridXZ.TriggerGridObjectChanged(_xIndex, _zIndex);
     }
 }

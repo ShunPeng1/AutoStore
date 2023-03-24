@@ -26,14 +26,14 @@ public class GridXZ<TItem>
         _cellWidthSize = cellWidthSize;
         _originPosition = originPosition;
         _gridItems = new TItem[_width, _height];
-
+        
         for (int x = 0; x < _width; x++)
         {
             for (int z = 0; z < _height; z++)
             {
                 _gridItems[x,z] = createGridItem!=null? createGridItem(this, x, z): default;
-                Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x+1,z), Color.red, 10f);
-                Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x,z+1), Color.red, 10f);
+                //Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x+1,z), Color.red, 10f);
+                //Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x,z+1), Color.red, 10f);
             }
         }
     }
@@ -77,7 +77,7 @@ public class GridXZ<TItem>
     public TItem GetItem(int xIndex, int zIndex)
     {
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0) return _gridItems[xIndex, zIndex];
-        return default;
+        return default(TItem);
     }
     
     public TItem GetItem(Vector3 position)
@@ -87,7 +87,7 @@ public class GridXZ<TItem>
         {
             return _gridItems[xIndex, zIndex];
         }
-        return default;
+        return default(TItem);
     }
     
 }
