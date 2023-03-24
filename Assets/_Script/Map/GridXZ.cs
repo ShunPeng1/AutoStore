@@ -9,7 +9,7 @@ public class GridXZ<T>
     private float _cellWidthSize, _cellHeightSize;
     private Vector3 _originPosition;
 
-    private T[,] _items;
+    private T[,] _gridItems;
     
     public GridXZ(int width = 100, int height = 100, float cellWidthSize = 1f, float cellHeightSize = 1f, Vector3 originPosition = new Vector3(), Func<T> initItem = null)
     {
@@ -18,13 +18,13 @@ public class GridXZ<T>
         _cellHeightSize = cellHeightSize;
         _cellWidthSize = cellWidthSize;
         _originPosition = originPosition;
-        _items = new T[width, height];
+        _gridItems = new T[width, height];
 
         for (int x = 0; x < width; x++)
         {
             for (int z = 0; z < height; z++)
             {
-                _items[x,z] = initItem!=null? initItem.Invoke(): default;
+                _gridItems[x,z] = initItem!=null? initItem.Invoke(): default;
                 Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x+1,z), Color.red, 100f);
                 Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x,z+1), Color.red, 100f);
             }
@@ -45,7 +45,7 @@ public class GridXZ<T>
 
     public void SetItem(T item, int xIndex, int zIndex)
     {
-        if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0) _items[xIndex, zIndex] = item;
+        if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0) _gridItems[xIndex, zIndex] = item;
     }
     
     public void SetItem(T item, Vector3 position)
@@ -53,13 +53,13 @@ public class GridXZ<T>
         (int xIndex, int zIndex) = GetXZ(position);
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0)
         {
-            _items[xIndex, zIndex] = item;
+            _gridItems[xIndex, zIndex] = item;
         };
     }
     
     public T GetItem(int xIndex, int zIndex)
     {
-        if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0) return _items[xIndex, zIndex];
+        if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0) return _gridItems[xIndex, zIndex];
         return default;
     }
     
@@ -68,7 +68,7 @@ public class GridXZ<T>
         (int xIndex, int zIndex) = GetXZ(position);
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0)
         {
-            return _items[xIndex, zIndex];
+            return _gridItems[xIndex, zIndex];
         }
         return default;
     }

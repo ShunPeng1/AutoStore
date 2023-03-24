@@ -4,9 +4,12 @@ using UnityEngine;
 
 public class Map : MonoBehaviour
 {
+    [SerializeField] private int width = 100, height = 100;
+    
     void Start()
     {
-        Grid grid = new Grid(100,100,10f,10f);
+        GridXZ<StackStorage> grid = new GridXZ<StackStorage>(width,height, 1,1, transform.position,
+            );
     }
 
     
