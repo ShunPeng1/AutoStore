@@ -6,11 +6,12 @@ using UnityEngine;
 public class Map : MonoBehaviour
 {
     [SerializeField] private int width = 20, height = 20;
+    [SerializeField] private float cellWidthSize = 1f, cellHeightSize = 1f;
     [SerializeField] private GridXZ<StackStorageGridItem> storageGrid = new();
 
     void Start()
     {
-        storageGrid = new GridXZ<StackStorageGridItem>(width, height, 1, 1, transform.position,
+        storageGrid = new GridXZ<StackStorageGridItem>(width, height, cellWidthSize, cellHeightSize, transform.position,
             (grid, x, z) =>
             {
                 StackStorage stackStorage = Instantiate(ResourceManager.Instance.stackStorage, grid.GetWorldPosition(x,z),Quaternion.identity ,transform);

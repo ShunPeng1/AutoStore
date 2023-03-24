@@ -25,11 +25,11 @@ public class GridXZ<TItem>
         _cellHeightSize = cellHeightSize;
         _cellWidthSize = cellWidthSize;
         _originPosition = originPosition;
-        _gridItems = new TItem[width, height];
+        _gridItems = new TItem[_width, _height];
 
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < _width; x++)
         {
-            for (int z = 0; z < height; z++)
+            for (int z = 0; z < _height; z++)
             {
                 _gridItems[x,z] = createGridItem!=null? createGridItem(this, x, z): default;
                 Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x+1,z), Color.red, 100f);
