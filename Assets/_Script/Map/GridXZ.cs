@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,18 +11,20 @@ public class GridXZ<T>
 
     private T[,] _items;
     
-    public GridXZ(int width = 100, int height = 100, float cellWidthSize = 1f, float cellHeightSize = 1f, Vector3 originPosition = new Vector3())
+    public GridXZ(int width = 100, int height = 100, float cellWidthSize = 1f, float cellHeightSize = 1f, Vector3 originPosition = new Vector3(), Func<T> initItem = null)
     {
         _width = width;
         _height = height;
         _cellHeightSize = cellHeightSize;
         _cellWidthSize = cellWidthSize;
         _originPosition = originPosition;
+        _items = new T[width, height];
 
         for (int x = 0; x < width; x++)
         {
             for (int z = 0; z < height; z++)
             {
+                _items[x,z] = initItem!=null? initItem.Invoke(): default;
                 Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x+1,z), Color.red, 100f);
                 Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x,z+1), Color.red, 100f);
             }
@@ -54,20 +57,20 @@ public class GridXZ<T>
         };
     }
     
-    public object GetItem(int xIndex, int zIndex)
+    public T GetItem(int xIndex, int zIndex)
     {
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0) return _items[xIndex, zIndex];
-        return null;
+        return default;
     }
     
-    public object GetItem(Vector3 position)
+    public T GetItem(Vector3 position)
     {
         (int xIndex, int zIndex) = GetXZ(position);
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0)
         {
             return _items[xIndex, zIndex];
         }
-        return null;
+        return default;
     }
 
 }
