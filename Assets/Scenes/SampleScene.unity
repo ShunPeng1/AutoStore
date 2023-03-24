@@ -591,6 +591,10 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
+      propertyPath: movementSpeed
+      value: 3
+      objectReference: {fileID: 0}
     - target: {fileID: 6291633208248654893, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
       propertyPath: m_Name
       value: R5 Robot

@@ -2,16 +2,17 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityUtilities;
 
-public class Map : MonoBehaviour
+public class MapManager : SingletonMonoBehaviour<MapManager>
 {
     [SerializeField] private int width = 20, height = 20;
     [SerializeField] private float cellWidthSize = 1f, cellHeightSize = 1f;
-    public GridXZ<StackStorageGridItem> _storageGrid;
+    public GridXZ<StackStorageGridItem> storageGrid;
 
     void Start()
     {
-        _storageGrid = new GridXZ<StackStorageGridItem>(width, height, cellWidthSize, cellHeightSize, transform.position,
+        storageGrid = new GridXZ<StackStorageGridItem>(width, height, cellWidthSize, cellHeightSize, transform.position,
             (grid, x, z) =>
             {
                 StackStorage stackStorage = Instantiate(ResourceManager.Instance.stackStorage, grid.GetWorldPosition(x,z),Quaternion.identity ,transform);
@@ -37,7 +38,7 @@ public class Map : MonoBehaviour
             Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
             //Vector3 hitPosition = Physics.Raycast(mousePosition, )
-            _storageGrid.GetItem(mousePosition).AddWeight(1f);
+            storageGrid.GetItem(mousePosition).AddWeight(1f);
         }
     }
 }
