@@ -32,8 +32,8 @@ public class GridXZ<TItem>
             for (int z = 0; z < _height; z++)
             {
                 _gridItems[x,z] = createGridItem!=null? createGridItem(this, x, z): default;
-                Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x+1,z), Color.red, 100f);
-                Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x,z+1), Color.red, 100f);
+                Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x+1,z), Color.red, 10f);
+                Debug.DrawLine(GetWorldPosition(x,z) , GetWorldPosition(x,z+1), Color.red, 10f);
             }
         }
     }
