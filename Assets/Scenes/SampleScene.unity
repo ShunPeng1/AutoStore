@@ -167,8 +167,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 96c693941ae84804bbbb861ec876952a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  width: 20
-  height: 20
+  width: 30
+  height: 30
   cellWidthSize: 1
   cellHeightSize: 1
 --- !u!1 &539441121
@@ -645,6 +645,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6291633208248654894, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6291633208248654895, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
+      propertyPath: m_UseGravity
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
