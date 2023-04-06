@@ -25,8 +25,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
         {
             for (int z = 0; z < height; z++)
             {
-                //StackStorage stackStorage = Instantiate(ResourceManager.Instance.stackStorage, transform);
-                //stackStorage.Init(storageGrid, x, z);
+                storageGrid.GetItem(x,z).SetAdjacency();
             }
         }
     }

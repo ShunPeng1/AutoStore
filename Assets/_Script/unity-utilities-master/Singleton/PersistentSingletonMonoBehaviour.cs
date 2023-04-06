@@ -29,11 +29,8 @@ namespace UnityUtilities
             get { return instance != null; }
         }
 
-        /// <summary>
-        /// Used to skip the first "OnLevelWasLoaded".
-        /// </summary>
-        bool skipOnLevelWasLoaded;
-
+        
+        
         /// <summary>
         /// If this is the first instance of this type:
         /// 1. Register it as the instance.
@@ -58,9 +55,7 @@ namespace UnityUtilities
             OnPersistentSingletonAwake();
             OnAwakeOrSwitch();
 
-            // Make sure to skip "OnLevelWasLoaded" for this first Awake - 
-            // we only want to go there when the scene changes.
-            skipOnLevelWasLoaded = true;
+            
         }
 
         /// <summary>
@@ -86,32 +81,7 @@ namespace UnityUtilities
             }
         }
 
-        /// <summary>
-        /// Called when the scene is first loaded or was switched.
-        /// </summary>
-        void OnLevelWasLoaded()
-        {
-            // First time? Skip it - it's not a scene switch.
-            if (skipOnLevelWasLoaded)
-                return;
-
-            if (Instance == this)
-            {
-                // Call the event methods.
-                OnSceneSwitched();
-                OnAwakeOrSwitch();
-            }
-        }
-
-        /// <summary>
-        /// Disable <see cref="skipOnLevelWasLoaded"/>.
-        /// </summary>
-        protected virtual void Start()
-        {
-            // The first "OnLevelWasLoaded" was called already; disable the skipping.
-            skipOnLevelWasLoaded = false;
-        }
-
+        
         /// <summary>
         /// This method is called when the Awake() method of the first instance of the persistent
         /// singleton is done. This is not called if this is a second instance (which is destroyed

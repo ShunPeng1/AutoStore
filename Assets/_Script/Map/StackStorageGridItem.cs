@@ -7,7 +7,7 @@ public class StackStorageGridItem
     private readonly GridXZ<StackStorageGridItem> _gridXZ;
     private readonly int _xIndex, _zIndex;
     private float _weight = 0f;
-    private List<StackStorageGridItem> _adjacentItems;
+    private List<StackStorageGridItem> _adjacentItems = new ();
     public StackStorage stackStorage;
     public StackStorageGridItem(GridXZ<StackStorageGridItem> grid, int x, int z, StackStorage stackStorage)
     {
@@ -18,23 +18,19 @@ public class StackStorageGridItem
         //AddAdjacency();
     }
 
-    public void AddAdjacency()
+    public void SetAdjacency()
     {
         StackStorageGridItem[] adjacentRawItems =
         {
             _gridXZ.GetItem(_xIndex + 1, _zIndex),
             _gridXZ.GetItem(_xIndex - 1, _zIndex),
             _gridXZ.GetItem(_xIndex, _zIndex + 1),
-            _gridXZ.GetItem(_xIndex, _zIndex - 1),
+            _gridXZ.GetItem(_xIndex, _zIndex - 1)
         };
 
         foreach (var rawItem in adjacentRawItems)
         {
-            if (rawItem != default(StackStorageGridItem)) _adjacentItems.Add(rawItem);
-            else
-            {
-                Debug.Log("Not adjacency "+ rawItem._xIndex + rawItem._zIndex);
-            }
+            if (rawItem != null) _adjacentItems.Add(rawItem);
         }
     }
 
