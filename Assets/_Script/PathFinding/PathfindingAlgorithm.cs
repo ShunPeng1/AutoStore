@@ -13,6 +13,6 @@ public class PathfindingAlgorithm<TGrid>
     
     public virtual void FindPath()
     {
-        Debug.Log("Find path");
+        
     }
 }
