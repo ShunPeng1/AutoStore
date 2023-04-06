@@ -30,8 +30,13 @@ public class StackStorageGridItem
 
         foreach (var rawItem in adjacentRawItems)
         {
-            if (rawItem != null) _adjacentItems.Add(rawItem);
+            if (rawItem != null)
+            {
+                _adjacentItems.Add(rawItem);
+                Debug.Log("("+_xIndex+","+_zIndex+") adjacent to ("+rawItem._xIndex+","+rawItem._zIndex+")");
+            }
         }
+        
     }
 
     public void AddWeight(float adding)

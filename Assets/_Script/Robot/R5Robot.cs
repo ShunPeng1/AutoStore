@@ -10,22 +10,25 @@ public class R5Robot : MonoBehaviour
     private float movementSpeed = 1f;
 
     [SerializeField] private float preemptiveDistance = 0.05f;
+    [SerializeField]private int _xIndex, _zIndex;
 
     private Vector3 _moveToPosition;
     private GridXZ<StackStorageGridItem> _currentGrid;
-    private int _xIndex, _zIndex;
-
+    
     IEnumerator Start()
     {
+        _moveToPosition = transform.position;
         yield return null;
         _currentGrid = MapManager.Instance.storageGrid;
-        _moveToPosition = transform.position;
         (_xIndex, _zIndex) = _currentGrid.GetXZ(transform.position);
+        yield return null;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(_currentGrid == null) return;
+        
         transform.position = Vector3.MoveTowards(transform.position, _moveToPosition, movementSpeed * Time.deltaTime);
         if (Vector3.Distance(transform.position, _moveToPosition) <= preemptiveDistance)
         {

@@ -6,13 +6,15 @@ using UnityUtilities;
 
 public class MapManager : SingletonMonoBehaviour<MapManager>
 {
-    [SerializeField] private int width = 20, height = 20;
-    [SerializeField] private float cellWidthSize = 1f, cellHeightSize = 1f;
+    [SerializeField] private int _width = 20, _height = 20;
+    [SerializeField] private float _cellWidthSize = 1f, _cellHeightSize = 1f;
     public GridXZ<StackStorageGridItem> storageGrid;
 
+    [Header("PathFinding")] [SerializeField]
+    private AStarPathFinding _pathfindingAlgorithm;
     void Start()
     {
-        storageGrid = new GridXZ<StackStorageGridItem>(width, height, cellWidthSize, cellHeightSize, transform.position,
+        storageGrid = new GridXZ<StackStorageGridItem>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position,
             (grid, x, z) =>
             {
                 StackStorage stackStorage = Instantiate(ResourceManager.Instance.stackStorage, grid.GetWorldPosition(x,z),Quaternion.identity ,transform);
@@ -21,13 +23,15 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
                 return storageGridItem;
             });
 
-        for (int x = 0; x < width; x++)
+        for (int x = 0; x < _width; x++)
         {
-            for (int z = 0; z < height; z++)
+            for (int z = 0; z < _height; z++)
             {
                 storageGrid.GetItem(x,z).SetAdjacency();
             }
         }
+
+        _pathfindingAlgorithm = new AStarPathFinding(storageGrid);
     }
 
     private void Update()
@@ -39,5 +43,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
             //Vector3 hitPosition = Physics.Raycast(mousePosition, )
             storageGrid.GetItem(mousePosition).AddWeight(1f);
         }
+        
+        _pathfindingAlgorithm.FindPath();
     }
 }

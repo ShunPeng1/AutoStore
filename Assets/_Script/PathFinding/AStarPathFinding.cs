@@ -2,17 +2,15 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AStarPathFinding : MonoBehaviour
+public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridItem>>
 {
-    // Start is called before the first frame update
-    void Start()
+    public AStarPathFinding(GridXZ<StackStorageGridItem> gridXZ) : base(gridXZ)
     {
-        
+        Debug.Log("Init A Star");
+    }
+    public override void FindPath()
+    {
+        //Debug.Log("Find path");
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }
