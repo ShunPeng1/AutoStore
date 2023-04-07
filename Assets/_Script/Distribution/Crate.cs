@@ -1,34 +1,25 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Crate : MonoBehaviour
 {
-    public int currentX
-    {
-        get => currentX;
-        set => currentX = value;
-    }
+    private GridXZ<StackStorageGridItem> _storageGrid;
 
-    public int currentZ
-    {
-        get => currentZ;
-        set => currentZ = value;
-    }
-    
-    public int storingX
-    {
-        get => storingX;
-        set => storingX = value;
-    }
-    public int storingZ
-    {
-        get => storingZ;
-        set => storingZ = value;
-    }
-
-    public void Init()
+    public int currentX;
+    public int currentZ;
+    public int storingX;
+    public int storingZ;
+    private void Start()
     {
         
+    }
+
+    public void Init(GridXZ<StackStorageGridItem> storageGrid, int destinationX, int destinationZ)
+    {
+        _storageGrid = storageGrid;
+        storingX = destinationX;
+        storingZ = destinationZ;
     }
 }

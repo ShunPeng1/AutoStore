@@ -27,12 +27,12 @@ public class R5Robot : Robot
         yield return null;
         _currentGrid = MapManager.Instance.storageGrid;
         (_xIndex, _zIndex) = _currentGrid.GetXZ(transform.position);
-        yield return null;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(_currentGrid == null) return;
         MoveAlongGrid();
         ShowPath();
     }
@@ -40,8 +40,6 @@ public class R5Robot : Robot
     
     private void MoveAlongGrid()
     {
-        if(_currentGrid == null) return;
-        
         transform.position = Vector3.MoveTowards(transform.position, _moveToPosition, movementSpeed * Time.deltaTime);
         if (Vector3.Distance(transform.position, _moveToPosition) <= preemptiveDistance)
         {

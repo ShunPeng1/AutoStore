@@ -10,7 +10,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 {
     [Header("Bundle Spawn")] 
     [SerializeField, Range(1f, 100f)] private float spawnRate = 5f;
- 
+    [SerializeField, Range(1, 100)] private int maxPendingCrate = 100; 
 
         
     private GridXZ<StackStorageGridItem> _storageGrid;
@@ -18,14 +18,15 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     
     private float _currentTime = 0f;
     private List<Crate> _pendingCrates = new();
-    private List<Robot> _robots;
+    private Robot[] _robots;
 
     IEnumerator Start()
     {
         yield return null;
         _storageGrid = MapManager.Instance.storageGrid;
         (width,height) = _storageGrid.GetWidthHeight();
-        
+
+        _robots = FindObjectsOfType<Robot>();
     }
 
     void Update()
@@ -34,7 +35,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         if (_currentTime >= spawnRate)
         {
             CreateBundle();
-            _currentTime -= spawnRate;
+            _currentTime = 0;
         }
 
         foreach (var bundle in _pendingCrates)
@@ -57,12 +58,12 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
     void CreateBundle()
     {
-        var freshCrate = Instantiate(ResourceManager.Instance.crate, transform);
-        freshCrate.currentX = Random.Range(0, width);
-        freshCrate.currentZ = Random.Range(0, height);
-        freshCrate.storingX = Random.Range(0, width);
-        freshCrate.storingZ = Random.Range(0, height);
-        
+        int currentX = Random.Range(0, width), currentZ = Random.Range(0, height);
+        int storingX = Random.Range(0, width), storingZ = Random.Range(0, height);
+        var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(), 
+            _storageGrid.GetWorldPosition(currentX,currentZ), Quaternion.identity);
+
+        freshCrate.Init(_storageGrid, storingX, storingZ);
         _pendingCrates.Add(freshCrate);
     }
 }
