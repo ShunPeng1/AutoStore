@@ -75,14 +75,25 @@ public class R5Robot : MonoBehaviour
 
     private void PathFinding()
     {
-        var startCell = _currentGrid.GetItem(transform.position);
+        var startCell = _currentGrid.GetItem(_xIndex, _zIndex);
         var endCell = _currentGrid.GetItem(testDestination.position);
         
-        var nextDestination = MapManager.Instance.RequestPath(startCell, endCell)[1];
+        var path = MapManager.Instance.RequestPath(startCell, endCell);
+        if (path == null || path.Count <= 1) return;
+
+        var nextDestination = path[1];
+        /*if (Mathf.Abs(nextDestination.xIndex - _xIndex) + Mathf.Abs(nextDestination.zIndex - _zIndex) >= 2)
+        {
+            Debug.Log("Skip "+ _xIndex+" "+_zIndex +" to" + nextDestination.xIndex + " "+ nextDestination.xIndex);
+        
+        }
+        */
         
         
-        _moveToPosition = nextDestination.stackStorage.transform.position;
         _xIndex = nextDestination.xIndex;
         _zIndex = nextDestination.zIndex;
+        _moveToPosition = _currentGrid.GetWorldPosition(_xIndex, _zIndex) + Vector3.up * transform.position.y;
+        
+        //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
 }

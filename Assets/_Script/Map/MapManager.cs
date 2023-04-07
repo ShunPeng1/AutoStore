@@ -47,7 +47,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
 
     private void Update()
     {
-        
+        DebugPathfinding();   
     }
 
     void DebugPathfinding()
