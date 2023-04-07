@@ -2,19 +2,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Robot : MonoBehaviour
+public abstract class Robot : MonoBehaviour
 {
     public enum RobotState
     {
         Idle,
-        Deliver,
-        Reorganize
+        Delivering,
+        Retrieving
     }
 
     public RobotState robotState = RobotState.Idle;
-
-    public virtual void GetCrate()
-    {
-        
-    }
+    protected Crate holdingCrate;
+    
+    public abstract void TransportCrate(Crate crate);
+    public abstract void PickUpCrate();
+    public abstract void DropDownCrate();
 }

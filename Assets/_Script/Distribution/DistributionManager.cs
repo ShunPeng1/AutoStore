@@ -17,7 +17,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     private int width, height;
     
     private float _currentTime = 0f;
-    private List<Crate> _pendingCrates = new();
+    private Queue<Crate> _pendingCrates = new();
     private Robot[] _robots;
 
     IEnumerator Start()
@@ -38,14 +38,16 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             _currentTime = 0;
         }
 
-        foreach (var bundle in _pendingCrates)
+        while  (_pendingCrates.Count > 0)
         {
+            var crate = _pendingCrates.Dequeue();
+  
             bool isAllBusy = true;
             foreach (var robot in _robots)
             {
                 if (robot.robotState == Robot.RobotState.Idle)
                 {
-                    
+                    robot.TransportCrate(crate);
                     isAllBusy = false;
                     break;
                 }
@@ -56,7 +58,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         }
     }
 
-    void CreateBundle()
+    private void CreateBundle()
     {
         int currentX = Random.Range(0, width), currentZ = Random.Range(0, height);
         int storingX = Random.Range(0, width), storingZ = Random.Range(0, height);
@@ -64,6 +66,15 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             _storageGrid.GetWorldPosition(currentX,currentZ), Quaternion.identity);
 
         freshCrate.Init(_storageGrid, storingX, storingZ);
-        _pendingCrates.Add(freshCrate);
+        _pendingCrates.Enqueue(freshCrate);
+    }
+
+    public void RequestMission(Robot robot)
+    {
+        if (_pendingCrates.Count > 0)
+        {
+            var crate = _pendingCrates.Dequeue(); 
+            robot.TransportCrate(crate);
+        } 
     }
 }
