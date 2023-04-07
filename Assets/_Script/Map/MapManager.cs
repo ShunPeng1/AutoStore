@@ -10,11 +10,9 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     [SerializeField] private float _cellWidthSize = 1f, _cellHeightSize = 1f;
     public GridXZ<StackStorageGridItem> storageGrid;
 
-    [Header("PathFinding")] [SerializeField]
-    private AStarPathFinding _pathfindingAlgorithm;
-    [SerializeField] private LineRenderer debugLineRenderer;
-    [SerializeField] private Transform startNode;
-    [SerializeField] private Transform endNode;
+    [Header("PathFinding")] 
+    public AStarPathFinding pathfindingAlgorithm;
+    
     
     void Start()
     {
@@ -35,29 +33,16 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
             }
         }
 
-        _pathfindingAlgorithm = new AStarPathFinding(storageGrid);
+        pathfindingAlgorithm = new AStarPathFinding(storageGrid);
         
         
     }
 
     public List<StackStorageGridItem> RequestPath(StackStorageGridItem startCell, StackStorageGridItem endCell)
     {
-        return _pathfindingAlgorithm.FindPath(startCell,endCell);
+        return pathfindingAlgorithm.FindPath(startCell,endCell);
     }
 
-    private void Update()
-    {
-        DebugPathfinding();   
-    }
+    
 
-    void DebugPathfinding()
-    {
-        List<StackStorageGridItem> path = _pathfindingAlgorithm.FindPath(storageGrid.GetItem(startNode.position), storageGrid.GetItem(endNode.position));
-
-        debugLineRenderer.positionCount = path.Count;
-        for (int i = 0; i < path.Count; i++)
-        {
-            debugLineRenderer.SetPosition(i, path[i].stackStorage.transform.position);
-        }
-    }
 }

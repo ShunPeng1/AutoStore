@@ -76,4 +76,6 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridItem
 
         return xDiff > zDiff ? 14*zDiff+ 10*(xDiff-zDiff) : 14*xDiff + 10*(zDiff-xDiff);
     }
+    
+    
 }

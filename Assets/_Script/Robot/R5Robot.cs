@@ -10,14 +10,17 @@ public class R5Robot : MonoBehaviour
     private float movementSpeed = 1f;
 
     [SerializeField] private float preemptiveDistance = 0.05f;
-    [SerializeField]private int _xIndex, _zIndex;
+    private int _xIndex, _zIndex;
 
     private Vector3 _moveToPosition;
     private GridXZ<StackStorageGridItem> _currentGrid;
 
 
+    [Header("PathFinding")]
+    [SerializeField] private LineRenderer debugLineRenderer;
     [SerializeField] private Transform testDestination;
-    
+    private List<StackStorageGridItem> _path;
+
     IEnumerator Start()
     {
         _moveToPosition = transform.position;
@@ -30,7 +33,8 @@ public class R5Robot : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        MoveAlongGrid();          
+        MoveAlongGrid();
+        ShowPath();
     }
 
     
@@ -78,22 +82,25 @@ public class R5Robot : MonoBehaviour
         var startCell = _currentGrid.GetItem(_xIndex, _zIndex);
         var endCell = _currentGrid.GetItem(testDestination.position);
         
-        var path = MapManager.Instance.RequestPath(startCell, endCell);
-        if (path == null || path.Count <= 1) return;
+        _path = MapManager.Instance.RequestPath(startCell, endCell);
+        if (_path == null || _path.Count <= 1) return;
 
-        var nextDestination = path[1];
-        /*if (Mathf.Abs(nextDestination.xIndex - _xIndex) + Mathf.Abs(nextDestination.zIndex - _zIndex) >= 2)
-        {
-            Debug.Log("Skip "+ _xIndex+" "+_zIndex +" to" + nextDestination.xIndex + " "+ nextDestination.xIndex);
-        
-        }
-        */
-        
-        
+        var nextDestination = _path[1];
+
         _xIndex = nextDestination.xIndex;
         _zIndex = nextDestination.zIndex;
         _moveToPosition = _currentGrid.GetWorldPosition(_xIndex, _zIndex) + Vector3.up * transform.position.y;
         
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
+    }
+    
+    
+    void ShowPath()
+    {
+        debugLineRenderer.positionCount = _path.Count;
+        for (int i = 0; i < _path.Count; i++)
+        {
+            debugLineRenderer.SetPosition(i, _path[i].stackStorage.transform.position);
+        }
     }
 }
