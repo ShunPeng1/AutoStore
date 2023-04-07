@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Video;
 
-public class R5Robot : MonoBehaviour
+public class R5Robot : Robot
 {
     [Header("Grid Movement")] [SerializeField]
     private float movementSpeed = 1f;
