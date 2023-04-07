@@ -17,7 +17,7 @@ public class R5Robot : Robot
     
     IEnumerator Start()
     {
-        _destination = _nextCellPosition = transform.position;
+        _destinationPosition = _nextCellPosition = transform.position;
         yield return null;
         _currentGrid = MapManager.Instance.storageGrid;
         (_xIndex, _zIndex) = _currentGrid.GetXZ(transform.position);
@@ -42,7 +42,7 @@ public class R5Robot : Robot
 
     private void DetectNearByRobot()
     {
-        if (robotState == RobotState.Idle) return;
+        if (robotState is RobotState.Idle or RobotState.Jamming) return;
         var deltaCastPosition = tailCast.position - headCast.position;
         var hits = Physics.SphereCastAll(headCast.position, castRadius, deltaCastPosition, deltaCastPosition.magnitude,robotLayerMask);
 
@@ -53,16 +53,27 @@ public class R5Robot : Robot
             {
                 continue;
             }
-            if (id < robotHit.id && robotHit.robotState != RobotState.Idle)
+            /*if (id < robotHit.id && robotHit.robotState != RobotState.Idle)
+            {
+                Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
+                
+                return;
+            }*/
+
+            if (IsDirectionHeading(hit.transform.position, 45))
             {
                 Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
                 StartCoroutine(nameof(Jamming));
-                return;
             }
+            
         }
     }
 
-    
+    bool IsDirectionHeading(Vector3 hitPosition, float thresholdAngle)
+    {
+        Debug.Log("Angle "+Vector3.Angle(hitPosition - transform.position, _nextCellPosition - transform.position));
+        return (Vector3.Angle(hitPosition - transform.position, _nextCellPosition - transform.position) < thresholdAngle);
+    }
     
     IEnumerator Jamming()
     {
@@ -74,7 +85,7 @@ public class R5Robot : Robot
 
     private void MoveAlongGrid()
     {
-        if (robotState == RobotState.Jamming) return;
+        if (robotState is RobotState.Jamming) return;
         transform.position = Vector3.MoveTowards(transform.position, _nextCellPosition, movementSpeed * Time.deltaTime);
         if (Vector3.Distance(transform.position, _nextCellPosition) <= preemptiveDistance)
         {
@@ -114,7 +125,7 @@ public class R5Robot : Robot
     private void PathFinding()
     {
         var startCell = _currentGrid.GetItem(_xIndex, _zIndex);
-        var endCell = _currentGrid.GetItem(_destination);
+        var endCell = _currentGrid.GetItem(_destinationPosition);
 
         _path = MapManager.Instance.RequestPath(startCell, endCell);
         if (_path == null || _path.Count <= 1) return;
@@ -141,7 +152,7 @@ public class R5Robot : Robot
     public override void TransportCrate(Crate crate)
     {
         holdingCrate = crate;
-        _destination = crate.transform.position;
+        _destinationPosition = crate.transform.position;
         robotState = RobotState.Retrieving;
     }
 
@@ -149,7 +160,7 @@ public class R5Robot : Robot
     {
         if (robotState == RobotState.Retrieving && _currentGrid.GetXZ(transform.position) == _currentGrid.GetXZ(holdingCrate.transform.position))
         {
-            _destination = _currentGrid.GetWorldPosition(holdingCrate.storingX, holdingCrate.storingZ);
+            _destinationPosition = _currentGrid.GetWorldPosition(holdingCrate.storingX, holdingCrate.storingZ);
             holdingCrate.transform.SetParent(transform);
             robotState = RobotState.Delivering;
         }

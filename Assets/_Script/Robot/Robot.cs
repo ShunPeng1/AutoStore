@@ -20,7 +20,7 @@ namespace _Script.Robot
 
         [Header("PathFinding")] [SerializeField]
         protected LineRenderer debugLineRenderer;
-        protected Vector3 _destination;
+        protected Vector3 _destinationPosition;
         protected List<StackStorageGridCell> _path;
 
     
