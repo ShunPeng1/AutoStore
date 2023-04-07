@@ -4,16 +4,16 @@ using Priority_Queue;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridItem>>
+public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell>>
 {
-    public AStarPathFinding(GridXZ<StackStorageGridItem> gridXZ) : base(gridXZ)
+    public AStarPathFinding(GridXZ<StackStorageGridCell> gridXZ) : base(gridXZ)
     {
         Debug.Log("Init A Star");
     }
-    public List<StackStorageGridItem> FindPath(StackStorageGridItem startNode, StackStorageGridItem endNode)
+    public List<StackStorageGridCell> FindPath(StackStorageGridCell startNode, StackStorageGridCell endNode)
     {
-        Priority_Queue.SimplePriorityQueue<StackStorageGridItem> openSet = new ();
-        HashSet<StackStorageGridItem> closeSet = new();
+        Priority_Queue.SimplePriorityQueue<StackStorageGridCell> openSet = new ();
+        HashSet<StackStorageGridCell> closeSet = new();
         openSet.Enqueue(startNode, startNode.fCost);
         
         while (openSet.Count > 0)
@@ -38,7 +38,7 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridItem
                 {
                     adjacentItem.gCost = newGCostToNeighbour;
                     adjacentItem.hCost = GetDistanceCost(adjacentItem, endNode);
-                    adjacentItem.parentItem = currentMinFCostItem;
+                    adjacentItem.parentCell = currentMinFCostItem;
 
                     if (!openSet.Contains(adjacentItem))
                     {
@@ -55,26 +55,27 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridItem
     /// <summary>
     /// Get a forward Item that the pathfinding was found
     /// </summary>
-    List<StackStorageGridItem> Retrace(StackStorageGridItem start, StackStorageGridItem end)
+    List<StackStorageGridCell> Retrace(StackStorageGridCell start, StackStorageGridCell end)
     {
-        List<StackStorageGridItem> path = new();
-        StackStorageGridItem currentNode = end;
+        List<StackStorageGridCell> path = new();
+        StackStorageGridCell currentNode = end;
         while (currentNode != start && currentNode!= null)
         {
             //Debug.Log("Path "+ currentNode.xIndex +" "+ currentNode.zIndex );
             path.Add(currentNode);
-            currentNode = currentNode.parentItem;
+            currentNode = currentNode.parentCell;
         }
         path.Add(start);
         path.Reverse();
         return path;
     }
 
-    private int GetDistanceCost(StackStorageGridItem start, StackStorageGridItem end)
+    private int GetDistanceCost(StackStorageGridCell start, StackStorageGridCell end)
     {
-        (int xDiff, int zDiff) = StackStorageGridItem.GetIndexDifferenceAbsolute(start, end);
+        (int xDiff, int zDiff) = StackStorageGridCell.GetIndexDifferenceAbsolute(start, end);
 
-        return xDiff > zDiff ? 14*zDiff+ 10*(xDiff-zDiff) : 14*xDiff + 10*(zDiff-xDiff);
+        //return xDiff > zDiff ? 14*zDiff+ 10*(xDiff-zDiff) : 14*xDiff + 10*(zDiff-xDiff);
+        return 10 * xDiff + 10 * zDiff;
     }
     
     

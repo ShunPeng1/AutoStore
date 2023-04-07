@@ -1,26 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.Robot;
 using UnityEngine;
 using UnityEngine.Video;
 
 public class R5Robot : Robot
 {
-    [Header("Movement")] [SerializeField] private float movementSpeed = 1f;
-    [SerializeField] private Transform pickUpPlace;
 
-    [SerializeField] private float preemptiveDistance = 0.05f;
-    private int _xIndex, _zIndex;
-
-    private Vector3 _nextCellPosition;
-    private GridXZ<StackStorageGridItem> _currentGrid;
-
-
-    [Header("PathFinding")] [SerializeField]
-    private LineRenderer debugLineRenderer;
-    private Vector3 _destination;
-    private List<StackStorageGridItem> _path;
-
+    [Header("Casting")] 
+    [SerializeField] private Transform headCast;
+    [SerializeField] private Transform tailCast;
+    [SerializeField] private float castRadius;
+    [SerializeField] private LayerMask robotLayerMask;
+    [SerializeField, Range(0.5f,5f)] private float jamWait = 1f;
+    
     IEnumerator Start()
     {
         _destination = _nextCellPosition = transform.position;
@@ -34,14 +28,53 @@ public class R5Robot : Robot
     void Update()
     {
         if (_currentGrid == null) return;
+        DetectNearByRobot();
         MoveAlongGrid();
         ShowPath();
         
     }
 
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawWireSphere(headCast.position, castRadius);
+        Gizmos.DrawWireSphere(tailCast.position, castRadius);
+    }
+
+    private void DetectNearByRobot()
+    {
+        if (robotState == RobotState.Idle) return;
+        var deltaCastPosition = tailCast.position - headCast.position;
+        var hits = Physics.SphereCastAll(headCast.position, castRadius, deltaCastPosition, deltaCastPosition.magnitude,robotLayerMask);
+
+        foreach (var hit in hits)
+        { 
+            var robotHit = hit.collider.gameObject.GetComponent<Robot>();
+            if (robotHit == this)
+            {
+                continue;
+            }
+            if (id < robotHit.id && robotHit.robotState != RobotState.Idle)
+            {
+                Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
+                StartCoroutine(nameof(Jamming));
+                return;
+            }
+        }
+    }
+
+    
+    
+    IEnumerator Jamming()
+    {
+        RobotState lastRobotState = robotState;
+        robotState = RobotState.Jamming;
+        yield return new WaitForSeconds(jamWait);
+        robotState = lastRobotState;
+    }
 
     private void MoveAlongGrid()
     {
+        if (robotState == RobotState.Jamming) return;
         transform.position = Vector3.MoveTowards(transform.position, _nextCellPosition, movementSpeed * Time.deltaTime);
         if (Vector3.Distance(transform.position, _nextCellPosition) <= preemptiveDistance)
         {
@@ -58,7 +91,7 @@ public class R5Robot : Robot
         {
             var item = _currentGrid.GetItem(_xIndex + (int)horizontal, _zIndex);
             // If walkable
-            if (item != default(StackStorageGridItem))
+            if (item != default(StackStorageGridCell))
             {
                 _xIndex += (int)horizontal;
                 _nextCellPosition = _currentGrid.GetWorldPosition(_xIndex, _zIndex) +
@@ -69,7 +102,7 @@ public class R5Robot : Robot
         {
             var item = _currentGrid.GetItem(_xIndex, _zIndex + (int)vertical);
             // If walkable
-            if (item != default(StackStorageGridItem))
+            if (item != default(StackStorageGridCell))
             {
                 _zIndex += (int)vertical;
                 _nextCellPosition = _currentGrid.GetWorldPosition(_xIndex, _zIndex) +
