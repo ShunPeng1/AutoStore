@@ -4,20 +4,19 @@ using UnityEngine;
 
 public class StackStorageGridItem
 {
+    [Header("Base")]
     private readonly GridXZ<StackStorageGridItem> _gridXZ;
     private readonly int _xIndex, _zIndex;
-    private float _weight = 0f;
     public List<StackStorageGridItem> adjacentItems = new ();
     public StackStorage stackStorage;
 
-    public int FCost
-    {
-        get => FCost;
-        set => FCost = value;
-    }
-
-    private int hCost;
-    private int gCost;
+    [Header("A Star Pathfinding")] 
+    public StackStorageGridItem parentItem; 
+    public int fCost => hCost+gCost;
+    public int hCost;
+    public int gCost;
+    private float _weight = 0f;
+    
     public StackStorageGridItem(GridXZ<StackStorageGridItem> grid, int x, int z, StackStorage stackStorage)
     {
         _gridXZ = grid;
@@ -55,8 +54,13 @@ public class StackStorageGridItem
         _gridXZ.TriggerGridObjectChanged(_xIndex, _zIndex);
     }
 
-    public static Vector2 GetIndexDistance(StackStorageGridItem first, StackStorageGridItem second)
+    public static (int xDiff, int zDiff) GetIndexDifference(StackStorageGridItem first, StackStorageGridItem second)
     {
-        return new Vector2(0, 0);
+        return (second._xIndex - first._xIndex , second._zIndex-first._zIndex);
+    }
+    
+    public static (int xDiff, int zDiff) GetIndexDifferenceAbsolute(StackStorageGridItem first, StackStorageGridItem second)
+    {
+        return (Mathf.Abs(second._xIndex - first._xIndex), Mathf.Abs(second._zIndex - first._zIndex));
     }
 }

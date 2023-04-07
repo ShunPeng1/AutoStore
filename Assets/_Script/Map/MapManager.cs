@@ -12,6 +12,10 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
 
     [Header("PathFinding")] [SerializeField]
     private AStarPathFinding _pathfindingAlgorithm;
+    private LineRenderer debugLineRenderer;
+    private Transform startNode;
+    private Transform endNode;
+    
     void Start()
     {
         storageGrid = new GridXZ<StackStorageGridItem>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position,
@@ -36,14 +40,18 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
 
     private void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector3 mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-
-            //Vector3 hitPosition = Physics.Raycast(mousePosition, )
-            storageGrid.GetItem(mousePosition).AddWeight(1f);
-        }
+        DebugPathfinding();
         
-        _pathfindingAlgorithm.FindPath();
+    }
+
+    void DebugPathfinding()
+    {
+        List<StackStorageGridItem> path = _pathfindingAlgorithm.FindPath(storageGrid.GetItem(startNode.position), storageGrid.GetItem(endNode.position));
+
+        debugLineRenderer.positionCount = path.Count;
+        for (int i = 0; i < path.Count; i++)
+        {
+            debugLineRenderer.SetPosition(i, path[i].stackStorage.transform.position);
+        }
     }
 }
