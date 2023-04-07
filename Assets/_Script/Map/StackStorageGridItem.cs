@@ -6,7 +6,7 @@ public class StackStorageGridItem
 {
     [Header("Base")]
     private readonly GridXZ<StackStorageGridItem> _gridXZ;
-    private readonly int _xIndex, _zIndex;
+    public readonly int xIndex, zIndex;
     public List<StackStorageGridItem> adjacentItems = new ();
     public StackStorage stackStorage;
 
@@ -20,8 +20,8 @@ public class StackStorageGridItem
     public StackStorageGridItem(GridXZ<StackStorageGridItem> grid, int x, int z, StackStorage stackStorage)
     {
         _gridXZ = grid;
-        _xIndex = x;
-        _zIndex = z;
+        xIndex = x;
+        zIndex = z;
         this.stackStorage = stackStorage;
         //AddAdjacency();
     }
@@ -30,10 +30,10 @@ public class StackStorageGridItem
     {
         StackStorageGridItem[] adjacentRawItems =
         {
-            _gridXZ.GetItem(_xIndex + 1, _zIndex),
-            _gridXZ.GetItem(_xIndex - 1, _zIndex),
-            _gridXZ.GetItem(_xIndex, _zIndex + 1),
-            _gridXZ.GetItem(_xIndex, _zIndex - 1)
+            _gridXZ.GetItem(xIndex + 1, zIndex),
+            _gridXZ.GetItem(xIndex - 1, zIndex),
+            _gridXZ.GetItem(xIndex, zIndex + 1),
+            _gridXZ.GetItem(xIndex, zIndex - 1)
         };
 
         foreach (var rawItem in adjacentRawItems)
@@ -51,16 +51,16 @@ public class StackStorageGridItem
     {
         _weight += adding;
         Debug.Log("Weigth");
-        _gridXZ.TriggerGridObjectChanged(_xIndex, _zIndex);
+        _gridXZ.TriggerGridObjectChanged(xIndex, zIndex);
     }
 
     public static (int xDiff, int zDiff) GetIndexDifference(StackStorageGridItem first, StackStorageGridItem second)
     {
-        return (second._xIndex - first._xIndex , second._zIndex-first._zIndex);
+        return (second.xIndex - first.xIndex , second.zIndex-first.zIndex);
     }
     
     public static (int xDiff, int zDiff) GetIndexDifferenceAbsolute(StackStorageGridItem first, StackStorageGridItem second)
     {
-        return (Mathf.Abs(second._xIndex - first._xIndex), Mathf.Abs(second._zIndex - first._zIndex));
+        return (Mathf.Abs(second.xIndex - first.xIndex), Mathf.Abs(second.zIndex - first.zIndex));
     }
 }

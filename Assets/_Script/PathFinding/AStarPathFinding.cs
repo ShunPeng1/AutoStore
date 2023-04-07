@@ -28,7 +28,7 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridItem
 
             foreach (var adjacentItem in currentMinFCostItem.adjacentItems)
             {
-                if (false) // Not traversable
+                if (closeSet.Contains(adjacentItem))
                 {
                     continue;
                 }
@@ -61,9 +61,11 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridItem
         StackStorageGridItem currentNode = end;
         while (currentNode != start && currentNode!= null)
         {
+            Debug.Log("Path "+ currentNode.xIndex +" "+ currentNode.zIndex );
             path.Add(currentNode);
             currentNode = currentNode.parentItem;
         }
+        path.Add(start);
         path.Reverse();
         return path;
     }
