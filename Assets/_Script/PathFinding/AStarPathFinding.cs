@@ -59,7 +59,7 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridItem
     {
         List<StackStorageGridItem> path = new();
         StackStorageGridItem currentNode = end;
-        while (currentNode != start)
+        while (currentNode != start && currentNode!= null)
         {
             path.Add(currentNode);
             currentNode = currentNode.parentItem;

@@ -12,9 +12,9 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
 
     [Header("PathFinding")] [SerializeField]
     private AStarPathFinding _pathfindingAlgorithm;
-    private LineRenderer debugLineRenderer;
-    private Transform startNode;
-    private Transform endNode;
+    [SerializeField] private LineRenderer debugLineRenderer;
+    [SerializeField] private Transform startNode;
+    [SerializeField] private Transform endNode;
     
     void Start()
     {
@@ -36,12 +36,13 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
         }
 
         _pathfindingAlgorithm = new AStarPathFinding(storageGrid);
+        
+        
+        DebugPathfinding();
     }
 
     private void Update()
     {
-        DebugPathfinding();
-        
     }
 
     void DebugPathfinding()

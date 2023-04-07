@@ -11,7 +11,7 @@ public class StackStorageGridItem
     public StackStorage stackStorage;
 
     [Header("A Star Pathfinding")] 
-    public StackStorageGridItem parentItem; 
+    public StackStorageGridItem parentItem = null; 
     public int fCost => hCost+gCost;
     public int hCost;
     public int gCost;
@@ -41,7 +41,7 @@ public class StackStorageGridItem
             if (rawItem != null)
             {
                 adjacentItems.Add(rawItem);
-                Debug.Log("("+_xIndex+","+_zIndex+") adjacent to ("+rawItem._xIndex+","+rawItem._zIndex+")");
+                //Debug.Log("("+_xIndex+","+_zIndex+") adjacent to ("+rawItem._xIndex+","+rawItem._zIndex+")");
             }
         }
         
