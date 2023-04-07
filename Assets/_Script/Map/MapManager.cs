@@ -38,11 +38,16 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
         _pathfindingAlgorithm = new AStarPathFinding(storageGrid);
         
         
-        DebugPathfinding();
+    }
+
+    public List<StackStorageGridItem> RequestPath(StackStorageGridItem startCell, StackStorageGridItem endCell)
+    {
+        return _pathfindingAlgorithm.FindPath(startCell,endCell);
     }
 
     private void Update()
     {
+        
     }
 
     void DebugPathfinding()
