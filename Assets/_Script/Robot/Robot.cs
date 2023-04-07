@@ -13,5 +13,8 @@ public class Robot : MonoBehaviour
 
     public RobotState robotState = RobotState.Idle;
 
-    
+    public virtual void GetCrate()
+    {
+        
+    }
 }

@@ -413,6 +413,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stackStorage: {fileID: -2770273418346727713, guid: 2c26dccba7622554ba6b7e0883699230, type: 3}
+  crate: {fileID: 0}
 --- !u!1 &639471471
 GameObject:
   m_ObjectHideFlags: 0

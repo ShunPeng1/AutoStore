@@ -5,6 +5,7 @@ using UnityUtilities;
 
 public class ResourceManager : PersistentSingletonMonoBehaviour<ResourceManager>
 {
-    [Header("Stack")] [SerializeField] public StackStorage stackStorage;
+    [Header("Storage")] public StackStorage stackStorage;
 
+    [Header("Bundle")] public Crate crate;
 }

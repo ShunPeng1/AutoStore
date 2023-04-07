@@ -89,5 +89,10 @@ public class GridXZ<TItem>
         }
         return default(TItem);
     }
+
+    public (int , int ) GetWidthHeight()
+    {
+        return (_width, _height);
+    }
     
 }
