@@ -8,7 +8,6 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
 {
     public AStarPathFinding(GridXZ<StackStorageGridCell> gridXZ) : base(gridXZ)
     {
-        Debug.Log("Init A Star");
     }
     public List<StackStorageGridCell> FindPath(StackStorageGridCell startNode, StackStorageGridCell endNode)
     {
@@ -55,7 +54,7 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
     /// <summary>
     /// Get a forward Item that the pathfinding was found
     /// </summary>
-    List<StackStorageGridCell> Retrace(StackStorageGridCell start, StackStorageGridCell end)
+    protected List<StackStorageGridCell> Retrace(StackStorageGridCell start, StackStorageGridCell end)
     {
         List<StackStorageGridCell> path = new();
         StackStorageGridCell currentNode = end;
@@ -70,7 +69,7 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
         return path;
     }
 
-    private int GetDistanceCost(StackStorageGridCell start, StackStorageGridCell end)
+    protected virtual int GetDistanceCost(StackStorageGridCell start, StackStorageGridCell end)
     {
         (int xDiff, int zDiff) = StackStorageGridCell.GetIndexDifferenceAbsolute(start, end);
 
