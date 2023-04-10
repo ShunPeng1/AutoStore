@@ -9,39 +9,44 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
     public AStarPathFinding(GridXZ<StackStorageGridCell> gridXZ) : base(gridXZ)
     {
     }
-    public List<StackStorageGridCell> FindPath(StackStorageGridCell startNode, StackStorageGridCell endNode)
+    
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <returns> the path between start and end</returns>
+    public List<StackStorageGridCell> FindPath(StackStorageGridCell startCell, StackStorageGridCell endCell)
     {
-        Priority_Queue.SimplePriorityQueue<StackStorageGridCell> openSet = new ();
-        HashSet<StackStorageGridCell> closeSet = new();
-        openSet.Enqueue(startNode, startNode.fCost);
+        Priority_Queue.SimplePriorityQueue<StackStorageGridCell> openSet = new (); // to be travelled set
+        HashSet<StackStorageGridCell> closeSet = new(); // travelled set 
+        openSet.Enqueue(startCell, startCell.fCost);
         
         while (openSet.Count > 0)
         {
-            var currentMinFCostItem = openSet.Dequeue();
-            closeSet.Add(currentMinFCostItem);
+            var currentMinFCostCell = openSet.Dequeue();
+            closeSet.Add(currentMinFCostCell);
 
-            if (currentMinFCostItem == endNode)
+            if (currentMinFCostCell == endCell)
             {
-                return Retrace(startNode, endNode);;
+                return RetracePath(startCell, endCell);;
             }
 
-            foreach (var adjacentItem in currentMinFCostItem.adjacentItems)
+            foreach (var adjacentCell in currentMinFCostCell.adjacentItems)
             {
-                if (closeSet.Contains(adjacentItem))
+                if (closeSet.Contains(adjacentCell)) // skip for travelled ceil 
                 {
                     continue;
                 }
 
-                int newGCostToNeighbour = currentMinFCostItem.gCost + GetDistanceCost(currentMinFCostItem, adjacentItem);
-                if (newGCostToNeighbour < adjacentItem.gCost || !openSet.Contains(adjacentItem))
+                int newGCostToNeighbour = currentMinFCostCell.gCost + GetDistanceCost(currentMinFCostCell, adjacentCell);
+                if (newGCostToNeighbour < adjacentCell.gCost || !openSet.Contains(adjacentCell))
                 {
-                    adjacentItem.gCost = newGCostToNeighbour;
-                    adjacentItem.hCost = GetDistanceCost(adjacentItem, endNode);
-                    adjacentItem.parentCell = currentMinFCostItem;
+                    adjacentCell.gCost = newGCostToNeighbour;
+                    adjacentCell.hCost = GetDistanceCost(adjacentCell, endCell);
+                    adjacentCell.parentCell = currentMinFCostCell;
 
-                    if (!openSet.Contains(adjacentItem))
+                    if (!openSet.Contains(adjacentCell)) // Not in open set
                     {
-                        openSet.Enqueue(adjacentItem, adjacentItem.fCost);
+                        openSet.Enqueue(adjacentCell, adjacentCell.fCost);
                     }
                 }
 
@@ -52,13 +57,13 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
     }
 
     /// <summary>
-    /// Get a forward Item that the pathfinding was found
+    /// Get a list of Cell that the pathfinding was found
     /// </summary>
-    protected List<StackStorageGridCell> Retrace(StackStorageGridCell start, StackStorageGridCell end)
+    protected List<StackStorageGridCell> RetracePath(StackStorageGridCell start, StackStorageGridCell end)
     {
         List<StackStorageGridCell> path = new();
         StackStorageGridCell currentNode = end;
-        while (currentNode != start && currentNode!= null)
+        while (currentNode != start && currentNode!= null) 
         {
             //Debug.Log("Path "+ currentNode.xIndex +" "+ currentNode.zIndex );
             path.Add(currentNode);
@@ -73,7 +78,10 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
     {
         (int xDiff, int zDiff) = StackStorageGridCell.GetIndexDifferenceAbsolute(start, end);
 
+        // This value make the path go zigzag 
         //return xDiff > zDiff ? 14*zDiff+ 10*(xDiff-zDiff) : 14*xDiff + 10*(zDiff-xDiff);
+        
+        // This value make the path go L shape 
         return 10 * xDiff + 10 * zDiff;
     }
     

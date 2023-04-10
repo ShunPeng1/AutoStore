@@ -34,12 +34,21 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     void Update()
     {
         _currentTime += Time.deltaTime;
-        if (_currentTime >= spawnRate)
+        if (_currentTime >= spawnRate) 
         {
-            CreateBundle();
+            CreateCrate();
             _currentTime = 0;
         }
 
+        AssignMission();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    private void AssignMission()
+    {
+         
         while (_pendingCrates.Count > 0)
         {
             var crate = _pendingCrates.Peek();
@@ -50,7 +59,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             {
                 if (robot.robotState == Robot.RobotState.Idle)
                 {
-                    int reach = CalculateReach(robot, crate);
+                    int reach = CalculateDistance(robot, crate);
                     if (reach < shortestReach)
                     {
                         shortestReachRobot = robot;
@@ -65,8 +74,11 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             _pendingCrates.Dequeue();
         }
     }
-
-    private int CalculateReach(Robot robot, Crate crate)
+    
+    /// <summary>
+    /// the distance between robot and crate
+    /// </summary>
+    private int CalculateDistance(Robot robot, Crate crate)
     {
         (int x, int z) = StackStorageGridCell.GetIndexDifferenceAbsolute(
             _storageGrid.GetItem(crate.currentX, crate.currentZ),
@@ -74,7 +86,10 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         return 10 * x + 10 * z;
     }
 
-    private void CreateBundle()
+    /// <summary>
+    /// This function create the crate in the game world space
+    /// </summary>
+    private void CreateCrate()
     {
         int currentX = Random.Range(0, width), currentZ = Random.Range(0, height);
         int storingX = Random.Range(0, width), storingZ = Random.Range(0, height);
