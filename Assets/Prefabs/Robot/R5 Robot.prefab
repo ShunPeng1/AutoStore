@@ -819,8 +819,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Id: 0
   RobotState: 0
-  MovementSpeed: 1
-  PreemptiveDistance: 0.05
+  MovementSpeed: 3
+  PreemptiveDistance: 0
   DebugLineRenderer: {fileID: 3908041089777982755}
   headCast: {fileID: 4179138659058510927}
   tailCast: {fileID: 1448021442505003868}
