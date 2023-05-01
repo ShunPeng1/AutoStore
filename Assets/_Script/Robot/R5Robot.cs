@@ -17,17 +17,17 @@ public class R5Robot : Robot
     
     IEnumerator Start()
     {
-        _destinationPosition = _nextCellPosition = transform.position;
+        GoalCellPosition = NextCellPosition = transform.position;
         yield return null;
-        _currentGrid = MapManager.Instance.storageGrid;
-        (_xIndex, _zIndex) = _currentGrid.GetXZ(transform.position);
+        CurrentGrid = MapManager.Instance.storageGrid;
+        (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
          
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (_currentGrid == null) return;
+        if (CurrentGrid == null) return;
         DetectNearByRobot();
         MoveAlongGrid();
         ShowPath();
@@ -42,7 +42,7 @@ public class R5Robot : Robot
 
     private void DetectNearByRobot()
     {
-        if (robotState is RobotState.Idle or RobotState.Jamming) return;
+        if (RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
         var deltaCastPosition = tailCast.position - headCast.position;
         var hits = Physics.SphereCastAll(headCast.position, castRadius, deltaCastPosition, deltaCastPosition.magnitude,robotLayerMask);
 
@@ -71,25 +71,26 @@ public class R5Robot : Robot
 
     bool IsDirectionHeading(Vector3 hitPosition, float thresholdAngle)
     {
-        Debug.Log("Angle "+Vector3.Angle(hitPosition - transform.position, _nextCellPosition - transform.position));
-        return (Vector3.Angle(hitPosition - transform.position, _nextCellPosition - transform.position) < thresholdAngle);
+        Debug.Log("Angle "+Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position));
+        return (Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position) < thresholdAngle);
     }
     
     IEnumerator Jamming()
     {
-        RobotState lastRobotState = robotState;
-        robotState = RobotState.Jamming;
+        RobotStateEnum lastRobotStateEnum = RobotState;
+        RobotState = RobotStateEnum.Jamming;
         yield return new WaitForSeconds(jamWait);
-        robotState = lastRobotState;
+        RobotState = lastRobotStateEnum;
     }
 
     private void MoveAlongGrid()
     {
-        if (robotState is RobotState.Jamming) return;
-        transform.position = Vector3.MoveTowards(transform.position, _nextCellPosition, movementSpeed * Time.deltaTime);
-        if (Vector3.Distance(transform.position, _nextCellPosition) <= preemptiveDistance)
+        if (RobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
+        transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MovementSpeed * Time.deltaTime);
+        if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
         {
-            PathFinding();
+            //PathFinding();
+            GetNextCellInPath();
             PickUpCrate();
             DropDownCrate();
         }
@@ -100,79 +101,98 @@ public class R5Robot : Robot
         float horizontal = Input.GetAxisRaw("Horizontal"), vertical = Input.GetAxisRaw("Vertical");
         if (Mathf.Abs(horizontal) == 1f)
         {
-            var item = _currentGrid.GetItem(_xIndex + (int)horizontal, _zIndex);
+            var item = CurrentGrid.GetItem(XIndex + (int)horizontal, ZIndex);
             // If walkable
             if (item != default(StackStorageGridCell))
             {
-                _xIndex += (int)horizontal;
-                _nextCellPosition = _currentGrid.GetWorldPosition(_xIndex, _zIndex) +
+                XIndex += (int)horizontal;
+                NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
                                   Vector3.up * transform.position.y;
             }
         }
         else if (Mathf.Abs(vertical) == 1f)
         {
-            var item = _currentGrid.GetItem(_xIndex, _zIndex + (int)vertical);
+            var item = CurrentGrid.GetItem(XIndex, ZIndex + (int)vertical);
             // If walkable
             if (item != default(StackStorageGridCell))
             {
-                _zIndex += (int)vertical;
-                _nextCellPosition = _currentGrid.GetWorldPosition(_xIndex, _zIndex) +
+                ZIndex += (int)vertical;
+                NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
                                   Vector3.up * transform.position.y;
             }
         }
     }
 
+    private void GetNextCellInPath()
+    {
+        if (MovingPath.Count == 0) return;
+        var nextDestination = MovingPath.First.Value;
+        MovingPath.RemoveFirst(); // the next standing node
+        
+        XIndex = nextDestination.xIndex;
+        ZIndex = nextDestination.zIndex;
+        NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) + Vector3.up * transform.position.y;
+
+    }
+
     private void PathFinding()
     {
-        var startCell = _currentGrid.GetItem(_xIndex, _zIndex);
-        var endCell = _currentGrid.GetItem(_destinationPosition);
+        var startCell = CurrentGrid.GetItem(XIndex, ZIndex);
+        var endCell = CurrentGrid.GetItem(GoalCellPosition);
 
-        _path = MapManager.Instance.RequestPath(startCell, endCell);
-        if (_path == null || _path.Count <= 1) return;
+        MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
+        if (MovingPath == null || MovingPath.Count <= 1) return;
 
-        var nextDestination = _path[1];
-
-        _xIndex = nextDestination.xIndex;
-        _zIndex = nextDestination.zIndex;
-        _nextCellPosition = _currentGrid.GetWorldPosition(_xIndex, _zIndex) + Vector3.up * transform.position.y;
-
+        MovingPath.RemoveFirst(); // the current standing node
+      
+        GetNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
 
 
     void ShowPath()
     {
-        debugLineRenderer.positionCount = _path.Count;
-        for (int i = 0; i < _path.Count; i++)
+        if (RobotState == RobotStateEnum.Idle) return;
+        
+        DebugLineRenderer.positionCount = MovingPath.Count + 1;
+        DebugLineRenderer.SetPosition(0, transform.position);
+
+        int itr = 1;
+        foreach (var cell in MovingPath)
         {
-            debugLineRenderer.SetPosition(i, _path[i].stackStorage.transform.position);
+            DebugLineRenderer.SetPosition(itr, cell.stackStorage.transform.position);
+            itr++;
         }
     }
 
-    public override void TransportCrate(Crate crate)
+    public override void ApproachCrate(Crate crate)
     {
-        holdingCrate = crate;
-        _destinationPosition = crate.transform.position;
-        robotState = RobotState.Retrieving;
+        HoldingCrate = crate;
+        GoalCellPosition = crate.transform.position;
+        RobotState = RobotStateEnum.Retrieving;
+
+        PathFinding();
     }
 
     public override void PickUpCrate()
     {
-        if (robotState == RobotState.Retrieving && _currentGrid.GetXZ(transform.position) == _currentGrid.GetXZ(holdingCrate.transform.position))
+        if (RobotState == RobotStateEnum.Retrieving && CurrentGrid.GetXZ(transform.position) == CurrentGrid.GetXZ(HoldingCrate.transform.position))
         {
-            _destinationPosition = _currentGrid.GetWorldPosition(holdingCrate.storingX, holdingCrate.storingZ);
-            holdingCrate.transform.SetParent(transform);
-            robotState = RobotState.Delivering;
+            GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
+            HoldingCrate.transform.SetParent(transform);
+            RobotState = RobotStateEnum.Delivering;
+            
+            PathFinding();
         }
     }
 
     public override void DropDownCrate()
     {
-        if (robotState == RobotState.Delivering && _currentGrid.GetXZ(transform.position) == (holdingCrate.storingX, holdingCrate.storingZ))
+        if (RobotState == RobotStateEnum.Delivering && CurrentGrid.GetXZ(transform.position) == (HoldingCrate.storingX, HoldingCrate.storingZ))
         {
-            Destroy(holdingCrate.gameObject);
-            holdingCrate = null;
-            robotState = RobotState.Idle;
+            Destroy(HoldingCrate.gameObject);
+            HoldingCrate = null;
+            RobotState = RobotStateEnum.Idle;
             
         }
     }

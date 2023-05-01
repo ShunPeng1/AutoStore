@@ -14,7 +14,7 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
     /// 
     /// </summary>
     /// <returns> the path between start and end</returns>
-    public List<StackStorageGridCell> FindPath(StackStorageGridCell startCell, StackStorageGridCell endCell)
+    public LinkedList<StackStorageGridCell> FindPath(StackStorageGridCell startCell, StackStorageGridCell endCell)
     {
         Priority_Queue.SimplePriorityQueue<StackStorageGridCell> openSet = new (); // to be travelled set
         HashSet<StackStorageGridCell> closeSet = new(); // travelled set 
@@ -59,18 +59,17 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
     /// <summary>
     /// Get a list of Cell that the pathfinding was found
     /// </summary>
-    protected List<StackStorageGridCell> RetracePath(StackStorageGridCell start, StackStorageGridCell end)
+    protected LinkedList<StackStorageGridCell> RetracePath(StackStorageGridCell start, StackStorageGridCell end)
     {
-        List<StackStorageGridCell> path = new();
+        LinkedList<StackStorageGridCell> path = new();
         StackStorageGridCell currentNode = end;
         while (currentNode != start && currentNode!= null) 
         {
             //Debug.Log("Path "+ currentNode.xIndex +" "+ currentNode.zIndex );
-            path.Add(currentNode);
+            path.AddFirst(currentNode);
             currentNode = currentNode.parentCell;
         }
-        path.Add(start);
-        path.Reverse();
+        path.AddFirst(start);
         return path;
     }
 

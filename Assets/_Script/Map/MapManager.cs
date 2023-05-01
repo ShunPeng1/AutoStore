@@ -38,7 +38,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
         
     }
 
-    public List<StackStorageGridCell> RequestPath(StackStorageGridCell startCell, StackStorageGridCell endCell)
+    public LinkedList<StackStorageGridCell> RequestPath(StackStorageGridCell startCell, StackStorageGridCell endCell)
     {
         return pathfindingAlgorithm.FindPath(startCell,endCell);
     }

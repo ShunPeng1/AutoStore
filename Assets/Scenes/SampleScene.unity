@@ -191,6 +191,10 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
+      propertyPath: MovementSpeed
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
       propertyPath: movementSpeed
       value: 3
       objectReference: {fileID: 0}
@@ -1121,61 +1125,13 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 50481040}
     m_Modifications:
-    - target: {fileID: 2524461526046900072, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_RootOrder
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: movementSpeed
+      propertyPath: MovementSpeed
       value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: testDestination
-      value: 
-      objectReference: {fileID: 0}
-    - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: preemptiveDistance
-      value: 0.05
-      objectReference: {fileID: 0}
-    - target: {fileID: 3908041089777982755, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_Positions.Array.size
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3908041089777982755, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_Materials.Array.data[0]
-      value: 
-      objectReference: {fileID: 10306, guid: 0000000000000000f000000000000000, type: 0}
-    - target: {fileID: 3908041089777982755, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_Parameters.colorGradient.key0.b
-      value: 0.3820755
-      objectReference: {fileID: 0}
-    - target: {fileID: 3908041089777982755, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_Parameters.colorGradient.key0.g
-      value: 0.3820755
-      objectReference: {fileID: 0}
-    - target: {fileID: 3908041089777982755, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_Parameters.colorGradient.key0.r
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 3908041089777982755, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_Parameters.colorGradient.key1.b
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3908041089777982755, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_Parameters.colorGradient.key1.g
-      value: 0.9716981
-      objectReference: {fileID: 0}
-    - target: {fileID: 3908041089777982755, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_Parameters.colorGradient.key1.r
-      value: 0.9524387
       objectReference: {fileID: 0}
     - target: {fileID: 6291633208248654893, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
       propertyPath: m_Name
       value: R5 Robot
-      objectReference: {fileID: 0}
-    - target: {fileID: 6291633208248654893, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6291633208248654894, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
       propertyPath: m_RootOrder
@@ -1221,10 +1177,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 6291633208248654895, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
-      propertyPath: m_UseGravity
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
 --- !u!1001 &1541818359
@@ -1241,6 +1193,10 @@ PrefabInstance:
     - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
       propertyPath: id
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
+      propertyPath: MovementSpeed
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
       propertyPath: movementSpeed
@@ -1362,6 +1318,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
       propertyPath: id
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}
+      propertyPath: MovementSpeed
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3880054312006786028, guid: 23372fe58e47fc6459d5fc48c7455844, type: 3}

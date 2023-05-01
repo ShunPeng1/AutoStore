@@ -3,47 +3,48 @@ using UnityEngine;
 
 namespace _Script.Robot
 {
+    public enum RobotStateEnum
+    {
+        Idle,
+        Delivering,
+        Retrieving,
+        Approaching,
+        Jamming
+    }
+    
     public abstract class Robot : MonoBehaviour
     {
         [Header("Stat")] 
-        public int id;
+        public int Id;
+        public RobotStateEnum RobotState = RobotStateEnum.Idle;
     
-        [Header("Movement")] [SerializeField] protected float movementSpeed = 1f;
-        [SerializeField] protected Transform pickUpPlace;
-
-        [SerializeField] protected float preemptiveDistance = 0.05f;
-        protected int _xIndex, _zIndex;
-
-        protected Vector3 _nextCellPosition;
-        protected GridXZ<StackStorageGridCell> _currentGrid;
+        [Header("Grid")]
+        protected GridXZ<StackStorageGridCell> CurrentGrid;
+        protected int XIndex, ZIndex;
+        protected Vector3 NextCellPosition;
+        protected Vector3 GoalCellPosition;
+        protected LinkedList<StackStorageGridCell> MovingPath;
+        
+        [Header("Movement")] 
+        [SerializeField] protected float MovementSpeed = 1f;
+        [SerializeField] protected float PreemptiveDistance = 0.05f;
 
 
         [Header("PathFinding")] [SerializeField]
-        protected LineRenderer debugLineRenderer;
-        protected Vector3 _destinationPosition;
-        protected List<StackStorageGridCell> _path;
+        protected LineRenderer DebugLineRenderer;
 
-    
-        public enum RobotState
-        {
-            Idle,
-            Delivering,
-            Retrieving,
-            Jamming
-        }
-    
+        
         [Header("Crate ")]
-        public RobotState robotState = RobotState.Idle;
-        protected Crate holdingCrate;
-
-    
-        public abstract void TransportCrate(Crate crate);
+        protected Crate HoldingCrate;
+        
+        
+        public abstract void ApproachCrate(Crate crate);
         public abstract void PickUpCrate();
         public abstract void DropDownCrate();
 
-        public StackStorageGridCell getCurrentGridCell()
+        public StackStorageGridCell GetCurrentGridCell()
         {
-            return _currentGrid.GetItem(_xIndex, _zIndex);
+            return CurrentGrid.GetItem(XIndex, ZIndex);
         }
     }
 }

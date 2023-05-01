@@ -57,7 +57,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
             foreach (var robot in _robots)
             {
-                if (robot.robotState == Robot.RobotState.Idle)
+                if (robot.RobotState == RobotStateEnum.Idle)
                 {
                     int reach = CalculateDistance(robot, crate);
                     if (reach < shortestReach)
@@ -70,7 +70,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
             if (shortestReachRobot == null) break;
 
-            shortestReachRobot.TransportCrate(crate);
+            shortestReachRobot.ApproachCrate(crate);
             _pendingCrates.Dequeue();
         }
     }
@@ -82,7 +82,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     {
         (int x, int z) = StackStorageGridCell.GetIndexDifferenceAbsolute(
             _storageGrid.GetItem(crate.currentX, crate.currentZ),
-            robot.getCurrentGridCell());
+            robot.GetCurrentGridCell());
         return 10 * x + 10 * z;
     }
 
@@ -105,7 +105,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         if (_pendingCrates.Count > 0)
         {
             var crate = _pendingCrates.Dequeue();
-            robot.TransportCrate(crate);
+            robot.ApproachCrate(crate);
         }
     }
 }
