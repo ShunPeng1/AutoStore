@@ -71,7 +71,7 @@ public class R5Robot : Robot
 
     bool IsDirectionHeading(Vector3 hitPosition, float thresholdAngle)
     {
-        Debug.Log("Angle "+Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position));
+        //Debug.Log("Angle "+Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position));
         return (Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position) < thresholdAngle);
     }
     
@@ -103,7 +103,7 @@ public class R5Robot : Robot
         {
             var item = CurrentGrid.GetItem(XIndex + (int)horizontal, ZIndex);
             // If walkable
-            if (item != default(StackStorageGridCell))
+            if (item != default(GridXZCell))
             {
                 XIndex += (int)horizontal;
                 NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
@@ -114,7 +114,7 @@ public class R5Robot : Robot
         {
             var item = CurrentGrid.GetItem(XIndex, ZIndex + (int)vertical);
             // If walkable
-            if (item != default(StackStorageGridCell))
+            if (item != default(GridXZCell))
             {
                 ZIndex += (int)vertical;
                 NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +

@@ -19,11 +19,11 @@ namespace _Script.Robot
         public RobotStateEnum RobotState = RobotStateEnum.Idle;
     
         [Header("Grid")]
-        protected GridXZ<StackStorageGridCell> CurrentGrid;
+        protected GridXZ<GridXZCell> CurrentGrid;
         protected int XIndex, ZIndex;
         protected Vector3 NextCellPosition;
         protected Vector3 GoalCellPosition;
-        protected LinkedList<StackStorageGridCell> MovingPath;
+        protected LinkedList<GridXZCell> MovingPath;
         
         [Header("Movement")] 
         [SerializeField] protected float MovementSpeed = 1f;
@@ -42,7 +42,7 @@ namespace _Script.Robot
         public abstract void PickUpCrate();
         public abstract void DropDownCrate();
 
-        public StackStorageGridCell GetCurrentGridCell()
+        public GridXZCell GetCurrentGridCell()
         {
             return CurrentGrid.GetItem(XIndex, ZIndex);
         }

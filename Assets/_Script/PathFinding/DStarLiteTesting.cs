@@ -38,10 +38,10 @@ public class DStarLite
             foreach (Coordinates c in obstacleCoord)
             {
                 State s = S[c.x, c.y];
-                if (s.obstacle) continue;// is already known
+                if (s.isObstacle) continue;// is already known
                 change = true;
-                s.obstacle = true;
-                foreach (State p in s.GetPred())
+                s.isObstacle = true;
+                foreach (State p in s.GetPredecessors())
                 {
                     UpdateVertex(p);
                 }
@@ -64,9 +64,9 @@ public class DStarLite
     k1(s) = min(g(s), rhs(s)) + h(s, sstart) + km
     k2(s) = min(g(s), rhs(s)) 
     */
-    static K CalculateKey(State s)
+    static Key CalculateKeyFromStart(State s)
     {
-        return new K(min(s.g, s.rhs) + Heuristic(s, sstart) + km, min(s.g, s.rhs));
+        return new Key(min(s.gCost, s.rightHandSideCost) + Heuristic(s, sstart) + km, min(s.gCost, s.rightHandSideCost));
     }
 
     static double Heuristic(State a, State b)
@@ -87,29 +87,29 @@ public class DStarLite
                 S[i, j] = new State();
                 S[i, j].x = i;
                 S[i, j].y = j;
-                S[i, j].g = Double.PositiveInfinity;
-                S[i, j].rhs = Double.PositiveInfinity;
+                S[i, j].gCost = Double.PositiveInfinity;
+                S[i, j].rightHandSideCost = Double.PositiveInfinity;
             }
         }
         sgoal = S[sgoal.x, sgoal.y];
         sstart = S[sstart.x, sstart.y];
-        sgoal.rhs = 0;
-        U.Insert(sgoal, CalculateKey(sgoal));
+        sgoal.rightHandSideCost = 0;
+        U.Insert(sgoal, CalculateKeyFromStart(sgoal));
     }
 
     static void UpdateVertex(State u)
     {
         if (!u.Equals(sgoal))
         {
-            u.rhs = MinSucc(u);
+            u.rightHandSideCost = MinSucc(u);
         }
         if (U.Contains(u))
         {
             U.Remove(u);
         }
-        if (u.g != u.rhs)
+        if (u.gCost != u.rightHandSideCost)
         {
-            U.Insert(u, CalculateKey(u));
+            U.Insert(u, CalculateKeyFromStart(u));
         }
     }
 
@@ -117,10 +117,10 @@ public class DStarLite
     {
         double min = Double.PositiveInfinity;
         State n = null;
-        foreach (State s in u.GetSucc())
+        foreach (State s in u.GetSuccessors())
         {
-            double val = 1 + s.g;
-            if (val <= min && !s.obstacle)
+            double val = 1 + s.gCost;
+            if (val <= min && !s.isObstacle)
             {
                 min = val;
                 n = s;
@@ -134,38 +134,50 @@ public class DStarLite
     static double MinSucc(State u)
     {
         double min = Double.PositiveInfinity;
-        foreach (State s in u.GetSucc())
+        foreach (State s in u.GetSuccessors())
         {
-            double val = 1 + s.g;
-            if (val < min && !s.obstacle) min = val;
+            double val = 1 + s.gCost;
+            if (val < min && !s.isObstacle) min = val;
         }
         return min;
     }
 
+    
     static void ComputeShortestPath()
     {
-        while (U.TopKey().CompareTo(CalculateKey(sstart)) < 0 || sstart.rhs != sstart.g)
+        // The while loop continues until the top key in the priority queue is greater than or equal to the key of the start state
+        // or until the right-hand-side cost of the start state is equal to its g-cost
+        while (U.TopKey().CompareTo(CalculateKeyFromStart(sstart)) < 0 || sstart.rightHandSideCost != sstart.gCost)
         {
-            K kold = U.TopKey();
-            State u = U.Pop();
-            if (u == null) break;
-            if (kold.CompareTo(CalculateKey(u)) < 0)
+            // Store the top key in the priority queue
+            Key oldKey = U.TopKey();
+            // Pop the state with the smallest key from the priority queue
+            State currentState = U.Pop();
+            if (currentState == null) break;
+            // If the old key is less than the current key of state u
+            if (oldKey.CompareTo(CalculateKeyFromStart(currentState)) < 0)
             {
-                U.Insert(u, CalculateKey(u));
+                // Re-insert state u into the priority queue with its new key
+                U.Insert(currentState, CalculateKeyFromStart(currentState));
             }
-            else if (u.g > u.rhs)
+            // If the g-cost of state u is greater than its right-hand-side cost
+            else if (currentState.gCost > currentState.rightHandSideCost)
             {
-                u.g = u.rhs;
-                foreach (State s in u.GetPred())
+                // Set the g-cost of state u to its right-hand-side cost
+                currentState.gCost = currentState.rightHandSideCost;
+                // Update all predecessors of state u
+                foreach (State s in currentState.GetPredecessors())
                 {
                     UpdateVertex(s);
                 }
             }
             else
             {
-                u.g = Double.PositiveInfinity;
-                UpdateVertex(u);
-                foreach (State s in u.GetPred())
+                // Set the g-cost of state u to positive infinity
+                currentState.gCost = Double.PositiveInfinity;
+                // Update state u and all its predecessors
+                UpdateVertex(currentState);
+                foreach (State s in currentState.GetPredecessors())
                 {
                     UpdateVertex(s);
                 }
@@ -183,9 +195,9 @@ public class DStarLite
     {
         public int x;
         public int y;
-        public double g;
-        public double rhs;
-        public bool obstacle;
+        public double gCost;
+        public double rightHandSideCost;
+        public bool isObstacle;
 
         public bool Equals(State that)
         {
@@ -193,7 +205,7 @@ public class DStarLite
             return false;
         }
 
-        public LinkedList<State> GetSucc()
+        public LinkedList<State> GetSuccessors()
         {
             LinkedList<State> s = new LinkedList<State>();
             // add succesors in counter clockwise order
@@ -204,7 +216,7 @@ public class DStarLite
             return s;
         }
 
-        public LinkedList<State> GetPred()
+        public LinkedList<State> GetPredecessors()
         {
             LinkedList<State> s = new LinkedList<State>();
             State tempState;
@@ -212,39 +224,39 @@ public class DStarLite
             if (x + 1 < S.GetLength(0))
             {
                 tempState = S[x + 1, y];
-                if (!tempState.obstacle) s.AddFirst(tempState);
+                if (!tempState.isObstacle) s.AddFirst(tempState);
             }
             if (y + 1 < S.GetLength(1))
             {
                 tempState = S[x, y + 1];
-                if (!tempState.obstacle) s.AddFirst(tempState);
+                if (!tempState.isObstacle) s.AddFirst(tempState);
             }
             if (x - 1 >= 0)
             {
                 tempState = S[x - 1, y];
-                if (!tempState.obstacle) s.AddFirst(tempState);
+                if (!tempState.isObstacle) s.AddFirst(tempState);
             }
             if (y - 1 >= 0)
             {
                 tempState = S[x, y - 1];
-                if (!tempState.obstacle) s.AddFirst(tempState);
+                if (!tempState.isObstacle) s.AddFirst(tempState);
             }
             return s;
         }
     }
 
-    class K
+    class Key
     {
         public double k1;
         public double k2;
 
-        public K(double K1, double K2)
+        public Key(double K1, double K2)
         {
             k1 = K1;
             k2 = K2;
         }
 
-        public int CompareTo(K that)
+        public int CompareTo(Key that)
         {
             if (this.k1 < that.k1) return -1;
             else if (this.k1 > that.k1) return 1;
@@ -257,12 +269,12 @@ public class DStarLite
     class HeapElement
     {
         public State s;
-        public K k;
+        public Key Key;
 
-        public HeapElement(State state, K key)
+        public HeapElement(State state, Key key)
         {
             s = state;
-            k = key;
+            Key = key;
         }
     }
 
@@ -280,10 +292,10 @@ public class DStarLite
             hash = new Dictionary<State, int>();
         }
 
-        public K TopKey()
+        public Key TopKey()
         {
-            if (n == 0) return new K(Double.PositiveInfinity, Double.PositiveInfinity);
-            return heap[1].k;
+            if (n == 0) return new Key(Double.PositiveInfinity, Double.PositiveInfinity);
+            return heap[1].Key;
         }
 
         public State Pop()
@@ -298,9 +310,9 @@ public class DStarLite
             return s;
         }
 
-        public void Insert(State s, K k)
+        public void Insert(State s, Key key)
         {
-            HeapElement e = new HeapElement(s, k);
+            HeapElement e = new HeapElement(s, key);
             n++;
             hash[s] = n;
             if (n == heap.Length) increaseCap();
@@ -308,13 +320,13 @@ public class DStarLite
             moveUp(n);
         }
 
-        public void Update(State s, K k)
+        public void Update(State s, Key key)
         {
             int i = hash[s];
             if (i == 0) return;
-            K kold = heap[i].k;
-            heap[i].k = k;
-            if (kold.CompareTo(k) < 0)
+            Key kold = heap[i].Key;
+            heap[i].Key = key;
+            if (kold.CompareTo(key) < 0)
             {
                 moveDown(i);
             }
@@ -355,7 +367,7 @@ public class DStarLite
             {
                 smallerChild = childL;
             }
-            else if (heap[childL].k.CompareTo(heap[childR].k) < 0)
+            else if (heap[childL].Key.CompareTo(heap[childR].Key) < 0)
             {
                 smallerChild = childL;
             }
@@ -363,7 +375,7 @@ public class DStarLite
             {
                 smallerChild = childR;
             }
-            if (heap[i].k.CompareTo(heap[smallerChild].k) > 0)
+            if (heap[i].Key.CompareTo(heap[smallerChild].Key) > 0)
             {
                 swap(i, smallerChild);
                 moveDown(smallerChild);
@@ -374,7 +386,7 @@ public class DStarLite
         {
             if (i == 1) return;
             int parent = i / 2;
-            if (heap[parent].k.CompareTo(heap[i].k) > 0)
+            if (heap[parent].Key.CompareTo(heap[i].Key) > 0)
             {
                 swap(parent, i);
                 moveUp(parent);

@@ -4,9 +4,9 @@ using Priority_Queue;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell>>
+public class AStarPathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
 {
-    public AStarPathFinding(GridXZ<StackStorageGridCell> gridXZ) : base(gridXZ)
+    public AStarPathFinding(GridXZ<GridXZCell> gridXZ) : base(gridXZ)
     {
     }
     
@@ -14,20 +14,20 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
     /// 
     /// </summary>
     /// <returns> the path between start and end</returns>
-    public LinkedList<StackStorageGridCell> FindPath(StackStorageGridCell startCell, StackStorageGridCell endCell)
+    public LinkedList<GridXZCell> FindPath(GridXZCell startXZCell, GridXZCell endXZCell)
     {
-        Priority_Queue.SimplePriorityQueue<StackStorageGridCell> openSet = new (); // to be travelled set
-        HashSet<StackStorageGridCell> closeSet = new(); // travelled set 
-        openSet.Enqueue(startCell, startCell.fCost);
+        Priority_Queue.SimplePriorityQueue<GridXZCell> openSet = new (); // to be travelled set
+        HashSet<GridXZCell> closeSet = new(); // travelled set 
+        openSet.Enqueue(startXZCell, startXZCell.fCost);
         
         while (openSet.Count > 0)
         {
             var currentMinFCostCell = openSet.Dequeue();
             closeSet.Add(currentMinFCostCell);
 
-            if (currentMinFCostCell == endCell)
+            if (currentMinFCostCell == endXZCell)
             {
-                return RetracePath(startCell, endCell);;
+                return RetracePath(startXZCell, endXZCell);;
             }
 
             foreach (var adjacentCell in currentMinFCostCell.adjacentItems)
@@ -41,8 +41,8 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
                 if (newGCostToNeighbour < adjacentCell.gCost || !openSet.Contains(adjacentCell))
                 {
                     adjacentCell.gCost = newGCostToNeighbour;
-                    adjacentCell.hCost = GetDistanceCost(adjacentCell, endCell);
-                    adjacentCell.parentCell = currentMinFCostCell;
+                    adjacentCell.hCost = GetDistanceCost(adjacentCell, endXZCell);
+                    adjacentCell.ParentXZCell = currentMinFCostCell;
 
                     if (!openSet.Contains(adjacentCell)) // Not in open set
                     {
@@ -59,23 +59,23 @@ public class AStarPathFinding : PathfindingAlgorithm<GridXZ<StackStorageGridCell
     /// <summary>
     /// Get a list of Cell that the pathfinding was found
     /// </summary>
-    protected LinkedList<StackStorageGridCell> RetracePath(StackStorageGridCell start, StackStorageGridCell end)
+    protected LinkedList<GridXZCell> RetracePath(GridXZCell start, GridXZCell end)
     {
-        LinkedList<StackStorageGridCell> path = new();
-        StackStorageGridCell currentNode = end;
+        LinkedList<GridXZCell> path = new();
+        GridXZCell currentNode = end;
         while (currentNode != start && currentNode!= null) 
         {
             //Debug.Log("Path "+ currentNode.xIndex +" "+ currentNode.zIndex );
             path.AddFirst(currentNode);
-            currentNode = currentNode.parentCell;
+            currentNode = currentNode.ParentXZCell;
         }
         path.AddFirst(start);
         return path;
     }
 
-    protected virtual int GetDistanceCost(StackStorageGridCell start, StackStorageGridCell end)
+    protected virtual int GetDistanceCost(GridXZCell start, GridXZCell end)
     {
-        (int xDiff, int zDiff) = StackStorageGridCell.GetIndexDifferenceAbsolute(start, end);
+        (int xDiff, int zDiff) = GridXZCell.GetIndexDifferenceAbsolute(start, end);
 
         // This value make the path go zigzag 
         //return xDiff > zDiff ? 14*zDiff+ 10*(xDiff-zDiff) : 14*xDiff + 10*(zDiff-xDiff);

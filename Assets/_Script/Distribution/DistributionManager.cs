@@ -15,7 +15,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     [SerializeField, Range(1, 100)] private int maxPendingCrate = 100;
 
 
-    private GridXZ<StackStorageGridCell> _storageGrid;
+    private GridXZ<GridXZCell> _storageGrid;
     private int width, height;
 
     private float _currentTime = 0f;
@@ -80,7 +80,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// </summary>
     private int CalculateDistance(Robot robot, Crate crate)
     {
-        (int x, int z) = StackStorageGridCell.GetIndexDifferenceAbsolute(
+        (int x, int z) = GridXZCell.GetIndexDifferenceAbsolute(
             _storageGrid.GetItem(crate.currentX, crate.currentZ),
             robot.GetCurrentGridCell());
         return 10 * x + 10 * z;

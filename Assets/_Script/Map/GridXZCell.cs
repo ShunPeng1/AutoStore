@@ -2,22 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class StackStorageGridCell
+public class GridXZCell
 {
     [Header("Base")]
-    private readonly GridXZ<StackStorageGridCell> _gridXZ;
+    private readonly GridXZ<GridXZCell> _gridXZ;
     public readonly int xIndex, zIndex;
-    public List<StackStorageGridCell> adjacentItems = new ();
+    public List<GridXZCell> adjacentItems = new ();
     public StackStorage stackStorage;
 
     [Header("A Star Pathfinding")] 
-    public StackStorageGridCell parentCell = null; 
+    public GridXZCell ParentXZCell = null; 
     public int fCost => hCost+gCost;
     public int hCost;
     public int gCost;
     private float _weight = 0f;
     
-    public StackStorageGridCell(GridXZ<StackStorageGridCell> grid, int x, int z, StackStorage stackStorage)
+    public GridXZCell(GridXZ<GridXZCell> grid, int x, int z, StackStorage stackStorage)
     {
         _gridXZ = grid;
         xIndex = x;
@@ -28,7 +28,7 @@ public class StackStorageGridCell
 
     public void SetAdjacency()
     {
-        StackStorageGridCell[] adjacentRawItems =
+        GridXZCell[] adjacentRawItems =
         {
             _gridXZ.GetItem(xIndex + 1, zIndex),
             _gridXZ.GetItem(xIndex - 1, zIndex),
@@ -54,12 +54,12 @@ public class StackStorageGridCell
         _gridXZ.TriggerGridObjectChanged(xIndex, zIndex);
     }
 
-    public static (int xDiff, int zDiff) GetIndexDifference(StackStorageGridCell first, StackStorageGridCell second)
+    public static (int xDiff, int zDiff) GetIndexDifference(GridXZCell first, GridXZCell second)
     {
         return (second.xIndex - first.xIndex , second.zIndex-first.zIndex);
     }
     
-    public static (int xDiff, int zDiff) GetIndexDifferenceAbsolute(StackStorageGridCell first, StackStorageGridCell second)
+    public static (int xDiff, int zDiff) GetIndexDifferenceAbsolute(GridXZCell first, GridXZCell second)
     {
         return (Mathf.Abs(second.xIndex - first.xIndex), Mathf.Abs(second.zIndex - first.zIndex));
     }

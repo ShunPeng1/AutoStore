@@ -5,7 +5,7 @@ using UnityEngine;
 
 public class Crate : MonoBehaviour
 {
-    private GridXZ<StackStorageGridCell> _storageGrid;
+    private GridXZ<GridXZCell> _storageGrid;
 
     public int currentX;
     public int currentZ;
@@ -16,7 +16,7 @@ public class Crate : MonoBehaviour
         
     }
 
-    public void Init(GridXZ<StackStorageGridCell> storageGrid,int spawnX, int spawnZ , int destinationX, int destinationZ)
+    public void Init(GridXZ<GridXZCell> storageGrid,int spawnX, int spawnZ , int destinationX, int destinationZ)
     {
         _storageGrid = storageGrid;
         currentX = spawnX;
