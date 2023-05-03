@@ -19,7 +19,7 @@ public class R5Robot : Robot
     {
         GoalCellPosition = NextCellPosition = transform.position;
         yield return null;
-        CurrentGrid = MapManager.Instance.storageGrid;
+        CurrentGrid = MapManager.Instance.StorageGrid;
         (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
          
     }
@@ -129,8 +129,8 @@ public class R5Robot : Robot
         var nextDestination = MovingPath.First.Value;
         MovingPath.RemoveFirst(); // the next standing node
         
-        XIndex = nextDestination.xIndex;
-        ZIndex = nextDestination.zIndex;
+        XIndex = nextDestination.XIndex;
+        ZIndex = nextDestination.ZIndex;
         NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) + Vector3.up * transform.position.y;
 
     }
@@ -160,7 +160,7 @@ public class R5Robot : Robot
         int itr = 1;
         foreach (var cell in MovingPath)
         {
-            DebugLineRenderer.SetPosition(itr, cell.stackStorage.transform.position);
+            DebugLineRenderer.SetPosition(itr, cell.StackStorage.transform.position);
             itr++;
         }
     }

@@ -6,42 +6,42 @@ public class GridXZCell
 {
     [Header("Base")]
     private readonly GridXZ<GridXZCell> _gridXZ;
-    public readonly int xIndex, zIndex;
-    public List<GridXZCell> adjacentItems = new ();
-    public StackStorage stackStorage;
+    public readonly int XIndex, ZIndex;
+    public readonly List<GridXZCell> AdjacentItems = new ();
+    public StackStorage StackStorage;
 
     public bool IsObstacle;
 
     [Header("A Star Pathfinding")] 
     public GridXZCell ParentXZCell = null; 
-    public int fCost => hCost+gCost;
-    public int hCost;
-    public int gCost;
-    private float _weight = 0f;
+    public int FCost => HCost+GCost;
+    public int HCost;
+    public int GCost;
+    
     
     public GridXZCell(GridXZ<GridXZCell> grid, int x, int z, StackStorage stackStorage)
     {
         _gridXZ = grid;
-        xIndex = x;
-        zIndex = z;
-        this.stackStorage = stackStorage;
+        XIndex = x;
+        ZIndex = z;
+        this.StackStorage = stackStorage;
     }
 
     public void SetAdjacency()
     {
         GridXZCell[] adjacentRawItems =
         {
-            _gridXZ.GetItem(xIndex + 1, zIndex),
-            _gridXZ.GetItem(xIndex - 1, zIndex),
-            _gridXZ.GetItem(xIndex, zIndex + 1),
-            _gridXZ.GetItem(xIndex, zIndex - 1)
+            _gridXZ.GetItem(XIndex + 1, ZIndex),
+            _gridXZ.GetItem(XIndex - 1, ZIndex),
+            _gridXZ.GetItem(XIndex, ZIndex + 1),
+            _gridXZ.GetItem(XIndex, ZIndex - 1)
         };
 
         foreach (var rawItem in adjacentRawItems)
         {
             if (rawItem != null)
             {
-                adjacentItems.Add(rawItem);
+                AdjacentItems.Add(rawItem);
                 //Debug.Log("("+_xIndex+","+_zIndex+") adjacent to ("+rawItem._xIndex+","+rawItem._zIndex+")");
             }
         }
@@ -51,11 +51,11 @@ public class GridXZCell
 
     public static (int xDiff, int zDiff) GetIndexDifference(GridXZCell first, GridXZCell second)
     {
-        return (second.xIndex - first.xIndex , second.zIndex-first.zIndex);
+        return (second.XIndex - first.XIndex , second.ZIndex-first.ZIndex);
     }
     
     public static (int xDiff, int zDiff) GetIndexDifferenceAbsolute(GridXZCell first, GridXZCell second)
     {
-        return (Mathf.Abs(second.xIndex - first.xIndex), Mathf.Abs(second.zIndex - first.zIndex));
+        return (Mathf.Abs(second.XIndex - first.XIndex), Mathf.Abs(second.ZIndex - first.ZIndex));
     }
 }

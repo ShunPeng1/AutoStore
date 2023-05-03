@@ -5,13 +5,13 @@ using UnityUtilities;
 
 public class ResourceManager : PersistentSingletonMonoBehaviour<ResourceManager>
 {
-    [Header("Storage")] public StackStorage stackStorage;
+    [Header("Storage")] public StackStorage StackStorage;
 
-    [Header("Bundle")] public List<Crate> crates;
+    [Header("Bundle")] public List<Crate> Crates;
 
     public Crate GetRandomCrate()
     {
-        var index = Random.Range(0, crates.Count);
-        return crates[index];
+        var index = Random.Range(0, Crates.Count);
+        return Crates[index];
     }
 }

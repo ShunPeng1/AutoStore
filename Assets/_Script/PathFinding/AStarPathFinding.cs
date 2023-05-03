@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace _Script.PathFinding.AStar
+namespace _Script.PathFinding
 {
     public class AStarPathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
     {
@@ -16,7 +16,7 @@ namespace _Script.PathFinding.AStar
         {
             Priority_Queue.SimplePriorityQueue<GridXZCell> openSet = new (); // to be travelled set
             HashSet<GridXZCell> closeSet = new(); // travelled set 
-            openSet.Enqueue(startXZCell, startXZCell.fCost);
+            openSet.Enqueue(startXZCell, startXZCell.FCost);
         
             while (openSet.Count > 0)
             {
@@ -28,23 +28,23 @@ namespace _Script.PathFinding.AStar
                     return RetracePath(startXZCell, endXZCell);;
                 }
 
-                foreach (var adjacentCell in currentMinFCostCell.adjacentItems)
+                foreach (var adjacentCell in currentMinFCostCell.AdjacentItems)
                 {
                     if (closeSet.Contains(adjacentCell)) // skip for travelled ceil 
                     {
                         continue;
                     }
 
-                    int newGCostToNeighbour = currentMinFCostCell.gCost + GetDistanceCost(currentMinFCostCell, adjacentCell);
-                    if (newGCostToNeighbour < adjacentCell.gCost || !openSet.Contains(adjacentCell))
+                    int newGCostToNeighbour = currentMinFCostCell.GCost + GetDistanceCost(currentMinFCostCell, adjacentCell);
+                    if (newGCostToNeighbour < adjacentCell.GCost || !openSet.Contains(adjacentCell))
                     {
-                        adjacentCell.gCost = newGCostToNeighbour;
-                        adjacentCell.hCost = GetDistanceCost(adjacentCell, endXZCell);
+                        adjacentCell.GCost = newGCostToNeighbour;
+                        adjacentCell.HCost = GetDistanceCost(adjacentCell, endXZCell);
                         adjacentCell.ParentXZCell = currentMinFCostCell;
 
                         if (!openSet.Contains(adjacentCell)) // Not in open set
                         {
-                            openSet.Enqueue(adjacentCell, adjacentCell.fCost);
+                            openSet.Enqueue(adjacentCell, adjacentCell.FCost);
                         }
                     }
 
@@ -85,3 +85,4 @@ namespace _Script.PathFinding.AStar
     
     }
 }
+

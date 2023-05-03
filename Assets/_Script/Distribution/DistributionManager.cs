@@ -9,14 +9,13 @@ using Random = UnityEngine.Random;
 
 public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 {
-    [Header("Bundle Spawn")] [SerializeField, Range(1f, 100f)]
-    private float spawnRate = 5f;
-
-    [SerializeField, Range(1, 100)] private int maxPendingCrate = 100;
+    [Header("Bundle Spawn")] 
+    [SerializeField, Range(1f, 100f)] private float _spawnRate = 5f;
+    [SerializeField, Range(1, 100)] private int _maxPendingCrate = 100;
 
 
     private GridXZ<GridXZCell> _storageGrid;
-    private int width, height;
+    private int _width, _height;
 
     private float _currentTime = 0f;
     private Queue<Crate> _pendingCrates = new();
@@ -25,8 +24,8 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     IEnumerator Start()
     {
         yield return null;
-        _storageGrid = MapManager.Instance.storageGrid;
-        (width, height) = _storageGrid.GetWidthHeight();
+        _storageGrid = MapManager.Instance.StorageGrid;
+        (_width, _height) = _storageGrid.GetWidthHeight();
 
         _robots = FindObjectsOfType<Robot>();
     }
@@ -34,7 +33,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     void Update()
     {
         _currentTime += Time.deltaTime;
-        if (_currentTime >= spawnRate) 
+        if (_currentTime >= _spawnRate) 
         {
             CreateCrate();
             _currentTime = 0;
@@ -91,8 +90,8 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// </summary>
     private void CreateCrate()
     {
-        int currentX = Random.Range(0, width), currentZ = Random.Range(0, height);
-        int storingX = Random.Range(0, width), storingZ = Random.Range(0, height);
+        int currentX = Random.Range(0, _width), currentZ = Random.Range(0, _height);
+        int storingX = Random.Range(0, _width), storingZ = Random.Range(0, _height);
         var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(),
             _storageGrid.GetWorldPosition(currentX, currentZ), Quaternion.identity);
 

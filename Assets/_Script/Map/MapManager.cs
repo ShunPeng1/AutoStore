@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using _Script.PathFinding.AStar;
+using _Script.PathFinding;
 using UnityEngine;
 using UnityUtilities;
 
@@ -9,24 +9,19 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
 {
     [SerializeField] private int _width = 20, _height = 20;
     [SerializeField] private float _cellWidthSize = 1f, _cellHeightSize = 1f;
-    public GridXZ<GridXZCell> storageGrid;
+    public GridXZ<GridXZCell> StorageGrid;
 
     [Header("PathFinding")] 
     public Pathfinding<GridXZ<GridXZCell>, GridXZCell> Pathfinding;
     
 
-    private void Awake()
-    {
-        throw new NotImplementedException();
-    }
-
 
     void Start()
     {
-        storageGrid = new GridXZ<GridXZCell>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position,
+        StorageGrid = new GridXZ<GridXZCell>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position,
             (grid, x, z) =>
             {
-                StackStorage stackStorage = Instantiate(ResourceManager.Instance.stackStorage, grid.GetWorldPosition(x,z),Quaternion.identity ,transform);
+                StackStorage stackStorage = Instantiate(ResourceManager.Instance.StackStorage, grid.GetWorldPosition(x,z),Quaternion.identity ,transform);
                 GridXZCell storageGridXZCell = new GridXZCell(grid, x, z, stackStorage);
                 stackStorage.Init(grid, x, z, storageGridXZCell);
                 return storageGridXZCell;
@@ -36,11 +31,11 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
         {
             for (int z = 0; z < _height; z++)
             {
-                storageGrid.GetItem(x,z).SetAdjacency();
+                StorageGrid.GetItem(x,z).SetAdjacency();
             }
         }
 
-        Pathfinding = new AStarPathFinding(storageGrid);
+        Pathfinding = new AStarPathFinding(StorageGrid);
         
         
     }
