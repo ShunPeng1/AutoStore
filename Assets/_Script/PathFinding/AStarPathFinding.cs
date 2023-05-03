@@ -38,8 +38,11 @@ namespace _Script.PathFinding
                     int newGCostToNeighbour = currentMinFCostCell.GCost + GetDistanceCost(currentMinFCostCell, adjacentCell);
                     if (newGCostToNeighbour < adjacentCell.GCost || !openSet.Contains(adjacentCell))
                     {
+                        int hCost = GetDistanceCost(adjacentCell, endXZCell);
+                        
                         adjacentCell.GCost = newGCostToNeighbour;
-                        adjacentCell.HCost = GetDistanceCost(adjacentCell, endXZCell);
+                        adjacentCell.HCost = hCost;
+                        adjacentCell.FCost = newGCostToNeighbour + hCost;
                         adjacentCell.ParentXZCell = currentMinFCostCell;
 
                         if (!openSet.Contains(adjacentCell)) // Not in open set

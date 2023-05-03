@@ -7,7 +7,9 @@ using UnityEngine.Video;
 
 public class R5Robot : Robot
 {
-
+    [Header("Pathfinder")] 
+    private DStarLitePathFinding _dStarLitePathFinding;
+    
     [Header("Casting")] 
     [SerializeField] private Transform headCast;
     [SerializeField] private Transform tailCast;
@@ -21,7 +23,8 @@ public class R5Robot : Robot
         yield return null;
         CurrentGrid = MapManager.Instance.StorageGrid;
         (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
-         
+
+        _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
     }
 
     // Update is called once per frame
@@ -125,7 +128,7 @@ public class R5Robot : Robot
 
     private void GetNextCellInPath()
     {
-        if (MovingPath.Count == 0) return;
+        if (MovingPath == null ||MovingPath.Count == 0) return;
         var nextDestination = MovingPath.First.Value;
         MovingPath.RemoveFirst(); // the next standing node
         
@@ -140,7 +143,9 @@ public class R5Robot : Robot
         var startCell = CurrentGrid.GetItem(XIndex, ZIndex);
         var endCell = CurrentGrid.GetItem(GoalCellPosition);
 
-        MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
+        //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
+        MovingPath = _dStarLitePathFinding.FindPath(startCell, endCell);
+        
         if (MovingPath == null || MovingPath.Count <= 1) return;
 
         MovingPath.RemoveFirst(); // the current standing node
@@ -152,7 +157,7 @@ public class R5Robot : Robot
 
     void ShowPath()
     {
-        if (RobotState == RobotStateEnum.Idle) return;
+        if (RobotState == RobotStateEnum.Idle || MovingPath == null) return;
         
         DebugLineRenderer.positionCount = MovingPath.Count + 1;
         DebugLineRenderer.SetPosition(0, transform.position);

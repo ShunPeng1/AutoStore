@@ -14,7 +14,7 @@ public class GridXZCell
 
     [Header("A Star Pathfinding")] 
     public GridXZCell ParentXZCell = null; 
-    public int FCost => HCost+GCost;
+    public int FCost;
     public int HCost;
     public int GCost;
     
