@@ -10,6 +10,8 @@ public class GridXZCell
     public List<GridXZCell> adjacentItems = new ();
     public StackStorage stackStorage;
 
+    public bool IsObstacle;
+
     [Header("A Star Pathfinding")] 
     public GridXZCell ParentXZCell = null; 
     public int fCost => hCost+gCost;
@@ -23,7 +25,6 @@ public class GridXZCell
         xIndex = x;
         zIndex = z;
         this.stackStorage = stackStorage;
-        //AddAdjacency();
     }
 
     public void SetAdjacency()
@@ -46,13 +47,7 @@ public class GridXZCell
         }
         
     }
-
-    public void AddWeight(float adding)
-    {
-        _weight += adding;
-        Debug.Log("Weigth");
-        _gridXZ.TriggerGridObjectChanged(xIndex, zIndex);
-    }
+    
 
     public static (int xDiff, int zDiff) GetIndexDifference(GridXZCell first, GridXZCell second)
     {

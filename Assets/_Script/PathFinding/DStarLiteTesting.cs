@@ -5,7 +5,6 @@ using UnityEngine;
 
 public class DStarLite 
 {
-    
     static Heap U;
     static State[,] S;
     static double km;

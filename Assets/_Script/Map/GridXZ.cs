@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GridXZ<TItem>
+public class GridXZ<TCell>
 {
     public event EventHandler<OnGridValueChangedEventArgs> EOnGridValueChanged;
     public class OnGridValueChangedEventArgs : EventArgs
@@ -16,16 +16,16 @@ public class GridXZ<TItem>
     private float _cellWidthSize, _cellHeightSize;
     private Vector3 _originPosition;
 
-    private TItem[,] _gridItems;
+    private TCell[,] _gridItems;
     
-    public GridXZ(int width = 100, int height = 100, float cellWidthSize = 1f, float cellHeightSize = 1f, Vector3 originPosition = new Vector3(), Func<GridXZ<TItem>, int, int,TItem> createGridItem = null)
+    public GridXZ(int width = 100, int height = 100, float cellWidthSize = 1f, float cellHeightSize = 1f, Vector3 originPosition = new Vector3(), Func<GridXZ<TCell>, int, int,TCell> createGridItem = null)
     {
         _width = width;
         _height = height;
         _cellHeightSize = cellHeightSize;
         _cellWidthSize = cellWidthSize;
         _originPosition = originPosition;
-        _gridItems = new TItem[_width, _height];
+        _gridItems = new TCell[_width, _height];
         
         for (int x = 0; x < _width; x++)
         {
@@ -50,7 +50,7 @@ public class GridXZ<TItem>
         return new Vector3(x * _cellWidthSize, 0, z * _cellHeightSize) + _originPosition;
     }
 
-    public void SetItem(TItem item, int xIndex, int zIndex)
+    public void SetItem(TCell item, int xIndex, int zIndex)
     {
         if (xIndex < _width && xIndex >= 0 && zIndex < _height && zIndex >= 0)
         {
@@ -65,7 +65,7 @@ public class GridXZ<TItem>
 
     }
     
-    public void SetItem(TItem item, Vector3 position)
+    public void SetItem(TCell item, Vector3 position)
     {
         (int xIndex, int zIndex) = GetXZ(position);
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0)
@@ -74,20 +74,20 @@ public class GridXZ<TItem>
         };
     }
     
-    public TItem GetItem(int xIndex, int zIndex)
+    public TCell GetItem(int xIndex, int zIndex)
     {
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0) return _gridItems[xIndex, zIndex];
-        return default(TItem);
+        return default(TCell);
     }
     
-    public TItem GetItem(Vector3 position)
+    public TCell GetItem(Vector3 position)
     {
         (int xIndex, int zIndex) = GetXZ(position);
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0)
         {
             return _gridItems[xIndex, zIndex];
         }
-        return default(TItem);
+        return default(TCell);
     }
 
     public (int , int ) GetWidthHeight()

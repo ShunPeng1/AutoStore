@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.PathFinding.AStar;
 using UnityEngine;
 using UnityUtilities;
 
@@ -13,9 +14,13 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     [Header("PathFinding")] 
     public Pathfinding<GridXZ<GridXZCell>, GridXZCell> Pathfinding;
     
-    
-    
-    
+
+    private void Awake()
+    {
+        throw new NotImplementedException();
+    }
+
+
     void Start()
     {
         storageGrid = new GridXZ<GridXZCell>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position,
