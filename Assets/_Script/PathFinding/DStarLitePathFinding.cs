@@ -10,7 +10,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
 
     public override LinkedList<GridXZCell> FindPath(GridXZCell startNode, GridXZCell endNode)
     {
-        var openNodes = new Priority_Queue.SimplePriorityQueue<GridXZCell>(); // priority queue of open nodes
+        var openNodes = new Priority_Queue.SimplePriorityQueue<GridXZCell, int>(); // priority queue of open nodes
         var km = 0; // km = heuristic for estimating cost of travel along the last path
         var rhsValues =
             new Dictionary<GridXZCell, int>(); // rhsValues[x] = the current best estimate of the cost from x to the goal
@@ -21,17 +21,20 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
 
         openNodes.Enqueue(endNode, CalculateKey(endNode, km, gValues, rhsValues));
 
+        gValues[endNode] = int.MaxValue;
         rhsValues[endNode] = 0;
-        gValues[endNode] = int.MaxValue; // infinity
+        
+        gValues[startNode] = 0;
+        rhsValues[endNode] = int.MaxValue;
+        
         predecessors[startNode] = null;
 
-        while (openNodes.Count > 0 && (GetRhsValue(startNode, rhsValues) > CalculateKey(startNode, km, gValues, rhsValues) ||
-                                       gValues[startNode] == int.MaxValue))
+        while (openNodes.Count > 0 && (GetRhsValue(startNode, rhsValues) > CalculateKey(startNode, km, gValues, rhsValues) || gValues[startNode] == int.MaxValue))
+            // I don't know if it like this or not !(GetRhsValue(startNode, rhsValues) > CalculateKey(startNode, km, gValues, rhsValues) || gValues[startNode] == int.MaxValue)
         {
-            var currentMinKeyNode = openNodes.First;
-            var currentNode = currentMinKeyNode;
-            openNodes.TryDequeue(out currentNode);
-
+            if (! openNodes.TryDequeue(out GridXZCell currentNode)) return null; // there are no way to get to end
+            Debug.Log("DStar current Node"+ currentNode.XIndex + " "+ currentNode.ZIndex);
+            
             if (gValues[currentNode] > rhsValues[currentNode])
             {
                 gValues[currentNode] = rhsValues[currentNode];
@@ -70,22 +73,16 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
 
     private int GetRhsValue(GridXZCell node, Dictionary<GridXZCell, int> rhsValues)
     {
-        if (rhsValues.TryGetValue(node, out int value))
-        {
-            return value;
-        }
-        else
-        {
-            return int.MaxValue;
-        }
+        return rhsValues.TryGetValue(node, out int value) ? value : int.MaxValue;
     }
 
     private int GetGValue(GridXZCell node, Dictionary<GridXZCell, int> gValues)
     {
         return gValues.TryGetValue(node, out int value) ? value : int.MaxValue;
     }
-    private void UpdateNode(GridXZCell node, GridXZCell endNode, int km, Dictionary<GridXZCell, int> rhsValues, Dictionary<GridXZCell, int> gValues, Dictionary<GridXZCell, GridXZCell> predecessors, Priority_Queue.SimplePriorityQueue<GridXZCell> openNodes)
+    private void UpdateNode(GridXZCell node, GridXZCell endNode, int km, Dictionary<GridXZCell, int> rhsValues, Dictionary<GridXZCell, int> gValues, Dictionary<GridXZCell, GridXZCell> predecessors, Priority_Queue.SimplePriorityQueue<GridXZCell, int> openNodes)
     {
+        Debug.Log("DStar UpdateNode "+ node.XIndex +" "+ node.ZIndex);
         if (node != endNode)
         {
             int minRhs = int.MaxValue;
@@ -104,15 +101,15 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
             openNodes.TryRemove(node);
         }
 
-        if (gValues[node] != rhsValues[node])
+        if (GetGValue(node, gValues) != GetRhsValue(node, rhsValues))
         {
-            gValues[node] = rhsValues[node];
+            gValues[node] = GetRhsValue(node, rhsValues);
             int hValue = GetDistanceCost(node, endNode);
             node.GCost = gValues[node];
             node.HCost = hValue;
             node.FCost = gValues[node] + hValue + km;
 
-            openNodes.Enqueue(node, node.FCost);
+            openNodes.Enqueue(node, node.FCost); // or replace node.FCost = CalculateKey
         }
     }
 
