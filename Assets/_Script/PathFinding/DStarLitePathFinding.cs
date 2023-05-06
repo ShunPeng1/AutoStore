@@ -9,9 +9,34 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
     {
     }
 
+    private struct QueueKey
+    {
+        public int FCost;
+        public int HCost;
+
+        public QueueKey(int fCost = 0, int hCost = 0)
+        {
+            FCost = fCost;
+            HCost = hCost;
+        }
+    }
+    private class CompareFCostHCost : IComparer<QueueKey>
+    {
+        public int Compare(QueueKey x, QueueKey y)
+        {
+            int compare = x.FCost.CompareTo(y.FCost);
+            if (compare == 0)
+            {
+                compare = x.HCost.CompareTo(y.HCost);
+            }
+            return compare;
+        }
+    }
+    
+    
     public override LinkedList<GridXZCell> FindPath(GridXZCell startNode, GridXZCell endNode)
     {
-        var openNodes = new Priority_Queue.SimplePriorityQueue<GridXZCell, double>(); // priority queue of open nodes
+        var openNodes = new Priority_Queue.SimplePriorityQueue<GridXZCell, QueueKey >( new CompareFCostHCost()); // priority queue of open nodes
         var km = 0; // km = heuristic for estimating cost of travel along the last path
         var rhsValues =
             new Dictionary<GridXZCell, double>(); // rhsValues[x] = the current best estimate of the cost from x to the goal
@@ -19,25 +44,26 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
             new Dictionary<GridXZCell, double>(); // gValues[x] = the cost of the cheapest path from the start to x
         var predecessors =
             new Dictionary<GridXZCell, GridXZCell>(); // predecessors[x] = the node that comes before x on the best path from the start to x
-
-        openNodes.Enqueue(endNode, CalculateKey(endNode, km, gValues, rhsValues));
-
+        
         gValues[endNode] = double.PositiveInfinity;
         rhsValues[endNode] = 0;
 
-        gValues[startNode] = 0;
-        rhsValues[endNode] = double.PositiveInfinity;
-
+        gValues[startNode] =  double.PositiveInfinity;
+        rhsValues[startNode] = double.PositiveInfinity;
         predecessors[startNode] = null;
 
+        openNodes.Enqueue(endNode, new QueueKey((int) CalculateKey(endNode, startNode, km, gValues, rhsValues) , 0));
+
+        
         while (openNodes.Count > 0 &&
-               (GetRhsValue(startNode, rhsValues) > CalculateKey(startNode, km, gValues, rhsValues) ||
+               (GetRhsValue(startNode, rhsValues) > CalculateKey(startNode, startNode, km, gValues, rhsValues) ||
                 gValues[startNode] == double.PositiveInfinity))
             // I don't know if it like this or not !(GetRhsValue(startNode, rhsValues) > CalculateKey(startNode, km, gValues, rhsValues) || gValues[startNode] == double.PositiveInfinity)
         {
             if (!openNodes.TryDequeue(out GridXZCell currentNode)) return null; // there are no way to get to end
             Debug.Log("DStar current Node" + currentNode.XIndex + " " + currentNode.ZIndex);
-
+            
+            
             if (gValues[currentNode] > rhsValues[currentNode])
             {
                 gValues[currentNode] = rhsValues[currentNode];
@@ -46,33 +72,33 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
                 {
                     if (neighbor != null && !neighbor.IsObstacle)
                     {
-                        UpdateNode(neighbor, endNode, km, rhsValues, gValues, predecessors, openNodes);
+                        UpdateNode(neighbor, startNode, endNode, km, rhsValues, gValues, predecessors, openNodes);
                     }
                 }
             }
             else
             {
                 gValues[currentNode] = double.PositiveInfinity;
+                UpdateNode(currentNode, startNode, endNode, km, rhsValues, gValues, predecessors, openNodes);
 
                 foreach (var neighbor in currentNode.AdjacentItems)
                 {
                     if (neighbor != null && !neighbor.IsObstacle)
                     {
-                        UpdateNode(neighbor, endNode, km, rhsValues, gValues, predecessors, openNodes);
+                        UpdateNode(neighbor, startNode, endNode, km, rhsValues, gValues, predecessors, openNodes);
                     }
                 }
 
-                UpdateNode(currentNode, endNode, km, rhsValues, gValues, predecessors, openNodes);
             }
         }
 
         return RetracePath(startNode, endNode, predecessors);
     }
 
-    private double CalculateKey(GridXZCell node, int km, Dictionary<GridXZCell, double> gValues,
+    private double CalculateKey(GridXZCell currNode, GridXZCell startNode, int km, Dictionary<GridXZCell, double> gValues,
         Dictionary<GridXZCell, double> rhsValues)
     {
-        return Math.Min(GetRhsValue(node, rhsValues), GetGValue(node, gValues)) + node.HCost + km;
+        return Math.Min(GetRhsValue(currNode, rhsValues), GetGValue(currNode, gValues)) + GetDistanceCost(currNode, startNode) + km;
     }
 
     private double GetRhsValue(GridXZCell node, Dictionary<GridXZCell, double> rhsValues)
@@ -85,17 +111,17 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return gValues.TryGetValue(node, out double value) ? value : double.PositiveInfinity;
     }
 
-    private void UpdateNode(GridXZCell node, GridXZCell endNode, int km,
+    private void UpdateNode(GridXZCell node,  GridXZCell startNode,GridXZCell endNode, int km,
         Dictionary<GridXZCell, double> rhsValues,
         Dictionary<GridXZCell, double> gValues, 
         Dictionary<GridXZCell, GridXZCell> predecessors,
-        Priority_Queue.SimplePriorityQueue<GridXZCell, double> openNodes)
+        Priority_Queue.SimplePriorityQueue<GridXZCell, QueueKey> openNodes)
     {
         Debug.Log("DStar UpdateNode " + node.XIndex + " " + node.ZIndex);
         if (node != endNode)
         {
             /*
-             * Get the min Successor
+             * Get the min rhs from Successors
              */
             double minRhs = double.PositiveInfinity;
             GridXZCell minSucc = null;
@@ -113,7 +139,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
             }
 
             rhsValues[node] = minRhs;
-            predecessors[node] = minSucc;
+            predecessors[node] = minSucc ?? (predecessors[node] ?? null);
         }
 
         if (openNodes.Contains(node))
@@ -124,12 +150,12 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         if (GetGValue(node, gValues) != GetRhsValue(node, rhsValues))
         {
             gValues[node] = GetRhsValue(node, rhsValues);
-            int hValue = GetDistanceCost(node, endNode);
+            int hValue = GetDistanceCost(node, startNode);
             node.GCost = (int)gValues[node];
             node.HCost = hValue;
             node.FCost = (int)(gValues[node] + hValue + km);
 
-            openNodes.Enqueue(node, node.FCost); // or replace node.FCost = CalculateKey
+            openNodes.Enqueue(node, new QueueKey(node.FCost, node.HCost)); // or replace node.FCost = CalculateKey
         }
     }
 
@@ -137,15 +163,15 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         Dictionary<GridXZCell, GridXZCell> predecessors)
     {
         LinkedList<GridXZCell> path = new LinkedList<GridXZCell>();
-        GridXZCell currentCell = endXZCell;
+        GridXZCell currentCell = startXZCell;
 
-        while (currentCell != startXZCell)
+        while (currentCell != endXZCell)
         {
-            path.AddFirst(currentCell);
+            path.AddLast(currentCell);
             currentCell = predecessors[currentCell];
         }
 
-        path.AddFirst(startXZCell);
+        path.AddLast(endXZCell);
 
         return path;
     }
