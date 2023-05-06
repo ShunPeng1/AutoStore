@@ -3,17 +3,34 @@ using System.Collections;
 using System.Collections.Generic;
 using _Script.Robot;
 using UnityEngine;
-using UnityEngine.PlayerLoop;
 using UnityUtilities;
 using Random = UnityEngine.Random;
 
 public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 {
-    [Header("Bundle Spawn")] 
+    [Serializable]
+    class CrateSpawnInfo
+    {
+        public float ArriveTime;
+        public Vector2Int SourceGridIndex;
+        public Vector2Int DestinationGridIndex;
+    }
+
+    enum SpawnStyle
+    {
+        Random,
+        Fixed
+    }
+    [SerializeField] private SpawnStyle _spawnStyle = SpawnStyle.Random;
+
+    [Header("Random Spawn")] 
     [SerializeField, Range(1f, 100f)] private float _spawnRate = 5f;
     [SerializeField, Range(1, 100)] private int _maxPendingCrate = 100;
 
-
+    [Header("Fixed Spawn")]
+    [SerializeField] private List<CrateSpawnInfo> _crateSpawnInfos;
+    
+    
     private GridXZ<GridXZCell> _storageGrid;
     private int _width, _height;
 
@@ -21,6 +38,8 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     private Queue<Crate> _pendingCrates = new();
     private Robot[] _robots;
 
+    
+    
     IEnumerator Start()
     {
         yield return null;
@@ -28,15 +47,35 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         (_width, _height) = _storageGrid.GetWidthHeight();
 
         _robots = FindObjectsOfType<Robot>();
+        _crateSpawnInfos.Sort((x, y) =>
+        {
+            var ret = x.ArriveTime.CompareTo(y.ArriveTime);
+            return ret;
+        });
     }
 
     void Update()
     {
         _currentTime += Time.deltaTime;
-        if (_currentTime >= _spawnRate) 
+
+        switch (_spawnStyle)
         {
-            CreateCrate();
-            _currentTime = 0;
+            case SpawnStyle.Random:
+                if (_currentTime >= _spawnRate) 
+                {
+                    CreateCrateRandomly();
+                    _currentTime = 0;
+                }
+                break;
+            case SpawnStyle.Fixed:
+                if (_crateSpawnInfos.Count > 0 && _currentTime >= _crateSpawnInfos[0].ArriveTime)
+                {
+                    CreateCrateFixed(_crateSpawnInfos[0].SourceGridIndex, _crateSpawnInfos[0].DestinationGridIndex);
+                    _crateSpawnInfos.RemoveAt(0);
+                }
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
 
         AssignMission();
@@ -47,7 +86,6 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// </summary>
     private void AssignMission()
     {
-         
         while (_pendingCrates.Count > 0)
         {
             var crate = _pendingCrates.Peek();
@@ -88,7 +126,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// <summary>
     /// This function create the crate in the game world space
     /// </summary>
-    private void CreateCrate()
+    private void CreateCrateRandomly()
     {
         int currentX = Random.Range(0, _width), currentZ = Random.Range(0, _height);
         int storingX = Random.Range(0, _width), storingZ = Random.Range(0, _height);
@@ -99,6 +137,15 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         _pendingCrates.Enqueue(freshCrate);
     }
 
+    private void CreateCrateFixed(Vector2Int sourceIndex, Vector2Int destinationIndex)
+    {
+        var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(),
+            _storageGrid.GetWorldPosition(sourceIndex.x, sourceIndex.y), Quaternion.identity);
+
+        freshCrate.Init(_storageGrid, sourceIndex.x, sourceIndex.y, destinationIndex.x, destinationIndex.y);
+        _pendingCrates.Enqueue(freshCrate);
+    }
+    
     public void RequestMission(Robot robot)
     {
         if (_pendingCrates.Count > 0)

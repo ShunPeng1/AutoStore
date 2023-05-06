@@ -871,8 +871,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49f6dea4091cb4040aeb4be00d44bd92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _spawnStyle: 0
   _spawnRate: 5
   _maxPendingCrate: 100
+  _crateSpawnInfos: []
 --- !u!1 &1141733424
 GameObject:
   m_ObjectHideFlags: 0
