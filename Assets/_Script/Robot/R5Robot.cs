@@ -67,6 +67,8 @@ public class R5Robot : Robot
             {
                 Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
                 StartCoroutine(nameof(Jamming));
+                
+                // TODO avoidance
             }
             
         }
@@ -144,6 +146,8 @@ public class R5Robot : Robot
         var endCell = CurrentGrid.GetItem(GoalCellPosition);
 
         //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
+        
+        // TODO Choose a path finding 
         MovingPath = _dStarLitePathFinding.FindPath(startCell, endCell);
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
