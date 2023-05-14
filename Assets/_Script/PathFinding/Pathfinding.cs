@@ -24,4 +24,9 @@ public class Pathfinding<TGrid, TCell>
         return null;
     }
     
+    public virtual LinkedList<GridXZCell> InitializePathFinding(TCell start, TCell end)
+    {
+        return null;
+    }
+    
 }

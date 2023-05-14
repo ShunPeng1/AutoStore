@@ -75,7 +75,8 @@ public class R5Robot : Robot
         }
         
         // Update Path base on obstacle
-        _dStarLitePathFinding.UpdatePathDynamicObstacle(
+        if (dynamicObstacle.Count == 0) return; 
+        MovingPath = _dStarLitePathFinding.UpdatePathDynamicObstacle(
             CurrentGrid.GetItem(transform.position),
             CurrentGrid.GetItem(NextCellPosition),
             dynamicObstacle
@@ -156,7 +157,7 @@ public class R5Robot : Robot
         // TODO Choose a path finding 
         //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
         _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
-        MovingPath = _dStarLitePathFinding.FindPath(startCell, endCell);
+        MovingPath = _dStarLitePathFinding.InitializePathFinding(startCell, endCell);
 
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
