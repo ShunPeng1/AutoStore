@@ -24,7 +24,7 @@ public class R5Robot : Robot
         CurrentGrid = MapManager.Instance.StorageGrid;
         (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
 
-        _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
+        //_dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
     }
 
     // Update is called once per frame
@@ -56,19 +56,16 @@ public class R5Robot : Robot
             {
                 continue;
             }
-            /*if (id < robotHit.id && robotHit.robotState != RobotState.Idle)
-            {
-                Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
-                
-                return;
-            }*/
-
+            
             if (IsDirectionHeading(hit.transform.position, 45))
             {
                 Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
-                StartCoroutine(nameof(Jamming));
+                
                 
                 // TODO avoidance
+                //StartCoroutine(nameof(Jamming));
+                
+                //UpdatePathDynamicObstacle
             }
             
         }
@@ -140,15 +137,16 @@ public class R5Robot : Robot
 
     }
 
-    private void PathFinding()
+    private void CreatePathFinding()
     {
         var startCell = CurrentGrid.GetItem(XIndex, ZIndex);
         var endCell = CurrentGrid.GetItem(GoalCellPosition);
 
-        //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
-        
         // TODO Choose a path finding 
+        //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
+        _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
         MovingPath = _dStarLitePathFinding.FindPath(startCell, endCell);
+
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
 
@@ -180,7 +178,7 @@ public class R5Robot : Robot
         GoalCellPosition = crate.transform.position;
         RobotState = RobotStateEnum.Retrieving;
 
-        PathFinding();
+        CreatePathFinding();
     }
 
     public override void PickUpCrate()
@@ -191,7 +189,7 @@ public class R5Robot : Robot
             HoldingCrate.transform.SetParent(transform);
             RobotState = RobotStateEnum.Delivering;
             
-            PathFinding();
+            CreatePathFinding();
         }
     }
 

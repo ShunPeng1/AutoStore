@@ -28,7 +28,7 @@ namespace _Script.PathFinding
                     return RetracePath(startXZCell, endXZCell);;
                 }
 
-                foreach (var adjacentCell in currentMinFCostCell.AdjacentItems)
+                foreach (var adjacentCell in currentMinFCostCell.AdjacentCells)
                 {
                     if (closeSet.Contains(adjacentCell)) // skip for travelled ceil 
                     {

@@ -7,7 +7,7 @@ public class GridXZCell
     [Header("Base")]
     private readonly GridXZ<GridXZCell> _gridXZ;
     public readonly int XIndex, ZIndex;
-    public readonly List<GridXZCell> AdjacentItems = new ();
+    public readonly List<GridXZCell> AdjacentCells = new ();
     public StackStorage StackStorage;
 
     public bool IsObstacle;
@@ -41,7 +41,7 @@ public class GridXZCell
         {
             if (rawItem != null)
             {
-                AdjacentItems.Add(rawItem);
+                AdjacentCells.Add(rawItem);
                 //Debug.Log("("+_xIndex+","+_zIndex+") adjacent to ("+rawItem._xIndex+","+rawItem._zIndex+")");
             }
         }
