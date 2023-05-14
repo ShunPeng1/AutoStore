@@ -95,7 +95,8 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
 
                 foreach (var neighbor in currentNode.AdjacentCells)
                 {
-                    if (neighbor != null && !neighbor.IsObstacle)
+                    //if (neighbor != null && !neighbor.IsObstacle)
+                    if (neighbor != null && !neighbor.IsObstacle && !dynamicObstacles.ContainsKey(neighbor))
                     {
                         UpdateNode(neighbor);
                     }
@@ -108,7 +109,8 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
 
                 foreach (var neighbor in currentNode.AdjacentCells)
                 {
-                    if (neighbor != null && !neighbor.IsObstacle)
+                    //if (neighbor != null && !neighbor.IsObstacle)
+                    if (neighbor != null && !neighbor.IsObstacle && !dynamicObstacles.ContainsKey(neighbor))
                     {
                         UpdateNode(neighbor);
                     }
@@ -130,7 +132,8 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
             dynamicObstacles.Add(obstacleCell, Time.time);
             foreach (var neighbor in obstacleCell.AdjacentCells)
             {
-                if (neighbor != null && !neighbor.IsObstacle)
+                //if (neighbor != null && !neighbor.IsObstacle)
+                if (neighbor != null && !neighbor.IsObstacle && !dynamicObstacles.ContainsKey(neighbor))
                 {
                     UpdateNode(neighbor);
                 }
@@ -171,7 +174,8 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
                 double rhs = gValues.ContainsKey(successor)
                     ? gValues[successor] + GetDistanceCost(node, successor)
                     : double.PositiveInfinity;
-                if (rhs < minRhs && !successor.IsObstacle)
+                //if (rhs < minRhs && !successor.IsObstacle)
+                if (rhs < minRhs && !successor.IsObstacle && !dynamicObstacles.ContainsKey(successor))
                 {
                     minRhs = rhs;
                     minSucc = successor;

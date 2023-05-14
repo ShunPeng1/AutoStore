@@ -49,6 +49,8 @@ public class R5Robot : Robot
         var deltaCastPosition = tailCast.position - headCast.position;
         var hits = Physics.SphereCastAll(headCast.position, castRadius, deltaCastPosition, deltaCastPosition.magnitude,robotLayerMask);
 
+
+        List<GridXZCell> dynamicObstacle = new(); 
         foreach (var hit in hits)
         { 
             var robotHit = hit.collider.gameObject.GetComponent<Robot>();
@@ -61,14 +63,23 @@ public class R5Robot : Robot
             {
                 Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
                 
-                
                 // TODO avoidance
                 //StartCoroutine(nameof(Jamming));
+
+                // Use the current and next cell to be a obstacle
+                dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.transform.position));
+                dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.NextCellPosition));
                 
-                //UpdatePathDynamicObstacle
             }
             
         }
+        
+        // Update Path base on obstacle
+        _dStarLitePathFinding.UpdatePathDynamicObstacle(
+            CurrentGrid.GetItem(transform.position),
+            CurrentGrid.GetItem(NextCellPosition),
+            dynamicObstacle
+        );
     }
 
     bool IsDirectionHeading(Vector3 hitPosition, float thresholdAngle)

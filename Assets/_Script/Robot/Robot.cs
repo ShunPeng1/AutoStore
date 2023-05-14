@@ -21,8 +21,8 @@ namespace _Script.Robot
         [Header("Grid")]
         protected GridXZ<GridXZCell> CurrentGrid;
         protected int XIndex, ZIndex;
-        protected Vector3 NextCellPosition;
-        protected Vector3 GoalCellPosition;
+        public Vector3 NextCellPosition;
+        public Vector3 GoalCellPosition;
         protected LinkedList<GridXZCell> MovingPath;
         
         [Header("Movement")] 
