@@ -191,6 +191,11 @@ public class B1Robot : Robot
         }
     }
 
+    public override void IdleRedirect(Robot requestedRobot)
+    {
+        
+    }
+
     public override void ApproachCrate(Crate crate)
     {
         HoldingCrate = crate;

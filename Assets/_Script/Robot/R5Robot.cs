@@ -59,7 +59,7 @@ public class R5Robot : Robot
                 continue;
             }
             
-            if (IsDirectionHeading(hit.transform.position, 45) || (robotHit.RobotState == RobotStateEnum.Idle))
+            if (IsDirectionHeading(hit.transform.position, 45))
             {
                 Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
                 
@@ -194,6 +194,11 @@ public class R5Robot : Robot
             DebugLineRenderer.SetPosition(itr, cell.StackStorage.transform.position);
             itr++;
         }
+    }
+
+    public override void IdleRedirect(Robot requestedRobot)
+    {
+        throw new NotImplementedException();
     }
 
     public override void ApproachCrate(Crate crate)

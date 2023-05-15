@@ -36,7 +36,8 @@ namespace _Script.Robot
         
         [Header("Crate ")]
         protected Crate HoldingCrate;
-        
+
+        public abstract void IdleRedirect(Robot requestedRobot);
         
         public abstract void ApproachCrate(Crate crate);
         public abstract void PickUpCrate();
