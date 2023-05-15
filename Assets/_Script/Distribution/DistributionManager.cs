@@ -107,8 +107,9 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
             if (shortestReachRobot == null) break;
 
-            shortestReachRobot.ApproachCrate(crate);
             _pendingCrates.Dequeue();
+            shortestReachRobot.ApproachCrate(crate);
+            
         }
     }
     
