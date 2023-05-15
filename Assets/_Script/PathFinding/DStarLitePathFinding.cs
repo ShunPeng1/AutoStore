@@ -93,7 +93,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
                     //if (neighbor != null && !neighbor.IsObstacle)
                     if (neighbor != null && !neighbor.IsObstacle && !_dynamicObstacles.ContainsKey(neighbor))
                     {
-                        UpdateNode(neighbor);
+                        UpdateNode(neighbor, currentNode);
                     }
                 }
             }
@@ -107,7 +107,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
                     //if (neighbor != null && !neighbor.IsObstacle)
                     if (neighbor != null && !neighbor.IsObstacle && !_dynamicObstacles.ContainsKey(neighbor))
                     {
-                        UpdateNode(neighbor);
+                        UpdateNode(neighbor, currentNode);
                     }
                 }
 
@@ -117,13 +117,14 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return RetracePath(startNode, endNode);
     }
     
-    public LinkedList<GridXZCell> UpdatePathDynamicObstacle(GridXZCell currentStartNode, GridXZCell nextNode, List<GridXZCell> foundDynamicObstacles)
+    public LinkedList<GridXZCell> UpdatePathDynamicObstacle(GridXZCell currentStartNode, List<GridXZCell> foundDynamicObstacles)
     {
         _km += GetDistanceCost(currentStartNode, _startNode);
         this._startNode = currentStartNode;
         this._dynamicObstacles = new ();
         foreach (var obstacleCell in foundDynamicObstacles)
         {
+            if (_dynamicObstacles.ContainsKey(obstacleCell)) continue;
             _dynamicObstacles[obstacleCell] = Time.time;
 
             foreach (var neighbor in obstacleCell.AdjacentCells)
@@ -132,7 +133,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
                 //if (neighbor != null && !neighbor.IsObstacle)
                 if (neighbor != null && !neighbor.IsObstacle && !_dynamicObstacles.ContainsKey(neighbor))
                 {
-                    UpdateNode(neighbor);
+                    UpdateNode(neighbor, obstacleCell);
                 }
             }
             
@@ -156,10 +157,10 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return _gValues.TryGetValue(node, out double value) ? value : double.PositiveInfinity;
     }
 
-    private void UpdateNode(GridXZCell node)
+    private void UpdateNode(GridXZCell upgradeNode, GridXZCell itsPredecessorNode = null)
     {
         //Debug.Log("DStar UpdateNode " + node.XIndex + " " + node.ZIndex);
-        if (node != _endNode)
+        if (upgradeNode != _endNode)
         {
             /*
              * Get the min rhs from Successors, then add it to the predecessors for traverse
@@ -167,37 +168,39 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
             double minRhs = double.PositiveInfinity;
             GridXZCell minSucc = null;
 
-            foreach (var successor in node.AdjacentCells)
+            foreach (var successor in upgradeNode.AdjacentCells)
             {
                 double rhs = _gValues.ContainsKey(successor)
-                    ? _gValues[successor] + GetDistanceCost(node, successor)
+                    ? _gValues[successor] + GetDistanceCost(upgradeNode, successor)
                     : double.PositiveInfinity;
-                if (rhs < minRhs && !successor.IsObstacle)
+                //if (rhs < minRhs && !successor.IsObstacle)
                 //if (rhs < minRhs && !successor.IsObstacle && !_dynamicObstacles.ContainsKey(successor))
+                    // Is the min successor, if it the same, choose the one not its press 
+                if  ((rhs < minRhs||(rhs == minRhs && rhs !=double.PositiveInfinity  && successor != itsPredecessorNode)) && !successor.IsObstacle && !_dynamicObstacles.ContainsKey(successor))
                 {
                     minRhs = rhs;
                     minSucc = successor;
                 }
             }
 
-            _rhsValues[node] = minRhs;
-            _predecessors[node] = minSucc ?? (_predecessors[node] ?? null);
+            _rhsValues[upgradeNode] = minRhs;
+            _predecessors[upgradeNode] = minSucc ?? (_predecessors[upgradeNode] ?? null);
         }
 
-        if (_openNodes.Contains(node)) // refresh the old node
+        if (_openNodes.Contains(upgradeNode)) // refresh the old node
         {
-            _openNodes.TryRemove(node);
+            _openNodes.TryRemove(upgradeNode);
         }
 
-        if (GetGValue(node) != GetRhsValue(node)) // Mainly if both not equal double.PositiveInfinity, meaning it found a path that is shorter
+        if (GetGValue(upgradeNode) != GetRhsValue(upgradeNode)) // Mainly if both not equal double.PositiveInfinity, meaning it found a path that is shorter
         {
-            _gValues[node] = GetRhsValue(node);
-            int hValue = GetDistanceCost(node, _startNode);
-            node.GCost = (int)_gValues[node];
-            node.HCost = hValue;
-            node.FCost = (int)(_gValues[node] + hValue + _km);
+            _gValues[upgradeNode] = GetRhsValue(upgradeNode);
+            int hValue = GetDistanceCost(upgradeNode, _startNode);
+            upgradeNode.GCost = (int)_gValues[upgradeNode];
+            upgradeNode.HCost = hValue;
+            upgradeNode.FCost = (int)(_gValues[upgradeNode] + hValue + _km);
 
-            _openNodes.Enqueue(node, new QueueKey(node.FCost, node.HCost)); // Enqueue the new node
+            _openNodes.Enqueue(upgradeNode, new QueueKey(upgradeNode.FCost, upgradeNode.HCost)); // Enqueue the new node
         }
     }
 

@@ -75,12 +75,7 @@ public class R5Robot : Robot
         }
         
         // Update Path base on obstacle
-        if (dynamicObstacle.Count == 0) return; 
-        MovingPath = _dStarLitePathFinding.UpdatePathDynamicObstacle(
-            CurrentGrid.GetItem(transform.position),
-            CurrentGrid.GetItem(NextCellPosition),
-            dynamicObstacle
-        );
+        if (dynamicObstacle.Count != 0) UpdatePathFinding(dynamicObstacle);
     }
 
     bool IsDirectionHeading(Vector3 hitPosition, float thresholdAngle)
@@ -164,6 +159,23 @@ public class R5Robot : Robot
 
         MovingPath.RemoveFirst(); // the current standing node
       
+        GetNextCellInPath();
+        //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
+    }
+    
+    private void UpdatePathFinding(List<GridXZCell> dynamicObstacle)
+    {
+        var currentStartCell = CurrentGrid.GetItem(transform.position);
+        var nextStartCell = CurrentGrid.GetItem(NextCellPosition);
+        
+        // TODO Choose a path finding 
+        //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
+        MovingPath = _dStarLitePathFinding.UpdatePathDynamicObstacle(currentStartCell, dynamicObstacle);
+        
+        if (MovingPath == null || MovingPath.Count <= 1) return;
+        
+        MovingPath.RemoveFirst(); // the current standing node
+        
         GetNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
