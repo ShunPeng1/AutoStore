@@ -59,7 +59,7 @@ public class R5Robot : Robot
                 continue;
             }
             
-            if (IsDirectionHeading(hit.transform.position, 45))
+            if (IsDirectionHeading(hit.transform.position, 45) || (robotHit.RobotState == RobotStateEnum.Idle))
             {
                 Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
                 
