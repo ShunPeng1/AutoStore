@@ -748,9 +748,21 @@ MonoBehaviour:
   _maxPendingCrate: 100
   _crateSpawnInfos:
   - ArriveTime: 5
+    SourceGridIndex: {x: 14, y: 5}
+    DestinationGridIndex: {x: 5, y: 5}
+  - ArriveTime: 5
     SourceGridIndex: {x: 6, y: 5}
     DestinationGridIndex: {x: 15, y: 5}
-  - ArriveTime: 5
+  - ArriveTime: 15
+    SourceGridIndex: {x: 14, y: 5}
+    DestinationGridIndex: {x: 5, y: 5}
+  - ArriveTime: 15
+    SourceGridIndex: {x: 6, y: 5}
+    DestinationGridIndex: {x: 15, y: 5}
+  - ArriveTime: 25
+    SourceGridIndex: {x: 6, y: 5}
+    DestinationGridIndex: {x: 15, y: 5}
+  - ArriveTime: 25
     SourceGridIndex: {x: 14, y: 5}
     DestinationGridIndex: {x: 5, y: 5}
 --- !u!1 &1141733424
