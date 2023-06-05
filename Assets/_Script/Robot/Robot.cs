@@ -65,7 +65,7 @@ namespace _Script.Robot
             {
                 PickUpCrate();
                 DropDownCrate();
-                GetNextCellInPath();
+                ForwardMoveNextCellInPath();
             }
         }
         
@@ -99,9 +99,7 @@ namespace _Script.Robot
             }
         }
 
-        #endregion
-        
-        protected void GetNextCellInPath()
+        protected void ForwardMoveNextCellInPath()
         {
             if (MovingPath == null ||MovingPath.Count == 0) return;
             var nextDestination = MovingPath.First.Value;
@@ -111,8 +109,12 @@ namespace _Script.Robot
             ZIndex = nextDestination.ZIndex;
             LastCellPosition = NextCellPosition;
             NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) + Vector3.up * transform.position.y;
-            Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
+            //Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
         }
+        
+        #endregion
+        
+        
         
         public GridXZCell GetCurrentGridCell()
         {

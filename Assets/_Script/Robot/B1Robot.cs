@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using _Script.Robot;
@@ -36,8 +37,18 @@ public class B1Robot : Robot
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireSphere(centerBodyCast.position, castRadius);
+
+        Vector3 castDirection = (NextCellPosition - transform.position).normalized;
     }
 
+    #region RobotDetect
+
+    private enum DetectDecision
+    {
+        Wait,
+        Dodge,
+        Continue
+    }
     protected override void DetectNearByRobot()
     {
         if (RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
@@ -53,7 +64,7 @@ public class B1Robot : Robot
                 continue;
             }
             
-            if (IsDirectionHeading(hitCollider.transform.position, 45) || (robotHit.RobotState == RobotStateEnum.Idle))
+            /*if (IsBlockMe(robotHit) || (robotHit.RobotState == RobotStateEnum.Idle ))
             {
                 Debug.Log(name+" Jamming with "+ robotHit.gameObject.name + " with angle " + Vector3.Angle(hitCollider.transform.position - transform.position, NextCellPosition - transform.position));
                 
@@ -63,20 +74,68 @@ public class B1Robot : Robot
                 // Use the current and next cell to be a obstacle
                 dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.LastCellPosition));
                 dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.NextCellPosition));
-                
-            }
             
+            }
+            */
+            switch (CheckDetection(robotHit))
+            {
+                case DetectDecision.Wait:
+                    Debug.Log(gameObject.name +" Jam with "+robotHit.gameObject.name);
+                    StartCoroutine(nameof(Jamming));
+                    break;
+                case DetectDecision.Dodge:
+                    Debug.Log(gameObject.name +" Dodge "+robotHit.gameObject.name);
+                    dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.LastCellPosition));
+                    dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.NextCellPosition));
+                    break;
+                case DetectDecision.Continue:
+                    break;
+            }
         }
         
-        // Update Path base on obstacle
+        // Update Path base on dynamic obstacle
         if (dynamicObstacle.Count != 0) UpdatePathFinding(dynamicObstacle);
     }
 
-    bool IsDirectionHeading(Vector3 hitPosition, float thresholdAngle)
+    private DetectDecision CheckDetection(Robot detectedRobot)
     {
-        //Debug.Log("Angle "+Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position));
-        return (Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position) < thresholdAngle);
+        float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(detectedRobot.transform.position - transform.position, NextCellPosition - transform.position) ;
+        float dotProductOf2Direction = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
+        
+        if (Math.Abs(dotProductOf2Direction - (-1)) < 0.01f || // opposite direction
+            detectedRobot.RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) 
+        {
+            return angleBetweenMyDirectionAndRobotDistance < 5 ? DetectDecision.Dodge : DetectDecision.Continue; // same row or column
+        }
+        
+        if (dotProductOf2Direction == 0) // perpendicular direction
+        {
+            return angleBetweenMyDirectionAndRobotDistance < 45 ? DetectDecision.Wait : DetectDecision.Continue;
+        }
+        
+
+        return DetectDecision.Continue;
+    } 
+    private bool IsBlockMe(Robot robot)
+    {
+        float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(robot.transform.position - transform.position, NextCellPosition - transform.position) ;
+        float dotProductOf2Direction = Vector3.Dot(NextCellPosition - LastCellPosition,robot.NextCellPosition - robot.LastCellPosition);
+
+        if (dotProductOf2Direction == 0) // perpendicular direction
+        {
+            return angleBetweenMyDirectionAndRobotDistance < 45;
+        }
+        
+        if (Math.Abs(dotProductOf2Direction - (-1)) < 0.01f) // opposite direction
+        {
+            return angleBetweenMyDirectionAndRobotDistance < 5; // same row or column
+        }
+        
+        return false; // same direction
     }
+
+    #endregion
+    
     
     private void CreatePathFinding()
     {
@@ -93,7 +152,7 @@ public class B1Robot : Robot
 
         MovingPath.RemoveFirst(); // the current standing node
       
-        GetNextCellInPath();
+        ForwardMoveNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
     
@@ -107,7 +166,7 @@ public class B1Robot : Robot
         
         //MovingPath.RemoveFirst(); // the current standing node
         
-        GetNextCellInPath();
+        ForwardMoveNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
 

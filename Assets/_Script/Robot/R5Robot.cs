@@ -100,7 +100,7 @@ public class R5Robot : Robot
 
         MovingPath.RemoveFirst(); // the current standing node
       
-        GetNextCellInPath();
+        ForwardMoveNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
     
@@ -118,7 +118,7 @@ public class R5Robot : Robot
         
         //MovingPath.RemoveFirst(); // the current standing node
         
-        GetNextCellInPath();
+        ForwardMoveNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
 
