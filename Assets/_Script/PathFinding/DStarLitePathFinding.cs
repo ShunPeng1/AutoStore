@@ -60,8 +60,6 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
     {
         this._startNode = startNode;
         this._endNode = endNode;
-
-        //ResetPath();
         
         _gValues[endNode] = double.PositiveInfinity;
         _rhsValues[endNode] = 0;
@@ -142,21 +140,6 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return FindPath(_startNode, _endNode);
     }
     
-    private double CalculateKey(GridXZCell currNode, GridXZCell startNode)
-    {
-        return Math.Min(GetRhsValue(currNode), GetGValue(currNode)) + GetDistanceCost(currNode, startNode) + _km;
-    }
-
-    private double GetRhsValue(GridXZCell node)
-    {
-        return _rhsValues.TryGetValue(node, out double value) ? value : double.PositiveInfinity;
-    }
-
-    private double GetGValue(GridXZCell node)
-    {
-        return _gValues.TryGetValue(node, out double value) ? value : double.PositiveInfinity;
-    }
-
     private void UpdateNode(GridXZCell upgradeNode, GridXZCell itsPredecessorNode = null)
     {
         //Debug.Log("DStar UpdateNode " + node.XIndex + " " + node.ZIndex);
@@ -184,7 +167,9 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
             }
 
             _rhsValues[upgradeNode] = minRhs;
-            _predecessors[upgradeNode] = minSucc ?? (_predecessors[upgradeNode] ?? null);
+            //_predecessors[upgradeNode] = minSucc ?? (_predecessors[upgradeNode] ?? null);
+            _predecessors[upgradeNode] = minSucc;
+
         }
 
         if (_openNodes.Contains(upgradeNode)) // refresh the old node
@@ -218,6 +203,21 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         path.AddLast(endXZCell);
 
         return path;
+    }
+
+    private double CalculateKey(GridXZCell currNode, GridXZCell startNode)
+    {
+        return Math.Min(GetRhsValue(currNode), GetGValue(currNode)) + GetDistanceCost(currNode, startNode) + _km;
+    }
+
+    private double GetRhsValue(GridXZCell node)
+    {
+        return _rhsValues.TryGetValue(node, out double value) ? value : double.PositiveInfinity;
+    }
+
+    private double GetGValue(GridXZCell node)
+    {
+        return _gValues.TryGetValue(node, out double value) ? value : double.PositiveInfinity;
     }
 
     protected virtual int GetDistanceCost(GridXZCell start, GridXZCell end)
