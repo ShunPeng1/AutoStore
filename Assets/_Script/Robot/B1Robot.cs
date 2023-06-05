@@ -150,7 +150,7 @@ public class B1Robot : Robot
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
 
-        MovingPath.RemoveFirst(); // the current standing node
+        //MovingPath.RemoveFirst(); // the current standing node
       
         ForwardMoveNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
