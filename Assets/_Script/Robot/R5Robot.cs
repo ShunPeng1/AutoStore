@@ -7,7 +7,8 @@ using UnityEngine.Video;
 
 public class R5Robot : Robot
 {
-    [Header("Pathfinder")] 
+    [Header("Pathfinder")]
+    [SerializeField] private LineRenderer _debugLineRenderer;
     private DStarLitePathFinding _dStarLitePathFinding;
     
     [Header("Casting")] 
@@ -43,7 +44,7 @@ public class R5Robot : Robot
         Gizmos.DrawWireSphere(tailCast.position, castRadius);
     }
 
-    private void DetectNearByRobot()
+    protected override void DetectNearByRobot()
     {
         if (RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
         var deltaCastPosition = tailCast.position - headCast.position;
@@ -185,13 +186,13 @@ public class R5Robot : Robot
     {
         if (RobotState == RobotStateEnum.Idle || MovingPath == null) return;
         
-        DebugLineRenderer.positionCount = MovingPath.Count + 1;
-        DebugLineRenderer.SetPosition(0, transform.position);
+        _debugLineRenderer.positionCount = MovingPath.Count + 1;
+        _debugLineRenderer.SetPosition(0, transform.position);
 
         int itr = 1;
         foreach (var cell in MovingPath)
         {
-            DebugLineRenderer.SetPosition(itr, cell.StackStorage.transform.position);
+            _debugLineRenderer.SetPosition(itr, cell.StackStorage.transform.position);
             itr++;
         }
     }

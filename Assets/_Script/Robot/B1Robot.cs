@@ -6,6 +6,7 @@ using UnityEngine;
 public class B1Robot : Robot
 {
     [Header("Pathfinder")] 
+    [SerializeField] private LineRenderer _debugLineRenderer;
     private DStarLitePathFinding _dStarLitePathFinding;
     
     [Header("Casting")] 
@@ -20,11 +21,9 @@ public class B1Robot : Robot
         yield return null;
         CurrentGrid = MapManager.Instance.StorageGrid;
         (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
-
-        //_dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
+        
     }
-
-    // Update is called once per frame
+    
     void Update()
     {
         if (CurrentGrid == null) return;
@@ -39,7 +38,7 @@ public class B1Robot : Robot
         Gizmos.DrawWireSphere(centerBodyCast.position, castRadius);
     }
 
-    private void DetectNearByRobot()
+    protected override void DetectNearByRobot()
     {
         if (RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
         
@@ -79,65 +78,7 @@ public class B1Robot : Robot
         return (Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position) < thresholdAngle);
     }
     
-    IEnumerator Jamming()
-    {
-        RobotStateEnum lastRobotStateEnum = RobotState;
-        RobotState = RobotStateEnum.Jamming;
-        yield return new WaitForSeconds(jamWait);
-        RobotState = lastRobotStateEnum;
-    }
-
-    private void MoveAlongGrid()
-    {
-        if (RobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
-        transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MovementSpeed * Time.deltaTime);
-        if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
-        {
-            //PathFinding();
-            GetNextCellInPath();
-            PickUpCrate();
-            DropDownCrate();
-        }
-    }
-
-    private void PlayerControl()
-    {
-        float horizontal = Input.GetAxisRaw("Horizontal"), vertical = Input.GetAxisRaw("Vertical");
-        if (Mathf.Abs(horizontal) == 1f)
-        {
-            var item = CurrentGrid.GetItem(XIndex + (int)horizontal, ZIndex);
-            // If walkable
-            if (item != default(GridXZCell))
-            {
-                XIndex += (int)horizontal;
-                NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
-                                  Vector3.up * transform.position.y;
-            }
-        }
-        else if (Mathf.Abs(vertical) == 1f)
-        {
-            var item = CurrentGrid.GetItem(XIndex, ZIndex + (int)vertical);
-            // If walkable
-            if (item != default(GridXZCell))
-            {
-                ZIndex += (int)vertical;
-                NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
-                                  Vector3.up * transform.position.y;
-            }
-        }
-    }
-
-    private void GetNextCellInPath()
-    {
-        if (MovingPath == null ||MovingPath.Count == 0) return;
-        var nextDestination = MovingPath.First.Value;
-        MovingPath.RemoveFirst(); // the next standing node
-        
-        XIndex = nextDestination.XIndex;
-        ZIndex = nextDestination.ZIndex;
-        NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) + Vector3.up * transform.position.y;
-
-    }
+    
 
     private void CreatePathFinding()
     {
@@ -180,13 +121,13 @@ public class B1Robot : Robot
     {
         if (RobotState == RobotStateEnum.Idle || MovingPath == null) return;
         
-        DebugLineRenderer.positionCount = MovingPath.Count + 1;
-        DebugLineRenderer.SetPosition(0, transform.position);
+        _debugLineRenderer.positionCount = MovingPath.Count + 1;
+        _debugLineRenderer.SetPosition(0, transform.position);
 
         int itr = 1;
         foreach (var cell in MovingPath)
         {
-            DebugLineRenderer.SetPosition(itr, cell.StackStorage.transform.position);
+            _debugLineRenderer.SetPosition(itr, cell.StackStorage.transform.position);
             itr++;
         }
     }
