@@ -870,7 +870,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _spawnStyle: 0
-  _spawnRate: 5
+  _spawnRate: 3
   _maxPendingCrate: 100
   _crateSpawnInfos: []
 --- !u!1 &1141733424
