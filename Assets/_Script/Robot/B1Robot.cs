@@ -115,23 +115,6 @@ public class B1Robot : Robot
         
 
         return DetectDecision.Continue;
-    } 
-    private bool IsBlockMe(Robot robot)
-    {
-        float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(robot.transform.position - transform.position, NextCellPosition - transform.position) ;
-        float dotProductOf2Direction = Vector3.Dot(NextCellPosition - LastCellPosition,robot.NextCellPosition - robot.LastCellPosition);
-
-        if (dotProductOf2Direction == 0) // perpendicular direction
-        {
-            return angleBetweenMyDirectionAndRobotDistance < 45;
-        }
-        
-        if (Math.Abs(dotProductOf2Direction - (-1)) < 0.01f) // opposite direction
-        {
-            return angleBetweenMyDirectionAndRobotDistance < 5; // same row or column
-        }
-        
-        return false; // same direction
     }
 
     #endregion
@@ -146,12 +129,13 @@ public class B1Robot : Robot
         //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
         _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
         MovingPath = _dStarLitePathFinding.InitializePathFinding(startCell, endCell);
-
         
-        if (MovingPath == null || MovingPath.Count <= 1) return;
+        if (MovingPath == null)
+        {
+            StartCoroutine("Jamming");
+            return;
+        }
 
-        //MovingPath.RemoveFirst(); // the current standing node
-      
         ForwardMoveNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
@@ -162,9 +146,11 @@ public class B1Robot : Robot
          
         MovingPath = _dStarLitePathFinding.UpdatePathDynamicObstacle(currentStartCell, dynamicObstacle);
         
-        if (MovingPath == null || MovingPath.Count <= 1) return;
-        
-        //MovingPath.RemoveFirst(); // the current standing node
+        if (MovingPath == null)
+        {
+            StartCoroutine("Jamming");
+            return;
+        }
         
         ForwardMoveNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);

@@ -214,9 +214,6 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
 
             if (nextCell != null) currentCell = nextCell;
             else return null;
-            
-            
-            
         }
 
         path.AddLast(endXZCell);
