@@ -13,7 +13,7 @@ public class B1Robot : Robot
     [SerializeField] private Transform centerBodyCast;
     [SerializeField] private float castRadius;
     [SerializeField] private LayerMask robotLayerMask;
-    [SerializeField, Range(0.5f,5f)] private float jamWait = 1f;
+    
     
     IEnumerator Start()
     {
@@ -55,13 +55,13 @@ public class B1Robot : Robot
             
             if (IsDirectionHeading(hitCollider.transform.position, 45) || (robotHit.RobotState == RobotStateEnum.Idle))
             {
-                Debug.Log(name+" Jamming with "+ robotHit.gameObject.name);
+                Debug.Log(name+" Jamming with "+ robotHit.gameObject.name + " with angle " + Vector3.Angle(hitCollider.transform.position - transform.position, NextCellPosition - transform.position));
                 
                 // TODO avoidance
                 //StartCoroutine(nameof(Jamming));
 
                 // Use the current and next cell to be a obstacle
-                dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.transform.position));
+                dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.LastCellPosition));
                 dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.NextCellPosition));
                 
             }
@@ -78,8 +78,6 @@ public class B1Robot : Robot
         return (Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position) < thresholdAngle);
     }
     
-    
-
     private void CreatePathFinding()
     {
         var startCell = CurrentGrid.GetItem(XIndex, ZIndex);
@@ -101,16 +99,13 @@ public class B1Robot : Robot
     
     private void UpdatePathFinding(List<GridXZCell> dynamicObstacle)
     {
-        var currentStartCell = CurrentGrid.GetItem(transform.position);
-        var nextStartCell = CurrentGrid.GetItem(NextCellPosition);
-        
-        // TODO Choose a path finding 
-        //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
+        var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
+         
         MovingPath = _dStarLitePathFinding.UpdatePathDynamicObstacle(currentStartCell, dynamicObstacle);
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
         
-        MovingPath.RemoveFirst(); // the current standing node
+        //MovingPath.RemoveFirst(); // the current standing node
         
         GetNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
@@ -148,24 +143,23 @@ public class B1Robot : Robot
 
     public override void PickUpCrate()
     {
-        if (RobotState == RobotStateEnum.Retrieving && CurrentGrid.GetXZ(transform.position) == CurrentGrid.GetXZ(HoldingCrate.transform.position))
-        {
-            GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
-            HoldingCrate.transform.SetParent(transform);
-            RobotState = RobotStateEnum.Delivering;
+        if (RobotState != RobotStateEnum.Retrieving || CurrentGrid.GetXZ(transform.position) !=
+            CurrentGrid.GetXZ(HoldingCrate.transform.position)) return;
+        
+        GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
+        HoldingCrate.transform.SetParent(transform);
+        RobotState = RobotStateEnum.Delivering;
             
-            CreatePathFinding();
-        }
+        CreatePathFinding();
     }
 
     public override void DropDownCrate()
     {
-        if (RobotState == RobotStateEnum.Delivering && CurrentGrid.GetXZ(transform.position) == (HoldingCrate.storingX, HoldingCrate.storingZ))
-        {
-            Destroy(HoldingCrate.gameObject);
-            HoldingCrate = null;
-            RobotState = RobotStateEnum.Idle;
-            
-        }
+        if (RobotState != RobotStateEnum.Delivering ||
+            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) return;
+        
+        Destroy(HoldingCrate.gameObject);
+        HoldingCrate = null;
+        RobotState = RobotStateEnum.Idle;
     }
 }

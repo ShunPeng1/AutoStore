@@ -6,12 +6,12 @@ namespace _Script.Robot
 {
     public enum RobotStateEnum
     {
-        Redirecting,
         Idle,
         Delivering,
         Retrieving,
         Approaching,
-        Jamming
+        Jamming,
+        Redirecting
     }
     
     public abstract class Robot : MonoBehaviour
@@ -63,10 +63,9 @@ namespace _Script.Robot
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MovementSpeed * Time.deltaTime);
             if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
             {
-                //PathFinding();
-                GetNextCellInPath();
                 PickUpCrate();
                 DropDownCrate();
+                GetNextCellInPath();
             }
         }
         
@@ -107,11 +106,12 @@ namespace _Script.Robot
             if (MovingPath == null ||MovingPath.Count == 0) return;
             var nextDestination = MovingPath.First.Value;
             MovingPath.RemoveFirst(); // the next standing node
-        
+            
             XIndex = nextDestination.XIndex;
             ZIndex = nextDestination.ZIndex;
+            LastCellPosition = NextCellPosition;
             NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) + Vector3.up * transform.position.y;
-
+            Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
         }
         
         public GridXZCell GetCurrentGridCell()

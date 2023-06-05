@@ -16,7 +16,7 @@ public class R5Robot : Robot
     [SerializeField] private Transform tailCast;
     [SerializeField] private float castRadius;
     [SerializeField] private LayerMask robotLayerMask;
-    [SerializeField, Range(0.5f,5f)] private float jamWait = 1f;
+    
     
     IEnumerator Start()
     {
@@ -84,66 +84,6 @@ public class R5Robot : Robot
         //Debug.Log("Angle "+Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position));
         return (Vector3.Angle(hitPosition - transform.position, NextCellPosition - transform.position) < thresholdAngle);
     }
-    
-    IEnumerator Jamming()
-    {
-        RobotStateEnum lastRobotStateEnum = RobotState;
-        RobotState = RobotStateEnum.Jamming;
-        yield return new WaitForSeconds(jamWait);
-        RobotState = lastRobotStateEnum;
-    }
-
-    private void MoveAlongGrid()
-    {
-        if (RobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
-        transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MovementSpeed * Time.deltaTime);
-        if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
-        {
-            //PathFinding();
-            GetNextCellInPath();
-            PickUpCrate();
-            DropDownCrate();
-        }
-    }
-
-    private void PlayerControl()
-    {
-        float horizontal = Input.GetAxisRaw("Horizontal"), vertical = Input.GetAxisRaw("Vertical");
-        if (Mathf.Abs(horizontal) == 1f)
-        {
-            var item = CurrentGrid.GetItem(XIndex + (int)horizontal, ZIndex);
-            // If walkable
-            if (item != default(GridXZCell))
-            {
-                XIndex += (int)horizontal;
-                NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
-                                  Vector3.up * transform.position.y;
-            }
-        }
-        else if (Mathf.Abs(vertical) == 1f)
-        {
-            var item = CurrentGrid.GetItem(XIndex, ZIndex + (int)vertical);
-            // If walkable
-            if (item != default(GridXZCell))
-            {
-                ZIndex += (int)vertical;
-                NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
-                                  Vector3.up * transform.position.y;
-            }
-        }
-    }
-
-    private void GetNextCellInPath()
-    {
-        if (MovingPath == null ||MovingPath.Count == 0) return;
-        var nextDestination = MovingPath.First.Value;
-        MovingPath.RemoveFirst(); // the next standing node
-        
-        XIndex = nextDestination.XIndex;
-        ZIndex = nextDestination.ZIndex;
-        NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) + Vector3.up * transform.position.y;
-
-    }
 
     private void CreatePathFinding()
     {
@@ -164,18 +104,19 @@ public class R5Robot : Robot
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
     
+    /// <summary>
+    /// Make the robot go to the last Cell and find new path with the new obstacle
+    /// </summary>
+    /// <param name="dynamicObstacle"> List of cell that the obstacle is on </param>
     private void UpdatePathFinding(List<GridXZCell> dynamicObstacle)
     {
-        var currentStartCell = CurrentGrid.GetItem(transform.position);
-        var nextStartCell = CurrentGrid.GetItem(NextCellPosition);
-        
-        // TODO Choose a path finding 
-        //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
+        var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
+         
         MovingPath = _dStarLitePathFinding.UpdatePathDynamicObstacle(currentStartCell, dynamicObstacle);
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
         
-        MovingPath.RemoveFirst(); // the current standing node
+        //MovingPath.RemoveFirst(); // the current standing node
         
         GetNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
@@ -187,7 +128,7 @@ public class R5Robot : Robot
         if (RobotState == RobotStateEnum.Idle || MovingPath == null) return;
         
         _debugLineRenderer.positionCount = MovingPath.Count + 1;
-        _debugLineRenderer.SetPosition(0, transform.position);
+        _debugLineRenderer.SetPosition(0,  transform.position);
 
         int itr = 1;
         foreach (var cell in MovingPath)

@@ -198,7 +198,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         {
             path.AddLast(currentCell);
             visitedCells.Add(currentCell);
-
+            
             GridXZCell nextCell = null;
             double minGCost = Double.PositiveInfinity;
             foreach (var successor in currentCell.AdjacentCells)
@@ -214,6 +214,9 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
 
             if (nextCell != null) currentCell = nextCell;
             else return null;
+            
+            
+            
         }
 
         path.AddLast(endXZCell);
