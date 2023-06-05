@@ -140,10 +140,10 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return FindPath(_startNode, _endNode);
     }
     
-    private void UpdateNode(GridXZCell upgradeNode, GridXZCell itsPredecessorNode = null)
+    private void UpdateNode(GridXZCell updateNode, GridXZCell itsPredecessorNode = null)
     {
         //Debug.Log("DStar UpdateNode " + node.XIndex + " " + node.ZIndex);
-        if (upgradeNode != _endNode)
+        if (updateNode != _endNode)
         {
             /*
              * Get the min rhs from Successors, then add it to the predecessors for traverse
@@ -151,41 +151,40 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
             double minRhs = double.PositiveInfinity;
             GridXZCell minSucc = null;
 
-            foreach (var successor in upgradeNode.AdjacentCells)
+            foreach (var successor in updateNode.AdjacentCells)
             {
                 double rhs = _gValues.ContainsKey(successor)
-                    ? _gValues[successor] + GetDistanceCost(upgradeNode, successor)
+                    ? _gValues[successor] + GetDistanceCost(updateNode, successor)
                     : double.PositiveInfinity;
-                //if (rhs < minRhs && !successor.IsObstacle)
-                //if (rhs < minRhs && !successor.IsObstacle && !_dynamicObstacles.ContainsKey(successor))
+                if (rhs < minRhs && !successor.IsObstacle && !_dynamicObstacles.ContainsKey(successor) && !_dynamicObstacles.ContainsKey(successor))
                     // Is the min successor, if it the same, choose the one not its press 
-                if  ((rhs < minRhs||(rhs == minRhs && rhs !=double.PositiveInfinity  && successor != itsPredecessorNode)) && !successor.IsObstacle && !_dynamicObstacles.ContainsKey(successor))
+                //if  ((rhs < minRhs||(rhs == minRhs && rhs !=double.PositiveInfinity  && successor != itsPredecessorNode)) && !successor.IsObstacle && !_dynamicObstacles.ContainsKey(successor))
                 {
                     minRhs = rhs;
                     minSucc = successor;
                 }
             }
 
-            _rhsValues[upgradeNode] = minRhs;
+            _rhsValues[updateNode] = minRhs;
             //_predecessors[upgradeNode] = minSucc ?? (_predecessors[upgradeNode] ?? null);
-            _predecessors[upgradeNode] = minSucc;
+            _predecessors[updateNode] = minSucc;
 
         }
 
-        if (_openNodes.Contains(upgradeNode)) // refresh the old node
+        if (_openNodes.Contains(updateNode)) // refresh the old node
         {
-            _openNodes.TryRemove(upgradeNode);
+            _openNodes.TryRemove(updateNode);
         }
 
-        if (GetGValue(upgradeNode) != GetRhsValue(upgradeNode)) // Mainly if both not equal double.PositiveInfinity, meaning it found a path that is shorter
+        if (GetGValue(updateNode) != GetRhsValue(updateNode)) // Mainly if both not equal double.PositiveInfinity, meaning it found a path that is shorter
         {
-            _gValues[upgradeNode] = GetRhsValue(upgradeNode);
-            int hValue = GetDistanceCost(upgradeNode, _startNode);
-            upgradeNode.GCost = (int)_gValues[upgradeNode];
-            upgradeNode.HCost = hValue;
-            upgradeNode.FCost = (int)(_gValues[upgradeNode] + hValue + _km);
+            _gValues[updateNode] = GetRhsValue(updateNode);
+            int hValue = GetDistanceCost(updateNode, _startNode);
+            updateNode.GCost = (int)_gValues[updateNode];
+            updateNode.HCost = hValue;
+            updateNode.FCost = (int)(_gValues[updateNode] + hValue + _km);
 
-            _openNodes.Enqueue(upgradeNode, new QueueKey(upgradeNode.FCost, upgradeNode.HCost)); // Enqueue the new node
+            _openNodes.Enqueue(updateNode, new QueueKey(updateNode.FCost, updateNode.HCost)); // Enqueue the new node
         }
     }
 
@@ -193,11 +192,28 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
     {
         LinkedList<GridXZCell> path = new LinkedList<GridXZCell>();
         GridXZCell currentCell = startXZCell;
-
+        HashSet<GridXZCell> visitedCells = new();
+        
         while (currentCell != endXZCell)
         {
             path.AddLast(currentCell);
-            currentCell = _predecessors[currentCell];
+            visitedCells.Add(currentCell);
+
+            GridXZCell nextCell = null;
+            double minGCost = Double.PositiveInfinity;
+            foreach (var successor in currentCell.AdjacentCells)
+            {
+                double successorGCost = GetGValue(successor);
+                if ( successorGCost <= minGCost && !successor.IsObstacle && !_dynamicObstacles.ContainsKey(successor) && !visitedCells.Contains(successor))
+                {
+                    nextCell = successor;
+                    minGCost = successorGCost;
+                }
+                
+            }
+
+            if (nextCell != null) currentCell = nextCell;
+            else return null;
         }
 
         path.AddLast(endXZCell);
