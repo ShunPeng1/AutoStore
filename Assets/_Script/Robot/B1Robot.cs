@@ -193,9 +193,7 @@ public class B1Robot : Robot
             GoalCellPosition = CurrentGrid.GetWorldPosition(redirectX2, redirectZ2);
         }
         
-        
-        ArrivalDestinationFuncs.Clear();
-        ArrivalDestinationFuncs.Add(BecomeIdle);
+        ArrivalDestinationFuncs.Enqueue(BecomeIdle);
         CreatePathFinding();
         
     }
@@ -206,9 +204,7 @@ public class B1Robot : Robot
         HoldingCrate = crate;
         GoalCellPosition = crate.transform.position;
         
-
-        ArrivalDestinationFuncs.Clear();
-        ArrivalDestinationFuncs.Add(PickUpCrate);
+        ArrivalDestinationFuncs.Enqueue(PickUpCrate);
         CreatePathFinding();
     }
 
@@ -221,8 +217,7 @@ public class B1Robot : Robot
         HoldingCrate.transform.SetParent(transform);
         RobotState = RobotStateEnum.Delivering;
         
-        ArrivalDestinationFuncs.Clear();
-        ArrivalDestinationFuncs.Add( DropDownCrate );
+        ArrivalDestinationFuncs.Enqueue( DropDownCrate );
         CreatePathFinding();
         
     }
@@ -236,6 +231,6 @@ public class B1Robot : Robot
         HoldingCrate = null;
         
         RobotState = RobotStateEnum.Idle;
-        ArrivalDestinationFuncs.Clear();
+        
     }
 }

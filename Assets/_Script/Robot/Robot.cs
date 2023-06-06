@@ -37,8 +37,9 @@ namespace _Script.Robot
         
         
         [Header("Crate ")] 
-        protected List<Func<IEnumerator>>  ArrivalDestinationFuncs = new ();
-        
+        protected Queue<Func<IEnumerator>>  ArrivalDestinationFuncs = new ();
+
+        protected List<int> test;
         protected Crate HoldingCrate;
 
         [Header("Component")] 
@@ -61,7 +62,6 @@ namespace _Script.Robot
         protected IEnumerator BecomeIdle()
         {
             RobotState = RobotStateEnum.Idle;
-            ArrivalDestinationFuncs.Clear();
             yield break;
         }
         public abstract void RedirectOrthogonal(Robot requestedRobot);
@@ -110,11 +110,9 @@ namespace _Script.Robot
             if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition) ||
                 ArrivalDestinationFuncs.Count == 0) yield break;
             
-            for (int i = 0; i < ArrivalDestinationFuncs.Count; i++)
-            {
-                yield return StartCoroutine(ArrivalDestinationFuncs[i].Invoke());
-            }
-            
+            var arrivalDestinationFunc = ArrivalDestinationFuncs.Dequeue();
+            StartCoroutine(arrivalDestinationFunc.Invoke());
+
         }
 
         protected void PlayerControl()
