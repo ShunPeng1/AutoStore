@@ -30,14 +30,43 @@ namespace _Script.Robot
         protected LinkedList<GridXZCell> MovingPath;
         
         [Header("Movement")] 
-        [SerializeField] protected float MovementSpeed = 1f;
+        [SerializeField] protected float MaxMovementSpeed = 1f;
+        [SerializeField] protected float Acceleration, Deceleration;
         [SerializeField] protected float PreemptiveDistance = 0.05f;
         [SerializeField] protected float JamWaitTime = 5f;
-
+        protected float AccelerateAmount, DecelerateAmount;
+        
         [Header("Crate ")] 
         protected Action ArrivalDestinationAction = null;
         protected Crate HoldingCrate;
 
+        [Header("Component")] 
+        protected Rigidbody Rigidbody;
+
+        
+        IEnumerator Start()
+        {
+            GoalCellPosition = LastCellPosition = NextCellPosition = transform.position;
+            yield return null;
+            CurrentGrid = MapManager.Instance.StorageGrid;
+            (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
+
+            Rigidbody = GetComponent<Rigidbody>();
+        }
+        
+        
+        private void OnValidate()
+        {
+	        #region Variable Ranges
+	        Acceleration = Mathf.Clamp(Acceleration, 0.01f, MaxMovementSpeed);
+	        Deceleration = Mathf.Clamp(Deceleration, 0.01f, MaxMovementSpeed);
+	        #endregion
+	        
+	        //Calculate are run acceleration & deceleration forces using formula: amount = ((1 / Time.fixedDeltaTime) * acceleration) / runMaxSpeed
+	        AccelerateAmount = (50 * Acceleration) / MaxMovementSpeed;
+	        DecelerateAmount = (50 * Deceleration) / MaxMovementSpeed;
+        }
+        
         #region AssignTask
         public abstract void IdleRedirect(Robot requestedRobot);
         
@@ -63,14 +92,21 @@ namespace _Script.Robot
         protected void MoveAlongGrid()
         {
             if (RobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
-            transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MovementSpeed * Time.deltaTime);
+            
+            // Move Toward
+            //Vector3 newPosition = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
+            //Rigidbody.MovePosition(newPosition);
+            
+            transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
+
+            // Check Cell
             if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
             {
                 ArriveDestination();
-                ForwardMoveNextCellInPath();
+                ExtractNextCellInPath();
             }
         }
-
+        
         public void ArriveDestination()
         {
             if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition)) return;
@@ -107,7 +143,7 @@ namespace _Script.Robot
             }
         }
 
-        protected void ForwardMoveNextCellInPath()
+        protected void ExtractNextCellInPath()
         {
             if (MovingPath == null ||MovingPath.Count == 0) return;
             var nextDestination = MovingPath.First.Value;

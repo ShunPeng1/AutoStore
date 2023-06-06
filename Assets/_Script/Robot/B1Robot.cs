@@ -16,16 +16,7 @@ public class B1Robot : Robot
     [SerializeField] private LayerMask robotLayerMask;
     
     
-    IEnumerator Start()
-    {
-        GoalCellPosition = NextCellPosition = transform.position;
-        yield return null;
-        CurrentGrid = MapManager.Instance.StorageGrid;
-        (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
-        
-    }
-    
-    void Update()
+    void FixedUpdate()
     {
         if (CurrentGrid == null) return;
         DetectNearByRobot();
@@ -136,7 +127,7 @@ public class B1Robot : Robot
             return;
         }
 
-        ForwardMoveNextCellInPath();
+        ExtractNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
     
@@ -152,7 +143,7 @@ public class B1Robot : Robot
             return;
         }
         
-        ForwardMoveNextCellInPath();
+        ExtractNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
 

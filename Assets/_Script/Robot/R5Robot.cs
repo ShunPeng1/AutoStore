@@ -18,16 +18,6 @@ public class R5Robot : Robot
     [SerializeField] private LayerMask robotLayerMask;
     
     
-    IEnumerator Start()
-    {
-        GoalCellPosition = NextCellPosition = transform.position;
-        yield return null;
-        CurrentGrid = MapManager.Instance.StorageGrid;
-        (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
-
-        //_dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
-    }
-
     // Update is called once per frame
     void Update()
     {
@@ -100,7 +90,7 @@ public class R5Robot : Robot
 
         MovingPath.RemoveFirst(); // the current standing node
       
-        ForwardMoveNextCellInPath();
+        ExtractNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
     
@@ -118,7 +108,7 @@ public class R5Robot : Robot
         
         //MovingPath.RemoveFirst(); // the current standing node
         
-        ForwardMoveNextCellInPath();
+        ExtractNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
 
