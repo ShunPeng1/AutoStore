@@ -27,17 +27,18 @@ namespace _Script.Robot
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
         public Vector3 GoalCellPosition;
+        public Vector3 RedirectCellPosition;
         protected LinkedList<GridXZCell> MovingPath;
         
         [Header("Movement")] 
         [SerializeField] protected float MaxMovementSpeed = 1f;
-        [SerializeField] protected float Acceleration, Deceleration;
         [SerializeField] protected float PreemptiveDistance = 0.05f;
         [SerializeField] protected float JamWaitTime = 5f;
-        protected float AccelerateAmount, DecelerateAmount;
+        
         
         [Header("Crate ")] 
-        protected Action ArrivalDestinationAction = null;
+        protected List<Func<IEnumerator>>  ArrivalDestinationFuncs = new ();
+        
         protected Crate HoldingCrate;
 
         [Header("Component")] 
@@ -55,24 +56,14 @@ namespace _Script.Robot
         }
         
         
-        private void OnValidate()
-        {
-	        #region Variable Ranges
-	        Acceleration = Mathf.Clamp(Acceleration, 0.01f, MaxMovementSpeed);
-	        Deceleration = Mathf.Clamp(Deceleration, 0.01f, MaxMovementSpeed);
-	        #endregion
-	        
-	        //Calculate are run acceleration & deceleration forces using formula: amount = ((1 / Time.fixedDeltaTime) * acceleration) / runMaxSpeed
-	        AccelerateAmount = (50 * Acceleration) / MaxMovementSpeed;
-	        DecelerateAmount = (50 * Deceleration) / MaxMovementSpeed;
-        }
-        
         #region AssignTask
-        public abstract void IdleRedirect(Robot requestedRobot);
+        public abstract void RedirectRandom(Robot requestedRobot);
         
         public abstract void ApproachCrate(Crate crate);
         
-
+        protected abstract IEnumerator PickUpCrate();
+        protected abstract IEnumerator DropDownCrate();
+        
         protected IEnumerator Jamming()
         {
             RobotStateEnum lastRobotStateEnum = RobotState;
@@ -80,7 +71,7 @@ namespace _Script.Robot
             yield return new WaitForSeconds(JamWaitTime);
             RobotState = lastRobotStateEnum;
         }
-
+        
         #endregion
 
         #region Detection
@@ -102,20 +93,22 @@ namespace _Script.Robot
             // Check Cell
             if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
             {
-                ArriveDestination();
+                StartCoroutine(nameof(ArriveDestination));
                 ExtractNextCellInPath();
             }
         }
         
-        public void ArriveDestination()
+        public IEnumerator ArriveDestination()
         {
-            if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition)) return;
-            ArrivalDestinationAction?.Invoke();
+            if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition) ||
+                ArrivalDestinationFuncs.Count == 0) yield break;
+        
+            foreach (var arrivalDestinationFunc in ArrivalDestinationFuncs)
+            {
+                yield return StartCoroutine(arrivalDestinationFunc.Invoke());
+            }
         }
-        
-        public abstract void PickUpCrate();
-        public abstract void DropDownCrate();
-        
+
         protected void PlayerControl()
         {
             float horizontal = Input.GetAxisRaw("Horizontal"), vertical = Input.GetAxisRaw("Vertical");

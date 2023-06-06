@@ -163,7 +163,7 @@ public class B1Robot : Robot
         }
     }
 
-    public override void IdleRedirect(Robot requestedRobot)
+    public override void RedirectRandom(Robot requestedRobot)
     {
         RobotState = RobotStateEnum.Redirecting;
         
@@ -175,31 +175,35 @@ public class B1Robot : Robot
         GoalCellPosition = crate.transform.position;
         RobotState = RobotStateEnum.Retrieving;
 
-        ArrivalDestinationAction = PickUpCrate;
+        ArrivalDestinationFuncs.Clear();
+        ArrivalDestinationFuncs.Add(PickUpCrate);
         CreatePathFinding();
     }
 
-    public override void PickUpCrate()
+    protected override IEnumerator PickUpCrate()
     {
         if (RobotState != RobotStateEnum.Retrieving || CurrentGrid.GetXZ(transform.position) !=
-            CurrentGrid.GetXZ(HoldingCrate.transform.position)) return;
+            CurrentGrid.GetXZ(HoldingCrate.transform.position)) yield break;
         
         GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
         HoldingCrate.transform.SetParent(transform);
         RobotState = RobotStateEnum.Delivering;
         
-        ArrivalDestinationAction = DropDownCrate;
+        ArrivalDestinationFuncs.Clear();
+        ArrivalDestinationFuncs.Add( DropDownCrate );
         CreatePathFinding();
+        
     }
 
-    public override void DropDownCrate()
+    protected override IEnumerator DropDownCrate()
     {
         if (RobotState != RobotStateEnum.Delivering ||
-            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) return;
+            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) yield break;
         
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
-        ArrivalDestinationAction = null;
         RobotState = RobotStateEnum.Idle;
+
+        ArrivalDestinationFuncs.Clear();
     }
 }

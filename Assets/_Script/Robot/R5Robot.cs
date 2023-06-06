@@ -128,7 +128,7 @@ public class R5Robot : Robot
         }
     }
 
-    public override void IdleRedirect(Robot requestedRobot)
+    public override void RedirectRandom(Robot requestedRobot)
     {
         throw new NotImplementedException();
     }
@@ -142,26 +142,24 @@ public class R5Robot : Robot
         CreatePathFinding();
     }
 
-    public override void PickUpCrate()
+    protected override IEnumerator PickUpCrate()
     {
-        if (RobotState == RobotStateEnum.Retrieving && CurrentGrid.GetXZ(transform.position) == CurrentGrid.GetXZ(HoldingCrate.transform.position))
-        {
-            GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
-            HoldingCrate.transform.SetParent(transform);
-            RobotState = RobotStateEnum.Delivering;
+        if (RobotState != RobotStateEnum.Retrieving || CurrentGrid.GetXZ(transform.position) !=
+            CurrentGrid.GetXZ(HoldingCrate.transform.position)) yield break;
+        GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
+        HoldingCrate.transform.SetParent(transform);
+        RobotState = RobotStateEnum.Delivering;
             
-            CreatePathFinding();
-        }
+        CreatePathFinding();
     }
 
-    public override void DropDownCrate()
+    protected override IEnumerator DropDownCrate()
     {
-        if (RobotState == RobotStateEnum.Delivering && CurrentGrid.GetXZ(transform.position) == (HoldingCrate.storingX, HoldingCrate.storingZ))
-        {
-            Destroy(HoldingCrate.gameObject);
-            HoldingCrate = null;
-            RobotState = RobotStateEnum.Idle;
-            
-        }
+        if (RobotState != RobotStateEnum.Delivering ||
+            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) yield break;
+        Destroy(HoldingCrate.gameObject);
+        HoldingCrate = null;
+        RobotState = RobotStateEnum.Idle;
+        
     }
 }
