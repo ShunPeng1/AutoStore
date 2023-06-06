@@ -122,7 +122,7 @@ public class B1Robot : Robot
     private bool IsBlockAHead(float angleBetweenMyDirectionAndRobotDistance, float isHeadAngleThreshold)
     {
         if (angleBetweenMyDirectionAndRobotDistance >= isHeadAngleThreshold  // Not block ahead 
-            || MovingPath.Count == 0) return false; // or the NextCellPosition is the goal
+                || MovingPath == null|| MovingPath.Count == 0) return false; // or the NextCellPosition is the goal or no more way
         
         GridXZCell nextNextCell = MovingPath.First.Value;
 
