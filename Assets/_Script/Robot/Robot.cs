@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -32,8 +33,9 @@ namespace _Script.Robot
         [SerializeField] protected float MovementSpeed = 1f;
         [SerializeField] protected float PreemptiveDistance = 0.05f;
         [SerializeField] protected float JamWaitTime = 5f;
-        
-        [Header("Crate ")]
+
+        [Header("Crate ")] 
+        protected Action ArrivalDestinationAction = null;
         protected Crate HoldingCrate;
 
         #region AssignTask
@@ -41,6 +43,7 @@ namespace _Script.Robot
         
         public abstract void ApproachCrate(Crate crate);
         
+
         protected IEnumerator Jamming()
         {
             RobotStateEnum lastRobotStateEnum = RobotState;
@@ -63,10 +66,15 @@ namespace _Script.Robot
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MovementSpeed * Time.deltaTime);
             if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
             {
-                PickUpCrate();
-                DropDownCrate();
+                ArriveDestination();
                 ForwardMoveNextCellInPath();
             }
+        }
+
+        public void ArriveDestination()
+        {
+            if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition)) return;
+            ArrivalDestinationAction?.Invoke();
         }
         
         public abstract void PickUpCrate();

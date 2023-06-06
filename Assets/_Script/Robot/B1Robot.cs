@@ -174,6 +174,7 @@ public class B1Robot : Robot
 
     public override void IdleRedirect(Robot requestedRobot)
     {
+        RobotState = RobotStateEnum.Redirecting;
         
     }
 
@@ -183,6 +184,7 @@ public class B1Robot : Robot
         GoalCellPosition = crate.transform.position;
         RobotState = RobotStateEnum.Retrieving;
 
+        ArrivalDestinationAction = PickUpCrate;
         CreatePathFinding();
     }
 
@@ -194,7 +196,8 @@ public class B1Robot : Robot
         GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
         HoldingCrate.transform.SetParent(transform);
         RobotState = RobotStateEnum.Delivering;
-            
+        
+        ArrivalDestinationAction = DropDownCrate;
         CreatePathFinding();
     }
 
@@ -205,6 +208,7 @@ public class B1Robot : Robot
         
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
+        ArrivalDestinationAction = null;
         RobotState = RobotStateEnum.Idle;
     }
 }

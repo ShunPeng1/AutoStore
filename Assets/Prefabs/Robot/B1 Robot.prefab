@@ -823,7 +823,7 @@ MonoBehaviour:
   GoalCellPosition: {x: 0, y: 0, z: 0}
   MovementSpeed: 3
   PreemptiveDistance: 0.1
-  JamWaitTime: 1
+  JamWaitTime: 0.25
   _debugLineRenderer: {fileID: 3908041089777982755}
   centerBodyCast: {fileID: 4179138659058510927}
   castRadius: 1.5
