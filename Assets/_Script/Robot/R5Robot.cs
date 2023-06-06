@@ -128,7 +128,7 @@ public class R5Robot : Robot
         }
     }
 
-    public override void RedirectRandom(Robot requestedRobot)
+    public override void RedirectOrthogonal(Robot requestedRobot)
     {
         throw new NotImplementedException();
     }

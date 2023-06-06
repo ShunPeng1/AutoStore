@@ -57,7 +57,14 @@ namespace _Script.Robot
         
         
         #region AssignTask
-        public abstract void RedirectRandom(Robot requestedRobot);
+        
+        protected IEnumerator BecomeIdle()
+        {
+            RobotState = RobotStateEnum.Idle;
+            ArrivalDestinationFuncs.Clear();
+            yield break;
+        }
+        public abstract void RedirectOrthogonal(Robot requestedRobot);
         
         public abstract void ApproachCrate(Crate crate);
         
@@ -102,11 +109,12 @@ namespace _Script.Robot
         {
             if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition) ||
                 ArrivalDestinationFuncs.Count == 0) yield break;
-        
-            foreach (var arrivalDestinationFunc in ArrivalDestinationFuncs)
+            
+            for (int i = 0; i < ArrivalDestinationFuncs.Count; i++)
             {
-                yield return StartCoroutine(arrivalDestinationFunc.Invoke());
+                yield return StartCoroutine(ArrivalDestinationFuncs[i].Invoke());
             }
+            
         }
 
         protected void PlayerControl()

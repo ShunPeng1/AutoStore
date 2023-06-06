@@ -37,6 +37,11 @@ public class GridXZ<TCell>
             }
         }
     }
+
+    public bool IsValidCell(int xIndex, int zIndex)
+    {
+        return (xIndex < _width && xIndex >= 0 && zIndex < _height && zIndex >= 0);
+    }
     
     public (int , int ) GetXZ(Vector3 position)
     {

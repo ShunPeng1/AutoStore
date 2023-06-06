@@ -93,6 +93,14 @@ public class B1Robot : Robot
         float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(detectedRobot.transform.position - transform.position, NextCellPosition - transform.position) ;
         float dotProductOf2Direction = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
         
+        if (detectedRobot.RobotState is RobotStateEnum.Idle) 
+        {
+            if (!(angleBetweenMyDirectionAndRobotDistance < 5)) return DetectDecision.Continue;
+            
+            detectedRobot.RedirectOrthogonal(this);
+            return DetectDecision.Wait;
+        }
+        
         if (Math.Abs(dotProductOf2Direction - (-1)) < 0.01f || // opposite direction
             detectedRobot.RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) 
         {
@@ -163,17 +171,39 @@ public class B1Robot : Robot
         }
     }
 
-    public override void RedirectRandom(Robot requestedRobot)
+    public override void RedirectOrthogonal(Robot requestedRobot)
     {
         RobotState = RobotStateEnum.Redirecting;
+
+        Vector3 requestedRobotDistance = transform.position - requestedRobot.transform.position;
+        Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized;
+        
+        Debug.Log("Cross "+ crossProduct);
+        (var redirectX, var redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 1);
+
+        if (CurrentGrid.IsValidCell(redirectX, redirectZ))
+        {
+            GoalCellPosition = CurrentGrid.GetWorldPosition(redirectX, redirectZ);
+        }
+        else
+        {
+            (var redirectX2, var redirectZ2) = CurrentGrid.GetXZ(transform.position + crossProduct * -1);
+            GoalCellPosition = CurrentGrid.GetWorldPosition(redirectX2, redirectZ2);
+        }
+        
+        
+        ArrivalDestinationFuncs.Clear();
+        ArrivalDestinationFuncs.Add(PickUpCrate);
+        CreatePathFinding();
         
     }
 
     public override void ApproachCrate(Crate crate)
     {
+        RobotState = RobotStateEnum.Retrieving;
         HoldingCrate = crate;
         GoalCellPosition = crate.transform.position;
-        RobotState = RobotStateEnum.Retrieving;
+        
 
         ArrivalDestinationFuncs.Clear();
         ArrivalDestinationFuncs.Add(PickUpCrate);
@@ -202,8 +232,8 @@ public class B1Robot : Robot
         
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
+        
         RobotState = RobotStateEnum.Idle;
-
         ArrivalDestinationFuncs.Clear();
     }
 }
