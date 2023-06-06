@@ -91,25 +91,26 @@ public class B1Robot : Robot
     private DetectDecision CheckDetection(Robot detectedRobot)
     {
         float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(detectedRobot.transform.position - transform.position, NextCellPosition - transform.position) ;
-        float dotProductOf2Direction = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
+        float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
 
-        if (RobotState == RobotStateEnum.Redirecting) return DetectDecision.Continue;
         
         if (detectedRobot.RobotState is RobotStateEnum.Idle) 
         {
-            if (!(angleBetweenMyDirectionAndRobotDistance < 5)) return DetectDecision.Continue;
+            if (!IsBlockAHead(angleBetweenMyDirectionAndRobotDistance, 5)) return DetectDecision.Continue;
             
             detectedRobot.RedirectOrthogonal(this);
-            return DetectDecision.Wait;
+            return RobotState == RobotStateEnum.Redirecting ? DetectDecision.Continue : DetectDecision.Wait;
         }
-        
-        if (Math.Abs(dotProductOf2Direction - (-1)) < 0.01f || // opposite direction
+
+        if (RobotState == RobotStateEnum.Redirecting) return DetectDecision.Continue;
+
+        if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
             detectedRobot.RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) 
         {
-            return angleBetweenMyDirectionAndRobotDistance < 5 ? DetectDecision.Dodge : DetectDecision.Continue; // same row or column
+            return IsBlockAHead(angleBetweenMyDirectionAndRobotDistance, 5) ? DetectDecision.Dodge : DetectDecision.Continue; // same row or column
         }
         
-        if (dotProductOf2Direction == 0) // perpendicular direction
+        if (dotProductOf2RobotDirection == 0) // perpendicular direction
         {
             return angleBetweenMyDirectionAndRobotDistance < 45 ? DetectDecision.Wait : DetectDecision.Continue;
         }
@@ -118,6 +119,22 @@ public class B1Robot : Robot
         return DetectDecision.Continue;
     }
 
+    private bool IsBlockAHead(float angleBetweenMyDirectionAndRobotDistance, float isHeadAngleThreshold)
+    {
+        if (angleBetweenMyDirectionAndRobotDistance >= isHeadAngleThreshold  // Not block ahead 
+            || MovingPath.Count == 0) return false; // or the NextCellPosition is the goal
+        
+        GridXZCell nextNextCell = MovingPath.First.Value;
+
+        Vector3 nextNextCellPosition = CurrentGrid.GetWorldPosition(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
+        float dotOf2NextDirection = Vector3.Dot(NextCellPosition - LastCellPosition, nextNextCellPosition - NextCellPosition);
+        if (dotOf2NextDirection == 0) // perpendicular direction
+        {
+            return false;
+        }
+
+        return true;
+    }
     #endregion
     
     
