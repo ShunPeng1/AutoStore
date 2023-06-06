@@ -92,6 +92,8 @@ public class B1Robot : Robot
     {
         float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(detectedRobot.transform.position - transform.position, NextCellPosition - transform.position) ;
         float dotProductOf2Direction = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
+
+        if (RobotState == RobotStateEnum.Redirecting) return DetectDecision.Continue;
         
         if (detectedRobot.RobotState is RobotStateEnum.Idle) 
         {
@@ -179,7 +181,7 @@ public class B1Robot : Robot
         Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized;
         
         Debug.Log("Cross "+ crossProduct);
-        (var redirectX, var redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 1);
+        (var redirectX, var redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 2);
 
         if (CurrentGrid.IsValidCell(redirectX, redirectZ))
         {
@@ -187,13 +189,13 @@ public class B1Robot : Robot
         }
         else
         {
-            (var redirectX2, var redirectZ2) = CurrentGrid.GetXZ(transform.position + crossProduct * -1);
+            (var redirectX2, var redirectZ2) = CurrentGrid.GetXZ(transform.position + crossProduct * -2);
             GoalCellPosition = CurrentGrid.GetWorldPosition(redirectX2, redirectZ2);
         }
         
         
         ArrivalDestinationFuncs.Clear();
-        ArrivalDestinationFuncs.Add(PickUpCrate);
+        ArrivalDestinationFuncs.Add(BecomeIdle);
         CreatePathFinding();
         
     }
