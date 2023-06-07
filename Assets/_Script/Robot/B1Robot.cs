@@ -9,7 +9,8 @@ public class B1Robot : Robot
     [Header("Pathfinder")] 
     [SerializeField] private LineRenderer _debugLineRenderer;
     private DStarLitePathFinding _dStarLitePathFinding;
-    
+    private IPathfindingAlgorithm<GridXZCell> _pathfindingAlgorithm;
+
     [Header("Casting")] 
     [SerializeField] private Transform centerBodyCast;
     [SerializeField] private float castRadius;
@@ -28,8 +29,6 @@ public class B1Robot : Robot
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireSphere(centerBodyCast.position, castRadius);
-
-        Vector3 castDirection = (NextCellPosition - transform.position).normalized;
     }
 
     #region RobotDetect
@@ -44,40 +43,27 @@ public class B1Robot : Robot
     {
         if (RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
         
-        var hits = Physics.OverlapSphere(centerBodyCast.position, castRadius, robotLayerMask);
+        var hits = Physics.OverlapSphere(centerBodyCast.position, castRadius, robotLayerMask); // Find robot in a circle 
 
         List<GridXZCell> dynamicObstacle = new(); 
         foreach (var hitCollider in hits)
         { 
-            var robotHit = hitCollider.gameObject.GetComponent<Robot>();
-            if (robotHit == this)
+            var detectedRobot = hitCollider.gameObject.GetComponent<Robot>();
+            if (detectedRobot == this) // This robot itself
             {
                 continue;
             }
             
-            /*if (IsBlockMe(robotHit) || (robotHit.RobotState == RobotStateEnum.Idle ))
+            switch (CheckDetection(detectedRobot))
             {
-                Debug.Log(name+" Jamming with "+ robotHit.gameObject.name + " with angle " + Vector3.Angle(hitCollider.transform.position - transform.position, NextCellPosition - transform.position));
-                
-                // TODO avoidance
-                //StartCoroutine(nameof(Jamming));
-
-                // Use the current and next cell to be a obstacle
-                dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.LastCellPosition));
-                dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.NextCellPosition));
-            
-            }
-            */
-            switch (CheckDetection(robotHit))
-            {
-                case DetectDecision.Wait:
-                    Debug.Log(gameObject.name +" Jam with "+robotHit.gameObject.name);
+                case DetectDecision.Wait: // We set the robot to jam state
+                    Debug.Log(gameObject.name +" Jam with "+detectedRobot.gameObject.name);
                     StartCoroutine(nameof(Jamming));
                     break;
-                case DetectDecision.Dodge:
-                    Debug.Log(gameObject.name +" Dodge "+robotHit.gameObject.name);
-                    dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.LastCellPosition));
-                    dynamicObstacle.Add(CurrentGrid.GetItem(robotHit.NextCellPosition));
+                case DetectDecision.Dodge: // We add the detected robot cell as obstacle
+                    Debug.Log(gameObject.name +" Dodge "+detectedRobot.gameObject.name);
+                    dynamicObstacle.Add(CurrentGrid.GetItem(detectedRobot.LastCellPosition));
+                    dynamicObstacle.Add(CurrentGrid.GetItem(detectedRobot.NextCellPosition));
                     break;
                 case DetectDecision.Continue:
                     break;
@@ -124,39 +110,34 @@ public class B1Robot : Robot
         if (angleBetweenMyDirectionAndRobotDistance >= isHeadAngleThreshold  // Not block ahead 
                 || MovingPath == null|| MovingPath.Count == 0) return false; // or the NextCellPosition is the goal or no more way
         
+        // If the direction ahead is a corner or a goal, so we assume it doesn't block
         GridXZCell nextNextCell = MovingPath.First.Value;
 
         Vector3 nextNextCellPosition = CurrentGrid.GetWorldPosition(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
         float dotOf2NextDirection = Vector3.Dot(NextCellPosition - LastCellPosition, nextNextCellPosition - NextCellPosition);
-        if (dotOf2NextDirection == 0) // perpendicular direction
-        {
-            return false;
-        }
-
-        return true;
+        
+        return dotOf2NextDirection != 0; // perpendicular direction or not
     }
     #endregion
-    
-    
+
+    #region Pathfinding
+
     private void CreatePathFinding()
     {
-        var startCell = CurrentGrid.GetItem(XIndex, ZIndex);
+        var startCell = CurrentGrid.GetItem(NextCellPosition);
         var endCell = CurrentGrid.GetItem(GoalCellPosition);
 
         // TODO Choose a path finding 
-        //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
+        
         _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
         MovingPath = _dStarLitePathFinding.FirstTimeFindPath(startCell, endCell);
-        
+
         if (MovingPath == null)
         {
             StartCoroutine("Jamming");
-            return;
         }
-
-        ExtractNextCellInPath();
-        //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
+    
     
     private void UpdatePathFinding(List<GridXZCell> dynamicObstacle)
     {
@@ -167,12 +148,11 @@ public class B1Robot : Robot
         if (MovingPath == null)
         {
             StartCoroutine("Jamming");
-            return;
         }
-        
-        ExtractNextCellInPath();
-        //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
+
+    #endregion
+    
 
 
     void ShowPath()
@@ -190,14 +170,21 @@ public class B1Robot : Robot
         }
     }
 
+    #region AssignTask
+
+    /// <summary>
+    /// This function will be requested when the robot is Idle
+    /// It will move to a empty cell to right orthogonal, if not valid to the left orthogonal instead
+    /// </summary>
+    /// <param name="requestedRobot"></param>
     public override void RedirectOrthogonal(Robot requestedRobot)
     {
         RobotState = RobotStateEnum.Redirecting;
 
         Vector3 requestedRobotDistance = transform.position - requestedRobot.transform.position;
-        Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized;
+        Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized; // find the orthogonal vector 
         
-        Debug.Log("Cross "+ crossProduct);
+        //Debug.Log("Cross "+ crossProduct);
         (var redirectX, var redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 2);
 
         if (CurrentGrid.IsValidCell(redirectX, redirectZ))
@@ -250,4 +237,7 @@ public class B1Robot : Robot
         RobotState = RobotStateEnum.Idle;
         
     }
+    
+    
+    #endregion
 }
