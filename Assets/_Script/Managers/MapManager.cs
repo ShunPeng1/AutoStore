@@ -11,6 +11,10 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     [SerializeField] private float _cellWidthSize = 1f, _cellHeightSize = 1f;
     public GridXZ<GridXZCell> WorldGrid;
 
+    /// <summary>
+    /// Using the Strategy Pattern for the robot to receive 
+    /// </summary>
+    #region PathFindingAlgorithm
     
     public enum PathFindingAlgorithmType
     {
@@ -29,6 +33,9 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
             _ => throw new ArgumentOutOfRangeException()
         };
     }
+
+    #endregion
+    
 
     void Start()
     {
