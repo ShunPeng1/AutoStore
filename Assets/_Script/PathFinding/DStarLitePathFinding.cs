@@ -61,6 +61,15 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         this._startNode = startNode;
         this._endNode = endNode;
         
+        // Reset
+        _openNodes = new ( new CompareFCostHCost()); // priority queue of open nodes
+        _km = 0; // km = heuristic for estimating cost of travel along the last path
+        _rhsValues = new (); // rhsValues[x] = the current best estimate of the cost from x to the goal
+        _gValues = new (); // gValues[x] = the cost of the cheapest path from the start to x
+        _predecessors = new (); // predecessors[x] = the node that comes before x on the best path from the start to x
+        _dynamicObstacles = new(); // dynamicObstacle[x] = the cell that is found obstacle after find path and its found time
+
+        // Init
         _gValues[endNode] = double.PositiveInfinity;
         _rhsValues[endNode] = 0;
 
