@@ -6,11 +6,9 @@ using UnityEngine;
 
 public class B1Robot : Robot
 {
-    [Header("Pathfinder")] 
+    [Header("Debug")] 
     [SerializeField] private LineRenderer _debugLineRenderer;
-    private DStarLitePathFinding _dStarLitePathFinding;
-    private IPathfindingAlgorithm<GridXZCell> _pathfindingAlgorithm;
-
+    
     [Header("Casting")] 
     [SerializeField] private Transform centerBodyCast;
     [SerializeField] private float castRadius;
@@ -129,8 +127,8 @@ public class B1Robot : Robot
 
         // TODO Choose a path finding 
         
-        _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
-        MovingPath = _dStarLitePathFinding.FirstTimeFindPath(startCell, endCell);
+        
+        MovingPath = PathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
 
         if (MovingPath == null)
         {
@@ -143,7 +141,7 @@ public class B1Robot : Robot
     {
         var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
          
-        MovingPath = _dStarLitePathFinding.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
+        MovingPath = PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
         
         if (MovingPath == null)
         {

@@ -4,8 +4,19 @@ namespace _Script.PathFinding
 {
     public class AStarPathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
     {
+        private GridXZCell _startNode, _endNode;
+        private Dictionary<GridXZCell, double> _hValues = new (); // rhsValues[x] = the current best estimate of the cost from x to the goal
+        private Dictionary<GridXZCell, double> _gValues = new (); // gValues[x] = the cost of the cheapest path from the start to x
+
         public AStarPathFinding(GridXZ<GridXZCell> gridXZ) : base(gridXZ)
         {
+        }
+
+        public override LinkedList<GridXZCell> FirstTimeFindPath(GridXZCell startNode, GridXZCell endNode)
+        {
+            _startNode = startNode;
+            _endNode = endNode;
+            return FindPath(startNode, endNode);
         }
     
         /// <summary>

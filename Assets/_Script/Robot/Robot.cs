@@ -35,10 +35,12 @@ namespace _Script.Robot
         [SerializeField] protected float JamWaitTime = 5f;
         
         
-        [Header("Crate ")] 
+        [Header("Pathfinding")]
         protected Queue<Func<IEnumerator>>  ArrivalDestinationFuncs = new ();
+        protected IPathfindingAlgorithm<GridXZCell> PathfindingAlgorithm;
 
-        protected List<int> test;
+
+        [Header("Crate ")] 
         protected Crate HoldingCrate;
 
         [Header("Component")] 
@@ -49,9 +51,10 @@ namespace _Script.Robot
         {
             GoalCellPosition = LastCellPosition = NextCellPosition = transform.position;
             yield return null;
-            CurrentGrid = MapManager.Instance.StorageGrid;
+            CurrentGrid = MapManager.Instance.WorldGrid;
             (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
 
+            PathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
             Rigidbody = GetComponent<Rigidbody>();
         }
         
