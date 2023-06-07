@@ -146,7 +146,7 @@ public class B1Robot : Robot
         // TODO Choose a path finding 
         //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
         _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
-        MovingPath = _dStarLitePathFinding.InitializePathFinding(startCell, endCell);
+        MovingPath = _dStarLitePathFinding.FirstTimeFindPath(startCell, endCell);
         
         if (MovingPath == null)
         {
@@ -162,7 +162,7 @@ public class B1Robot : Robot
     {
         var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
          
-        MovingPath = _dStarLitePathFinding.UpdatePathDynamicObstacle(currentStartCell, dynamicObstacle);
+        MovingPath = _dStarLitePathFinding.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
         
         if (MovingPath == null)
         {

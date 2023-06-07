@@ -83,7 +83,7 @@ public class R5Robot : Robot
         // TODO Choose a path finding 
         //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
         _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
-        MovingPath = _dStarLitePathFinding.InitializePathFinding(startCell, endCell);
+        MovingPath = _dStarLitePathFinding.FirstTimeFindPath(startCell, endCell);
 
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
@@ -102,7 +102,7 @@ public class R5Robot : Robot
     {
         var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
          
-        MovingPath = _dStarLitePathFinding.UpdatePathDynamicObstacle(currentStartCell, dynamicObstacle);
+        MovingPath = _dStarLitePathFinding.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
         

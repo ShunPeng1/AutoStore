@@ -2,16 +2,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum PathfindingAlgorithmType
+public interface IPathfindingAlgorithm<TCell>
 {
-    AStar,
-    DStarLite,
-    MyStar
+    public LinkedList<GridXZCell> FirstTimeFindPath(TCell start, TCell end);
+    public LinkedList<GridXZCell> UpdatePathWithDynamicObstacle(TCell currentStartNode, List<TCell> foundDynamicObstacles);
 }
 
-public class Pathfinding<TGrid, TCell>
+public class Pathfinding<TGrid, TCell> : IPathfindingAlgorithm<TCell>
 {
-    protected PathfindingAlgorithmType AlgorithmType;
     protected TGrid Grid;
 
     public Pathfinding(TGrid grid)
@@ -19,14 +17,13 @@ public class Pathfinding<TGrid, TCell>
         this.Grid = grid;
     }
     
-    public virtual LinkedList<GridXZCell> FindPath(TCell start, TCell end)
+    public virtual LinkedList<GridXZCell> FirstTimeFindPath(TCell start, TCell end)
     {
         return null;
     }
-    
-    public virtual LinkedList<GridXZCell> InitializePathFinding(TCell start, TCell end)
+
+    public virtual LinkedList<GridXZCell> UpdatePathWithDynamicObstacle(TCell currentStartNode, List<TCell> foundDynamicObstacles)
     {
         return null;
     }
-    
 }

@@ -11,11 +11,6 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     [SerializeField] private float _cellWidthSize = 1f, _cellHeightSize = 1f;
     public GridXZ<GridXZCell> StorageGrid;
 
-    [Header("PathFinding")] 
-    public Pathfinding<GridXZ<GridXZCell>, GridXZCell> Pathfinding;
-    
-
-
     void Start()
     {
         StorageGrid = new GridXZ<GridXZCell>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position,
@@ -34,17 +29,9 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
                 StorageGrid.GetItem(x,z).SetAdjacency();
             }
         }
-
-        Pathfinding = new AStarPathFinding(StorageGrid);
-        
         
     }
-
-    public LinkedList<GridXZCell> RequestPath(GridXZCell startXZCell, GridXZCell endXZCell)
-    {
-        return Pathfinding.FindPath(startXZCell,endXZCell);
-    }
-
+    
     
 
 }
