@@ -12,7 +12,7 @@ namespace _Script.PathFinding
         /// 
         /// </summary>
         /// <returns> the path between start and end</returns>
-        public override LinkedList<GridXZCell> FindPath(GridXZCell startXZCell, GridXZCell endXZCell)
+        public LinkedList<GridXZCell> FindPath(GridXZCell startXZCell, GridXZCell endXZCell)
         {
             Priority_Queue.SimplePriorityQueue<GridXZCell> openSet = new (); // to be travelled set
             HashSet<GridXZCell> closeSet = new(); // travelled set 
