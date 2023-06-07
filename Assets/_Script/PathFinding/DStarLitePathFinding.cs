@@ -56,7 +56,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         }
     }
 
-    public override LinkedList<GridXZCell> InitializePathFinding(GridXZCell startNode, GridXZCell endNode)
+    public override LinkedList<GridXZCell> FirstTimeFindPath(GridXZCell startNode, GridXZCell endNode)
     {
         this._startNode = startNode;
         this._endNode = endNode;
@@ -72,7 +72,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return FindPath(startNode, endNode);
     }
 
-    public override LinkedList<GridXZCell> FindPath(GridXZCell startNode, GridXZCell endNode)
+    public LinkedList<GridXZCell> FindPath(GridXZCell startNode, GridXZCell endNode)
     {
         while (_openNodes.Count > 0 &&
                (GetRhsValue(startNode) > CalculateKey(startNode, startNode) ||
@@ -115,7 +115,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return RetracePath(startNode, endNode);
     }
     
-    public LinkedList<GridXZCell> UpdatePathDynamicObstacle(GridXZCell currentStartNode, List<GridXZCell> foundDynamicObstacles)
+    public override LinkedList<GridXZCell> UpdatePathWithDynamicObstacle(GridXZCell currentStartNode, List<GridXZCell> foundDynamicObstacles)
     {
         _km += GetDistanceCost(currentStartNode, _startNode);
         this._startNode = currentStartNode;
