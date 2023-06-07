@@ -27,7 +27,6 @@ namespace _Script.Robot
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
         public Vector3 GoalCellPosition;
-        public Vector3 RedirectCellPosition;
         protected LinkedList<GridXZCell> MovingPath;
         
         [Header("Movement")] 
@@ -144,7 +143,11 @@ namespace _Script.Robot
 
         protected void ExtractNextCellInPath()
         {
-            if (MovingPath == null ||MovingPath.Count == 0) return;
+            if (MovingPath == null || MovingPath.Count == 0)
+            {
+                LastCellPosition = NextCellPosition;
+                return;
+            }
             var nextDestination = MovingPath.First.Value;
             MovingPath.RemoveFirst(); // the next standing node
             
@@ -156,7 +159,6 @@ namespace _Script.Robot
         }
         
         #endregion
-        
         
         
         public GridXZCell GetCurrentGridCell()
