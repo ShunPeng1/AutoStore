@@ -43,20 +43,37 @@ namespace _Script.Robot
         [Header("Crate ")] 
         protected Crate HoldingCrate;
 
-        [Header("Component")] 
+        [Header("Components")] 
         protected Rigidbody Rigidbody;
 
-        
+        #region Initial
+
         IEnumerator Start()
         {
-            GoalCellPosition = LastCellPosition = NextCellPosition = transform.position;
             yield return null;
+            InitializeGrid();
+            InitializePathfinding();
+            InitializeComponents();
+        }
+        
+        private void InitializeGrid()
+        {
             CurrentGrid = MapManager.Instance.WorldGrid;
             (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
+            GoalCellPosition = LastCellPosition = NextCellPosition = transform.position;
+        }
 
+        private void InitializePathfinding()
+        {
             PathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
+        }
+
+        private void InitializeComponents()
+        {
             Rigidbody = GetComponent<Rigidbody>();
         }
+
+        #endregion
         
         /// <summary>
         /// Using the Template Method Pattern to store the function that the different type of robot can override for its own implementation
