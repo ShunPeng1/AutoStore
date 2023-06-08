@@ -58,20 +58,25 @@ namespace _Script.Robot
             Rigidbody = GetComponent<Rigidbody>();
         }
         
-        
+        /// <summary>
+        /// Using the Template Method Pattern to store the function that the different type of robot can override for its own implementation
+        /// </summary>
+        /// <param name="requestedRobot"></param>
         #region AssignTask
         
-        protected IEnumerator BecomeIdle()
-        {
-            RobotState = RobotStateEnum.Idle;
-            yield break;
-        }
         public abstract void RedirectOrthogonal(Robot requestedRobot);
         
         public abstract void ApproachCrate(Crate crate);
         
         protected abstract IEnumerator PickUpCrate();
         protected abstract IEnumerator DropDownCrate();
+        
+        
+        protected IEnumerator BecomeIdle()
+        {
+            RobotState = RobotStateEnum.Idle;
+            yield break;
+        }
         
         protected IEnumerator Jamming()
         {
@@ -92,11 +97,8 @@ namespace _Script.Robot
         protected void MoveAlongGrid()
         {
             if (RobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
-            
-            // Move Toward
-            //Vector3 newPosition = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
-            //Rigidbody.MovePosition(newPosition);
-            
+
+            // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
 
             // Check Cell
@@ -107,6 +109,11 @@ namespace _Script.Robot
             }
         }
         
+        /// <summary>
+        /// Using Command Pattern to store a queue of order and call when the robot reach the goal
+        /// ArrivalDestinationFuncs is the queue that store order and Invoke().
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator ArriveDestination()
         {
             if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition) ||
@@ -143,7 +150,20 @@ namespace _Script.Robot
                 }
             }
         }
+        
+        #endregion
 
+
+        #region GetCells
+
+        
+        /// <summary>
+        /// Using Iteration Pattern for getting the cell that the robot travelling when getting form the PathFinding Algorithm
+        /// NextCellPosition : the next cell the robot going to travel to
+        /// LastCellPosition : the cell that the robot is leaving
+        /// This guarantee the robot is between the LastCellPosition and NextCellPosition, which is next to each other
+        /// </summary>
+        /// <returns></returns>
         protected void ExtractNextCellInPath()
         {
             if (MovingPath == null || MovingPath.Count == 0)
@@ -161,12 +181,13 @@ namespace _Script.Robot
             //Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
         }
         
-        #endregion
         
         
         public GridXZCell GetCurrentGridCell()
         {
             return CurrentGrid.GetItem(XIndex, ZIndex);
         }
+        
+        #endregion
     }
 }

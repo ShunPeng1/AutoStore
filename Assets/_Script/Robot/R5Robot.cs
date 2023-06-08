@@ -77,7 +77,7 @@ public class R5Robot : Robot
 
     private void CreatePathFinding()
     {
-        var startCell = CurrentGrid.GetItem(XIndex, ZIndex);
+        var startCell = CurrentGrid.GetItem(NextCellPosition);
         var endCell = CurrentGrid.GetItem(GoalCellPosition);
 
         // TODO Choose a path finding 
