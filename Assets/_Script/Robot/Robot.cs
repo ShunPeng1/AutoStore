@@ -127,8 +127,8 @@ namespace _Script.Robot
         }
         
         /// <summary>
-        /// Using Command Pattern to store a queue of order and call when the robot reach the goal
-        /// ArrivalDestinationFuncs is the queue that store order and Invoke().
+        /// Using a Observer Pattern to store a queue of order and call when the robot reach the goal
+        /// ArrivalDestinationFuncs is the queue that store order and Invoke(), then dequeue to get next Function for next goal
         /// </summary>
         /// <returns></returns>
         public IEnumerator ArriveDestination()
