@@ -43,7 +43,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     IEnumerator Start()
     {
         yield return null;
-        _storageGrid = MapManager.Instance.StorageGrid;
+        _storageGrid = MapManager.Instance.WorldGrid;
         (_width, _height) = _storageGrid.GetWidthHeight();
 
         _robots = FindObjectsOfType<Robot>();
