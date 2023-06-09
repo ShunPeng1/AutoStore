@@ -15,8 +15,8 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     /// Using the Strategy Pattern for the robot to receive 
     /// </summary>
     #region PathFindingAlgorithm
-    
-    public enum PathFindingAlgorithmType
+
+    private enum PathFindingAlgorithmType
     {
         DStar,
         AStar
