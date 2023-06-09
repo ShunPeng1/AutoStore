@@ -80,10 +80,11 @@ public class B1Robot : Robot
         
         if (detectedRobot.RobotState is RobotStateEnum.Idle) 
         {
-            if (!IsBlockAHead(angleBetweenMyDirectionAndRobotDistance, 5)) return DetectDecision.Continue;
+            if (!IsBlockAHead(detectedRobot, angleBetweenMyDirectionAndRobotDistance, 5)) return DetectDecision.Continue;
             
             detectedRobot.RedirectOrthogonal(this);
-            return RobotState == RobotStateEnum.Redirecting ? DetectDecision.Continue : DetectDecision.Wait;
+            
+            return DetectDecision.Wait;
         }
 
         if (RobotState == RobotStateEnum.Redirecting) return DetectDecision.Continue;
@@ -91,7 +92,7 @@ public class B1Robot : Robot
         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
             detectedRobot.RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) 
         {
-            return IsBlockAHead(angleBetweenMyDirectionAndRobotDistance, 5) ? DetectDecision.Dodge : DetectDecision.Continue; // same row or column
+            return IsBlockAHead(detectedRobot, angleBetweenMyDirectionAndRobotDistance, 5) ? DetectDecision.Dodge : DetectDecision.Continue; // same row or column
         }
         
         if (dotProductOf2RobotDirection == 0) // perpendicular direction
@@ -103,12 +104,15 @@ public class B1Robot : Robot
         return DetectDecision.Continue;
     }
 
-    private bool IsBlockAHead(float angleBetweenMyDirectionAndRobotDistance, float isHeadAngleThreshold)
+    private bool IsBlockAHead(Robot detectedRobot,float angleBetweenMyDirectionAndRobotDistance, float isHeadAngleThreshold)
     {
         if (angleBetweenMyDirectionAndRobotDistance >= isHeadAngleThreshold  // Not block ahead 
-                || MovingPath == null|| MovingPath.Count == 0) return false; // or the NextCellPosition is the goal or no more way
+                || ((MovingPath == null || MovingPath.Count == 0) && detectedRobot.NextCellPosition != NextCellPosition))  // or the NextCellPosition is the goal or no more way
+            return false;
         
         // If the direction ahead is a corner or a goal, so we assume it doesn't block
+        if (MovingPath == null || MovingPath.Count == 0) return true;
+        
         GridXZCell<StackStorage> nextNextCell = MovingPath.First.Value;
 
         Vector3 nextNextCellPosition = CurrentGrid.GetWorldPosition(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
@@ -178,12 +182,14 @@ public class B1Robot : Robot
     public override void RedirectOrthogonal(Robot requestedRobot)
     {
         RobotState = RobotStateEnum.Redirecting;
-
+        
+        Debug.Log(requestedRobot.gameObject.name+" requested to move "+ gameObject.name);
+        
         Vector3 requestedRobotDistance = transform.position - requestedRobot.transform.position;
         Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized; // find the orthogonal vector 
         
         //Debug.Log("Cross "+ crossProduct);
-        (var redirectX, var redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 2);
+        (var redirectX, var redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 1);
 
         if (CurrentGrid.IsValidCell(redirectX, redirectZ))
         {
@@ -191,7 +197,7 @@ public class B1Robot : Robot
         }
         else
         {
-            (var redirectX2, var redirectZ2) = CurrentGrid.GetXZ(transform.position + crossProduct * -2);
+            (var redirectX2, var redirectZ2) = CurrentGrid.GetXZ(transform.position + crossProduct * -1); // the other direction
             GoalCellPosition = CurrentGrid.GetWorldPosition(redirectX2, redirectZ2);
         }
         

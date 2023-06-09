@@ -175,6 +175,7 @@ MonoBehaviour:
   _height: 20
   _cellWidthSize: 1
   _cellHeightSize: 1
+  _pathFindingAlgorithmType: 0
 --- !u!1 &56008789
 GameObject:
   m_ObjectHideFlags: 0
@@ -812,14 +813,17 @@ MonoBehaviour:
   _maxPendingCrate: 100
   _crateSpawnInfos:
   - ArriveTime: 5
-    SourceGridIndex: {x: 5, y: 5}
+    SourceGridIndex: {x: 5, y: 8}
     DestinationGridIndex: {x: 15, y: 9}
   - ArriveTime: 10
     SourceGridIndex: {x: 5, y: 5}
-    DestinationGridIndex: {x: 7, y: 10}
+    DestinationGridIndex: {x: 6, y: 10}
   - ArriveTime: 15
     SourceGridIndex: {x: 5, y: 5}
     DestinationGridIndex: {x: 15, y: 10}
+  - ArriveTime: 0
+    SourceGridIndex: {x: 5, y: 5}
+    DestinationGridIndex: {x: 5, y: 9}
 --- !u!1 &1141733424
 GameObject:
   m_ObjectHideFlags: 0
