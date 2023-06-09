@@ -18,17 +18,17 @@ As the algorithm progresses, it updates the g-values and rhs-values of cells and
 
 One of the key features of D* Lite is that it is designed to work efficiently in dynamic environments. When the environment changes, the algorithm can be re-run with the updated costs and a new path will be found that takes the changes into account. This makes it a useful algorithm for applications such as robotics, where the environment can change frequently.
 */
-public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
+public class DStarLitePathFinding<TItem> : Pathfinding<GridXZ<GridXZCell<TItem>>, GridXZCell<TItem>, TItem>
 {
-    private GridXZCell _startNode, _endNode;
-    private Priority_Queue.SimplePriorityQueue<GridXZCell, QueueKey > _openNodes = new ( new CompareFCostHCost()); // priority queue of open nodes
+    private GridXZCell<TItem> _startNode, _endNode;
+    private Priority_Queue.SimplePriorityQueue<GridXZCell<TItem>, QueueKey > _openNodes = new ( new CompareFCostHCost()); // priority queue of open nodes
     private int _km = 0; // km = heuristic for estimating cost of travel along the last path
-    private Dictionary<GridXZCell, double> _rhsValues = new (); // rhsValues[x] = the current best estimate of the cost from x to the goal
-    private Dictionary<GridXZCell, double> _gValues = new (); // gValues[x] = the cost of the cheapest path from the start to x
-    private Dictionary<GridXZCell, GridXZCell> _predecessors = new (); // predecessors[x] = the node that comes before x on the best path from the start to x
-    private Dictionary<GridXZCell, float> _dynamicObstacles = new(); // dynamicObstacle[x] = the cell that is found obstacle after find path and its found time
+    private Dictionary<GridXZCell<TItem>, double> _rhsValues = new (); // rhsValues[x] = the current best estimate of the cost from x to the goal
+    private Dictionary<GridXZCell<TItem>, double> _gValues = new (); // gValues[x] = the cost of the cheapest path from the start to x
+    private Dictionary<GridXZCell<TItem>, GridXZCell<TItem>> _predecessors = new (); // predecessors[x] = the node that comes before x on the best path from the start to x
+    private Dictionary<GridXZCell<TItem>, float> _dynamicObstacles = new(); // dynamicObstacle[x] = the cell that is found obstacle after find path and its found time
 
-    public DStarLitePathFinding(GridXZ<GridXZCell> gridXZ) : base(gridXZ)
+    public DStarLitePathFinding(GridXZ<GridXZCell<TItem>> gridXZ) : base(gridXZ)
     {
     }
 
@@ -56,7 +56,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         }
     }
 
-    public override LinkedList<GridXZCell> FirstTimeFindPath(GridXZCell startNode, GridXZCell endNode)
+    public override LinkedList<GridXZCell<TItem>> FirstTimeFindPath(GridXZCell<TItem> startNode, GridXZCell<TItem> endNode)
     {
         this._startNode = startNode;
         this._endNode = endNode;
@@ -81,13 +81,13 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return FindPath(startNode, endNode);
     }
 
-    public LinkedList<GridXZCell> FindPath(GridXZCell startNode, GridXZCell endNode)
+    public LinkedList<GridXZCell<TItem>> FindPath(GridXZCell<TItem> startNode, GridXZCell<TItem> endNode)
     {
         while (_openNodes.Count > 0 &&
                (GetRhsValue(startNode) > CalculateKey(startNode, startNode) ||
                 _gValues[startNode] == double.PositiveInfinity))
         {
-            if (!_openNodes.TryDequeue(out GridXZCell currentNode)) return null; // there are no way to get to end
+            if (!_openNodes.TryDequeue(out GridXZCell<TItem> currentNode)) return null; // there are no way to get to end
             
             //Debug.Log("DStar current Node" + currentNode.XIndex + " " + currentNode.ZIndex);
 
@@ -124,7 +124,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return RetracePath(startNode, endNode);
     }
     
-    public override LinkedList<GridXZCell> UpdatePathWithDynamicObstacle(GridXZCell currentStartNode, List<GridXZCell> foundDynamicObstacles)
+    public override LinkedList<GridXZCell<TItem>> UpdatePathWithDynamicObstacle(GridXZCell<TItem> currentStartNode, List<GridXZCell<TItem>> foundDynamicObstacles)
     {
         _km += GetDistanceCost(currentStartNode, _startNode);
         this._startNode = currentStartNode;
@@ -149,7 +149,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return FindPath(_startNode, _endNode);
     }
     
-    private void UpdateNode(GridXZCell updateNode, GridXZCell itsPredecessorNode = null)
+    private void UpdateNode(GridXZCell<TItem> updateNode, GridXZCell<TItem> itsPredecessorNode = null)
     {
         //Debug.Log("DStar UpdateNode " + node.XIndex + " " + node.ZIndex);
         if (updateNode != _endNode)
@@ -158,7 +158,7 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
              * Get the min rhs from Successors, then add it to the predecessors for traverse
              */
             double minRhs = double.PositiveInfinity;
-            GridXZCell minSucc = null;
+            GridXZCell<TItem> minSucc = null;
 
             foreach (var successor in updateNode.AdjacentCells)
             {
@@ -197,18 +197,18 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         }
     }
 
-    private LinkedList<GridXZCell> RetracePath(GridXZCell startXZCell, GridXZCell endXZCell)
+    private LinkedList<GridXZCell<TItem>> RetracePath(GridXZCell<TItem> startXZCell, GridXZCell<TItem> endXZCell)
     {
-        LinkedList<GridXZCell> path = new LinkedList<GridXZCell>();
-        GridXZCell currentCell = startXZCell;
-        HashSet<GridXZCell> visitedCells = new();
+        LinkedList<GridXZCell<TItem>> path = new LinkedList<GridXZCell<TItem>>();
+        GridXZCell<TItem> currentCell = startXZCell;
+        HashSet<GridXZCell<TItem>> visitedCells = new();
         
         while (currentCell != endXZCell)
         {
             path.AddLast(currentCell);
             visitedCells.Add(currentCell);
             
-            GridXZCell nextCell = null;
+            GridXZCell<TItem> nextCell = null;
             double minGCost = Double.PositiveInfinity;
             foreach (var successor in currentCell.AdjacentCells)
             {
@@ -230,24 +230,24 @@ public class DStarLitePathFinding : Pathfinding<GridXZ<GridXZCell>, GridXZCell>
         return path;
     }
 
-    private double CalculateKey(GridXZCell currNode, GridXZCell startNode)
+    private double CalculateKey(GridXZCell<TItem> currNode, GridXZCell<TItem> startNode)
     {
         return Math.Min(GetRhsValue(currNode), GetGValue(currNode)) + GetDistanceCost(currNode, startNode) + _km;
     }
 
-    private double GetRhsValue(GridXZCell node)
+    private double GetRhsValue(GridXZCell<TItem> node)
     {
         return _rhsValues.TryGetValue(node, out double value) ? value : double.PositiveInfinity;
     }
 
-    private double GetGValue(GridXZCell node)
+    private double GetGValue(GridXZCell<TItem> node)
     {
         return _gValues.TryGetValue(node, out double value) ? value : double.PositiveInfinity;
     }
 
-    protected virtual int GetDistanceCost(GridXZCell start, GridXZCell end)
+    protected virtual int GetDistanceCost(GridXZCell<TItem> start, GridXZCell<TItem> end)
     {
-        (int xDiff, int zDiff) = GridXZCell.GetIndexDifferenceAbsolute(start, end);
+        (int xDiff, int zDiff) = GridXZCell<TItem>.GetIndexDifferenceAbsolute(start, end);
 
         // This value make the path go zigzag 
         //return xDiff > zDiff ? 14*zDiff+ 10*(xDiff-zDiff) : 14*xDiff + 10*(zDiff-xDiff);

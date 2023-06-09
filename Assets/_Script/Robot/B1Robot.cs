@@ -43,7 +43,7 @@ public class B1Robot : Robot
         
         var hits = Physics.OverlapSphere(centerBodyCast.position, castRadius, robotLayerMask); // Find robot in a circle 
 
-        List<GridXZCell> dynamicObstacle = new(); 
+        List<GridXZCell<StackStorage>> dynamicObstacle = new(); 
         foreach (var hitCollider in hits)
         { 
             var detectedRobot = hitCollider.gameObject.GetComponent<Robot>();
@@ -109,7 +109,7 @@ public class B1Robot : Robot
                 || MovingPath == null|| MovingPath.Count == 0) return false; // or the NextCellPosition is the goal or no more way
         
         // If the direction ahead is a corner or a goal, so we assume it doesn't block
-        GridXZCell nextNextCell = MovingPath.First.Value;
+        GridXZCell<StackStorage> nextNextCell = MovingPath.First.Value;
 
         Vector3 nextNextCellPosition = CurrentGrid.GetWorldPosition(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
         float dotOf2NextDirection = Vector3.Dot(NextCellPosition - LastCellPosition, nextNextCellPosition - NextCellPosition);
@@ -137,7 +137,7 @@ public class B1Robot : Robot
     }
     
     
-    private void UpdatePathFinding(List<GridXZCell> dynamicObstacle)
+    private void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
     {
         var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
          
@@ -163,7 +163,7 @@ public class B1Robot : Robot
         int itr = 1;
         foreach (var cell in MovingPath)
         {
-            _debugLineRenderer.SetPosition(itr, cell.StackStorage.transform.position);
+            _debugLineRenderer.SetPosition(itr, CurrentGrid.GetWorldPosition(cell.XIndex,cell.ZIndex));
             itr++;
         }
     }

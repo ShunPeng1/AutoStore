@@ -9,8 +9,7 @@ public class R5Robot : Robot
 {
     [Header("Pathfinder")]
     [SerializeField] private LineRenderer _debugLineRenderer;
-    private DStarLitePathFinding _dStarLitePathFinding;
-    
+
     [Header("Casting")] 
     [SerializeField] private Transform headCast;
     [SerializeField] private Transform tailCast;
@@ -41,7 +40,7 @@ public class R5Robot : Robot
         var hits = Physics.SphereCastAll(headCast.position, castRadius, deltaCastPosition, deltaCastPosition.magnitude,robotLayerMask);
 
 
-        List<GridXZCell> dynamicObstacle = new(); 
+        List<GridXZCell<StackStorage>> dynamicObstacle = new(); 
         foreach (var hit in hits)
         { 
             var robotHit = hit.collider.gameObject.GetComponent<Robot>();
@@ -79,17 +78,12 @@ public class R5Robot : Robot
     {
         var startCell = CurrentGrid.GetItem(NextCellPosition);
         var endCell = CurrentGrid.GetItem(GoalCellPosition);
-
-        // TODO Choose a path finding 
-        //MovingPath = MapManager.Instance.RequestPath(startCell, endCell);
-        _dStarLitePathFinding = new DStarLitePathFinding(CurrentGrid);
-        MovingPath = _dStarLitePathFinding.FirstTimeFindPath(startCell, endCell);
+        
+        MovingPath = PathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
 
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
-
-        MovingPath.RemoveFirst(); // the current standing node
-      
+        
         ExtractNextCellInPath();
         //Debug.Log("Move to "+ _xIndex + " "+ _zIndex);
     }
@@ -98,11 +92,11 @@ public class R5Robot : Robot
     /// Make the robot go to the last Cell and find new path with the new obstacle
     /// </summary>
     /// <param name="dynamicObstacle"> List of cell that the obstacle is on </param>
-    private void UpdatePathFinding(List<GridXZCell> dynamicObstacle)
+    private void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
     {
         var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
          
-        MovingPath = _dStarLitePathFinding.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
+        MovingPath = PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
         
         if (MovingPath == null || MovingPath.Count <= 1) return;
         
@@ -123,7 +117,7 @@ public class R5Robot : Robot
         int itr = 1;
         foreach (var cell in MovingPath)
         {
-            _debugLineRenderer.SetPosition(itr, cell.StackStorage.transform.position);
+            _debugLineRenderer.SetPosition(itr, CurrentGrid.GetWorldPosition(cell.XIndex, cell.ZIndex));
             itr++;
         }
     }
