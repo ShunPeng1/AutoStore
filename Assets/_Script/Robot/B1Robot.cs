@@ -128,13 +128,11 @@ public class B1Robot : Robot
     {
         var startCell = CurrentGrid.GetItem(NextCellPosition);
         var endCell = CurrentGrid.GetItem(GoalCellPosition);
-
-        // TODO Choose a path finding 
         
         
         MovingPath = PathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
 
-        if (MovingPath == null)
+        if (MovingPath == null) // No destination was found
         {
             StartCoroutine("Jamming");
         }
@@ -146,11 +144,14 @@ public class B1Robot : Robot
         var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
          
         MovingPath = PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
-        
-        if (MovingPath == null)
+       
+        if (MovingPath == null) // The path to goal is block
         {
             StartCoroutine("Jamming");
+            return;
         }
+        
+        ExtractNextCellInPath(); // return to the last cell
     }
 
     #endregion
