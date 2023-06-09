@@ -2,34 +2,33 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GridXZCell
+public class GridXZCell<TItem>
 {
     [Header("Base")]
-    private readonly GridXZ<GridXZCell> _gridXZ;
+    private readonly GridXZ<GridXZCell<TItem>> _gridXZ;
     public readonly int XIndex, ZIndex;
-    public readonly List<GridXZCell> AdjacentCells = new ();
-    public StackStorage StackStorage;
-
+    public readonly List<GridXZCell<TItem>> AdjacentCells = new ();
+    public TItem Item;
     public bool IsObstacle;
 
     [Header("A Star Pathfinding")] 
-    public GridXZCell ParentXZCell = null; 
+    public GridXZCell<TItem> ParentXZCell = null; 
     public int FCost;
     public int HCost;
     public int GCost;
     
     
-    public GridXZCell(GridXZ<GridXZCell> grid, int x, int z, StackStorage stackStorage)
+    public GridXZCell(GridXZ<GridXZCell<TItem>> grid, int x, int z, TItem item = default)
     {
         _gridXZ = grid;
         XIndex = x;
         ZIndex = z;
-        this.StackStorage = stackStorage;
+        Item = item;
     }
 
     public void SetAdjacency()
     {
-        GridXZCell[] adjacentRawItems =
+        GridXZCell<TItem>[] adjacentRawItems =
         {
             //in counter clockwise order
             _gridXZ.GetItem(XIndex + 1, ZIndex),
@@ -50,12 +49,12 @@ public class GridXZCell
     }
     
 
-    public static (int xDiff, int zDiff) GetIndexDifference(GridXZCell first, GridXZCell second)
+    public static (int xDiff, int zDiff) GetIndexDifference(GridXZCell<TItem> first, GridXZCell<TItem> second)
     {
         return (second.XIndex - first.XIndex , second.ZIndex-first.ZIndex);
     }
     
-    public static (int xDiff, int zDiff) GetIndexDifferenceAbsolute(GridXZCell first, GridXZCell second)
+    public static (int xDiff, int zDiff) GetIndexDifferenceAbsolute(GridXZCell<TItem> first, GridXZCell<TItem> second)
     {
         return (Mathf.Abs(second.XIndex - first.XIndex), Mathf.Abs(second.ZIndex - first.ZIndex));
     }

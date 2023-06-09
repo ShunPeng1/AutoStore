@@ -31,18 +31,15 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     [SerializeField] private List<CrateSpawnInfo> _crateSpawnInfos;
     
     
-    private GridXZ<GridXZCell> _storageGrid;
+    private GridXZ<GridXZCell<StackStorage>> _storageGrid;
     private int _width, _height;
 
     private float _currentTime = 0f;
     private Queue<Crate> _pendingCrates = new();
     private Robot[] _robots;
-
     
-    
-    IEnumerator Start()
+    void Start()
     {
-        yield return null;
         _storageGrid = MapManager.Instance.WorldGrid;
         (_width, _height) = _storageGrid.GetWidthHeight();
 
@@ -118,7 +115,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// </summary>
     private int CalculateDistance(Robot robot, Crate crate)
     {
-        (int x, int z) = GridXZCell.GetIndexDifferenceAbsolute(
+        (int x, int z) = GridXZCell<StackStorage>.GetIndexDifferenceAbsolute(
             _storageGrid.GetItem(crate.currentX, crate.currentZ),
             robot.GetCurrentGridCell());
         return 10 * x + 10 * z;
