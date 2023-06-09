@@ -9,7 +9,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
 {
     [SerializeField] private int _width = 20, _height = 20;
     [SerializeField] private float _cellWidthSize = 1f, _cellHeightSize = 1f;
-    public GridXZ<GridXZCell> WorldGrid;
+    public GridXZ<GridXZCell<StackStorage>> WorldGrid;
 
     /// <summary>
     /// Using the Strategy Pattern for the robot to receive 
@@ -24,12 +24,12 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
 
     [SerializeField] private PathFindingAlgorithmType _pathFindingAlgorithmType; 
 
-    public IPathfindingAlgorithm<GridXZCell> GetPathFindingAlgorithm()
+    public IPathfindingAlgorithm<GridXZCell<StackStorage>, StackStorage> GetPathFindingAlgorithm()
     {
         return _pathFindingAlgorithmType switch
         {
-            PathFindingAlgorithmType.AStar => new AStarPathFinding(WorldGrid),
-            PathFindingAlgorithmType.DStar => new DStarLitePathFinding(WorldGrid),
+            PathFindingAlgorithmType.AStar => new AStarPathFinding<StackStorage>(WorldGrid),
+            PathFindingAlgorithmType.DStar => new DStarLitePathFinding<StackStorage>(WorldGrid),
             _ => throw new ArgumentOutOfRangeException()
         };
     }
@@ -37,28 +37,29 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     #endregion
     
 
-    void Start()
+    void Awake()
     {
-        WorldGrid = new GridXZ<GridXZCell>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position,
-            (grid, x, z) =>
+        WorldGrid = new GridXZ<GridXZCell<StackStorage>>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position
+            ,(grid, x, z) =>
             {
-                StackStorage stackStorage = Instantiate(ResourceManager.Instance.StackStorage, grid.GetWorldPosition(x,z),Quaternion.identity ,transform);
-                GridXZCell storageGridXZCell = new GridXZCell(grid, x, z, stackStorage);
-                stackStorage.Init(grid, x, z, storageGridXZCell);
+                GridXZCell<StackStorage> storageGridXZCell = new (grid, x, z);
                 return storageGridXZCell;
-            });
+            }
+        );
 
+    }
+
+    private void Start()
+    {
         for (int x = 0; x < _width; x++)
         {
             for (int z = 0; z < _height; z++)
             {
-                WorldGrid.GetItem(x,z).SetAdjacency();
+                GridXZCell<StackStorage> cell = WorldGrid.GetItem(x, z);
+                cell.Item = Instantiate(ResourceManager.Instance.StackStorage, WorldGrid.GetWorldPosition(x,z),Quaternion.identity ,transform);
+                cell.Item.Init(WorldGrid, x,z, cell);
+                cell.SetAdjacency();
             }
         }
-        
     }
-    
-    
-    
-
 }

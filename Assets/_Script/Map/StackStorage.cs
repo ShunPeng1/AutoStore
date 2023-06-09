@@ -5,14 +5,14 @@ using UnityEngine;
 public class StackStorage : MonoBehaviour
 {
     private int _xIndex, _zIndex;
-    private GridXZ<GridXZCell> _grid ;
-    private GridXZCell _xzCell;
-    public void Init(GridXZ<GridXZCell> grid, int xIndex, int zIndex, GridXZCell xzCell)
+    private GridXZ<GridXZCell<StackStorage>> _grid ;
+    private GridXZCell<StackStorage> _gridXZCellCell;
+    public void Init(GridXZ<GridXZCell<StackStorage>> grid, int xIndex, int zIndex, GridXZCell<StackStorage> xzCell)
     {
         _grid = grid;
         _xIndex = xIndex;
         _zIndex = zIndex;
-        _xzCell = xzCell;
+        _gridXZCellCell = xzCell;
     }
     
 }

@@ -22,12 +22,12 @@ namespace _Script.Robot
         public RobotStateEnum RobotState = RobotStateEnum.Idle;
     
         [Header("Grid")]
-        protected GridXZ<GridXZCell> CurrentGrid;
+        protected GridXZ<GridXZCell<StackStorage>> CurrentGrid;
         protected int XIndex, ZIndex;
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
         public Vector3 GoalCellPosition;
-        protected LinkedList<GridXZCell> MovingPath;
+        protected LinkedList<GridXZCell<StackStorage>> MovingPath;
         
         [Header("Movement")] 
         [SerializeField] protected float MaxMovementSpeed = 1f;
@@ -37,7 +37,7 @@ namespace _Script.Robot
         
         [Header("Pathfinding")]
         protected Queue<Func<IEnumerator>>  ArrivalDestinationFuncs = new ();
-        protected IPathfindingAlgorithm<GridXZCell> PathfindingAlgorithm;
+        protected IPathfindingAlgorithm<GridXZCell<StackStorage>,StackStorage> PathfindingAlgorithm;
 
 
         [Header("Crate ")] 
@@ -48,9 +48,8 @@ namespace _Script.Robot
 
         #region Initial
 
-        IEnumerator Start()
+        void Start()
         {
-            yield return null;
             InitializeGrid();
             InitializePathfinding();
             InitializeComponents();
@@ -148,7 +147,7 @@ namespace _Script.Robot
             {
                 var item = CurrentGrid.GetItem(XIndex + (int)horizontal, ZIndex);
                 // If walkable
-                if (item != default(GridXZCell))
+                if (item != default(GridXZCell<StackStorage>))
                 {
                     XIndex += (int)horizontal;
                     NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
@@ -159,7 +158,7 @@ namespace _Script.Robot
             {
                 var item = CurrentGrid.GetItem(XIndex, ZIndex + (int)vertical);
                 // If walkable
-                if (item != default(GridXZCell))
+                if (item != default(GridXZCell<StackStorage>))
                 {
                     ZIndex += (int)vertical;
                     NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
@@ -199,8 +198,7 @@ namespace _Script.Robot
         }
         
         
-        
-        public GridXZCell GetCurrentGridCell()
+        public GridXZCell<StackStorage> GetCurrentGridCell()
         {
             return CurrentGrid.GetItem(XIndex, ZIndex);
         }
