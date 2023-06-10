@@ -173,6 +173,7 @@ MonoBehaviour:
   _height: 20
   _cellWidthSize: 1
   _cellHeightSize: 1
+  _pathFindingAlgorithmType: 0
 --- !u!1 &56008789
 GameObject:
   m_ObjectHideFlags: 0
@@ -754,15 +755,15 @@ MonoBehaviour:
     SourceGridIndex: {x: 6, y: 5}
     DestinationGridIndex: {x: 15, y: 5}
   - ArriveTime: 15
-    SourceGridIndex: {x: 15, y: 5}
-    DestinationGridIndex: {x: 5, y: 5}
-  - ArriveTime: 15
-    SourceGridIndex: {x: 5, y: 5}
-    DestinationGridIndex: {x: 15, y: 5}
-  - ArriveTime: 25
     SourceGridIndex: {x: 9, y: 5}
     DestinationGridIndex: {x: 11, y: 5}
-  - ArriveTime: 25
+  - ArriveTime: 15
+    SourceGridIndex: {x: 11, y: 5}
+    DestinationGridIndex: {x: 9, y: 5}
+  - ArriveTime: 100
+    SourceGridIndex: {x: 10, y: 5}
+    DestinationGridIndex: {x: 11, y: 5}
+  - ArriveTime: 100
     SourceGridIndex: {x: 11, y: 5}
     DestinationGridIndex: {x: 9, y: 5}
 --- !u!1 &1141733424
