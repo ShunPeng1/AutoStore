@@ -33,6 +33,11 @@ public class R5Robot : Robot
         Gizmos.DrawWireSphere(tailCast.position, castRadius);
     }
 
+    protected override void CreatePathFinding(Vector3 startPosition, Vector3 endPosition)
+    {
+        throw new NotImplementedException();
+    }
+
     protected override void DetectNearByRobot()
     {
         if (RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
@@ -92,7 +97,7 @@ public class R5Robot : Robot
     /// Make the robot go to the last Cell and find new path with the new obstacle
     /// </summary>
     /// <param name="dynamicObstacle"> List of cell that the obstacle is on </param>
-    private void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
+    protected override void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
     {
         var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
          
@@ -136,10 +141,10 @@ public class R5Robot : Robot
         CreatePathFinding();
     }
 
-    protected override IEnumerator PickUpCrate()
+    protected override void PickUpCrate()
     {
         if (RobotState != RobotStateEnum.Retrieving || CurrentGrid.GetXZ(transform.position) !=
-            CurrentGrid.GetXZ(HoldingCrate.transform.position)) yield break;
+            CurrentGrid.GetXZ(HoldingCrate.transform.position)) return;
         GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
         HoldingCrate.transform.SetParent(transform);
         RobotState = RobotStateEnum.Delivering;
@@ -147,10 +152,10 @@ public class R5Robot : Robot
         CreatePathFinding();
     }
 
-    protected override IEnumerator DropDownCrate()
+    protected override void DropDownCrate()
     {
         if (RobotState != RobotStateEnum.Delivering ||
-            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) yield break;
+            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) return;
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
         RobotState = RobotStateEnum.Idle;

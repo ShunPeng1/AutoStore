@@ -27,6 +27,8 @@ namespace _Script.Robot
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
         public Vector3 GoalCellPosition;
+        public Vector3 RedirectGoalCellPosition;
+
         protected LinkedList<GridXZCell<StackStorage>> MovingPath;
         
         [Header("Movement")] 
@@ -36,7 +38,8 @@ namespace _Script.Robot
         
         
         [Header("Pathfinding")]
-        protected Queue<Func<IEnumerator>>  ArrivalDestinationFuncs = new ();
+        protected Action ArrivalRedirectGoalAction;
+        protected Action ArrivalGoalAction;
         protected IPathfindingAlgorithm<GridXZCell<StackStorage>,StackStorage> PathfindingAlgorithm;
 
 
@@ -84,16 +87,19 @@ namespace _Script.Robot
         
         public abstract void ApproachCrate(Crate crate);
         
-        protected abstract IEnumerator PickUpCrate();
-        protected abstract IEnumerator DropDownCrate();
+        protected abstract void PickUpCrate();
+        protected abstract void DropDownCrate();
         
-        
-        protected IEnumerator BecomeIdle()
+        protected IEnumerator JammingForGoalCell()
         {
-            RobotState = RobotStateEnum.Idle;
-            yield break;
+            RobotStateEnum lastRobotStateEnum = RobotState;
+            RobotState = RobotStateEnum.Jamming;
+            
+            yield return new WaitForSeconds(JamWaitTime);
+            CreatePathFinding(LastCellPosition, GoalCellPosition);
+            
+            RobotState = lastRobotStateEnum;
         }
-        
         protected IEnumerator Jamming()
         {
             RobotStateEnum lastRobotStateEnum = RobotState;
@@ -101,7 +107,9 @@ namespace _Script.Robot
             yield return new WaitForSeconds(JamWaitTime);
             RobotState = lastRobotStateEnum;
         }
-        
+
+        protected abstract void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
+        protected abstract void CreatePathFinding(Vector3 startPosition, Vector3 endPosition);
         #endregion
 
         #region Detection
@@ -120,7 +128,7 @@ namespace _Script.Robot
             // Check Cell
             if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
             {
-                StartCoroutine(nameof(ArriveDestination));
+                ArriveDestination();
                 ExtractNextCellInPath();
             }
         }
@@ -130,14 +138,20 @@ namespace _Script.Robot
         /// ArrivalDestinationFuncs is the queue that store order and Invoke(), then dequeue to get next Function for next goal
         /// </summary>
         /// <returns></returns>
-        public IEnumerator ArriveDestination()
+        private void ArriveDestination()
         {
-            if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition) ||
-                ArrivalDestinationFuncs.Count == 0) yield break;
+            if (RobotState == RobotStateEnum.Redirecting)
+            {
+                if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(RedirectGoalCellPosition)) return;
+                
+                ArrivalRedirectGoalAction?.Invoke();
+            }
+            else
+            {
+                if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition)) return;
             
-            var arrivalDestinationFunc = ArrivalDestinationFuncs.Dequeue();
-            StartCoroutine(arrivalDestinationFunc.Invoke());
-
+                ArrivalGoalAction?.Invoke();
+            }
         }
 
         protected void PlayerControl()
