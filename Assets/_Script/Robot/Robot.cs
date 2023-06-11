@@ -20,7 +20,7 @@ namespace _Script.Robot
         [Header("Stat")] 
         public int Id;
         public RobotStateEnum CurrentRobotState = RobotStateEnum.Idle;
-        protected RobotStateEnum LastRobotState = RobotStateEnum.Idle;  // Can only be Idle, Delivering, Approaching
+        public RobotStateEnum LastRobotState = RobotStateEnum.Idle;  // Can only be Idle, Delivering, Approaching
         
         [Header("Grid")]
         protected GridXZ<GridXZCell<StackStorage>> CurrentGrid;
@@ -93,7 +93,7 @@ namespace _Script.Robot
         
         protected IEnumerator JammingForGoalCell()
         {
-            if(CurrentRobotState != RobotStateEnum.Jamming) LastRobotState = CurrentRobotState;
+            if(CurrentRobotState != RobotStateEnum.Jamming && CurrentRobotState != RobotStateEnum.Redirecting) LastRobotState = CurrentRobotState;
             CurrentRobotState = RobotStateEnum.Jamming;
             
             yield return new WaitForSeconds(JamWaitTime);
@@ -103,7 +103,7 @@ namespace _Script.Robot
         }
         protected IEnumerator Jamming()
         {
-            if(CurrentRobotState != RobotStateEnum.Jamming) LastRobotState = CurrentRobotState;
+            if(CurrentRobotState != RobotStateEnum.Jamming && CurrentRobotState != RobotStateEnum.Redirecting) LastRobotState = CurrentRobotState;
             CurrentRobotState = RobotStateEnum.Jamming;
             yield return new WaitForSeconds(JamWaitTime);
             CurrentRobotState = LastRobotState;
