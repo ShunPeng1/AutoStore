@@ -749,29 +749,11 @@ MonoBehaviour:
   _maxPendingCrate: 100
   _crateSpawnInfos:
   - ArriveTime: 5
-    SourceGridIndex: {x: 14, y: 5}
-    DestinationGridIndex: {x: 5, y: 5}
+    SourceGridIndex: {x: 11, y: 5}
+    DestinationGridIndex: {x: 9, y: 5}
   - ArriveTime: 5
-    SourceGridIndex: {x: 6, y: 5}
-    DestinationGridIndex: {x: 15, y: 5}
-  - ArriveTime: 15
     SourceGridIndex: {x: 9, y: 5}
-    DestinationGridIndex: {x: 11, y: 5}
-  - ArriveTime: 15
-    SourceGridIndex: {x: 11, y: 5}
-    DestinationGridIndex: {x: 9, y: 5}
-  - ArriveTime: 25
-    SourceGridIndex: {x: 11, y: 5}
-    DestinationGridIndex: {x: 5, y: 5}
-  - ArriveTime: 25
-    SourceGridIndex: {x: 9, y: 5}
-    DestinationGridIndex: {x: 16, y: 5}
-  - ArriveTime: 35
-    SourceGridIndex: {x: 10, y: 5}
-    DestinationGridIndex: {x: 11, y: 5}
-  - ArriveTime: 35
-    SourceGridIndex: {x: 11, y: 5}
-    DestinationGridIndex: {x: 9, y: 5}
+    DestinationGridIndex: {x: 10, y: 5}
 --- !u!1 &1141733424
 GameObject:
   m_ObjectHideFlags: 0
@@ -1073,7 +1055,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6291633208248654894, guid: 1858ffafa4424a24db361c97a017954e, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 15
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 6291633208248654894, guid: 1858ffafa4424a24db361c97a017954e, type: 3}
       propertyPath: m_LocalPosition.y
