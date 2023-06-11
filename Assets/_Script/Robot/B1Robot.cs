@@ -208,6 +208,11 @@ public class B1Robot : Robot
         {
             StopAllCoroutines();
         }
+        else if (CurrentRobotState == RobotStateEnum.Idle)
+        {
+            GoalCellPosition = RedirectGoalCellPosition;
+            LastRobotState = CurrentRobotState;
+        }
         else // Save robot state
         {
             LastRobotState = CurrentRobotState;
@@ -227,10 +232,10 @@ public class B1Robot : Robot
 
     public override void ApproachCrate(Crate crate)
     {
-        CurrentRobotState = RobotStateEnum.Approaching;
         HoldingCrate = crate;
         GoalCellPosition = crate.transform.position + Vector3.up * transform.position.y;
         
+        LastRobotState = CurrentRobotState = RobotStateEnum.Approaching;
         ArrivalGoalAction = PickUpCrate;
         CreatePathFinding(NextCellPosition, GoalCellPosition);
     }
@@ -242,7 +247,7 @@ public class B1Robot : Robot
         
         GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ) + Vector3.up * transform.position.y;
         HoldingCrate.transform.SetParent(transform);
-        CurrentRobotState = RobotStateEnum.Delivering;
+        LastRobotState = CurrentRobotState = RobotStateEnum.Delivering;
         
         ArrivalGoalAction = DropDownCrate ;
         CreatePathFinding(NextCellPosition, GoalCellPosition);
@@ -256,8 +261,9 @@ public class B1Robot : Robot
         
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
-        
-        CurrentRobotState = RobotStateEnum.Idle;
+
+        ArrivalGoalAction = null;
+        LastRobotState = CurrentRobotState = RobotStateEnum.Idle;
         
     }
     

@@ -45,7 +45,7 @@ namespace _Script.Robot
 
 
         [Header("Crate ")] 
-        protected Crate HoldingCrate;
+        [SerializeField] protected Crate HoldingCrate;
 
         [Header("Components")] 
         protected Rigidbody Rigidbody;
@@ -125,7 +125,7 @@ namespace _Script.Robot
 
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
-
+            Rigidbody.velocity = Vector3.zero;
             // Check Cell
             if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
             {
