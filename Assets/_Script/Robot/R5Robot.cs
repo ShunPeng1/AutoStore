@@ -40,7 +40,7 @@ public class R5Robot : Robot
 
     protected override void DetectNearByRobot()
     {
-        if (RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
+        if (CurrentRobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
         var deltaCastPosition = tailCast.position - headCast.position;
         var hits = Physics.SphereCastAll(headCast.position, castRadius, deltaCastPosition, deltaCastPosition.magnitude,robotLayerMask);
 
@@ -114,7 +114,7 @@ public class R5Robot : Robot
 
     void ShowPath()
     {
-        if (RobotState == RobotStateEnum.Idle || MovingPath == null) return;
+        if (CurrentRobotState == RobotStateEnum.Idle || MovingPath == null) return;
         
         _debugLineRenderer.positionCount = MovingPath.Count + 1;
         _debugLineRenderer.SetPosition(0,  transform.position);
@@ -136,29 +136,29 @@ public class R5Robot : Robot
     {
         HoldingCrate = crate;
         GoalCellPosition = crate.transform.position;
-        RobotState = RobotStateEnum.Retrieving;
+        CurrentRobotState = RobotStateEnum.Approaching;
 
         CreatePathFinding();
     }
 
     protected override void PickUpCrate()
     {
-        if (RobotState != RobotStateEnum.Retrieving || CurrentGrid.GetXZ(transform.position) !=
+        if (CurrentRobotState != RobotStateEnum.Approaching || CurrentGrid.GetXZ(transform.position) !=
             CurrentGrid.GetXZ(HoldingCrate.transform.position)) return;
         GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
         HoldingCrate.transform.SetParent(transform);
-        RobotState = RobotStateEnum.Delivering;
+        CurrentRobotState = RobotStateEnum.Delivering;
             
         CreatePathFinding();
     }
 
     protected override void DropDownCrate()
     {
-        if (RobotState != RobotStateEnum.Delivering ||
+        if (CurrentRobotState != RobotStateEnum.Delivering ||
             CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) return;
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
-        RobotState = RobotStateEnum.Idle;
+        CurrentRobotState = RobotStateEnum.Idle;
         
     }
 }

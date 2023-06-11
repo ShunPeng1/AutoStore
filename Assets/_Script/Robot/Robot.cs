@@ -19,8 +19,9 @@ namespace _Script.Robot
     {
         [Header("Stat")] 
         public int Id;
-        public RobotStateEnum RobotState = RobotStateEnum.Idle;
-    
+        public RobotStateEnum CurrentRobotState = RobotStateEnum.Idle;
+        protected RobotStateEnum LastRobotState = RobotStateEnum.Idle;  // Can only be Idle, Delivering, Approaching
+        
         [Header("Grid")]
         protected GridXZ<GridXZCell<StackStorage>> CurrentGrid;
         protected int XIndex, ZIndex;
@@ -92,20 +93,20 @@ namespace _Script.Robot
         
         protected IEnumerator JammingForGoalCell()
         {
-            RobotStateEnum lastRobotStateEnum = RobotState;
-            RobotState = RobotStateEnum.Jamming;
+            if(CurrentRobotState != RobotStateEnum.Jamming) LastRobotState = CurrentRobotState;
+            CurrentRobotState = RobotStateEnum.Jamming;
             
             yield return new WaitForSeconds(JamWaitTime);
-            CreatePathFinding(LastCellPosition, GoalCellPosition);
+            CurrentRobotState = LastRobotState;
             
-            RobotState = lastRobotStateEnum;
+            CreatePathFinding(NextCellPosition, GoalCellPosition);
         }
         protected IEnumerator Jamming()
         {
-            RobotStateEnum lastRobotStateEnum = RobotState;
-            RobotState = RobotStateEnum.Jamming;
+            if(CurrentRobotState != RobotStateEnum.Jamming) LastRobotState = CurrentRobotState;
+            CurrentRobotState = RobotStateEnum.Jamming;
             yield return new WaitForSeconds(JamWaitTime);
-            RobotState = lastRobotStateEnum;
+            CurrentRobotState = LastRobotState;
         }
 
         protected abstract void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
@@ -120,7 +121,7 @@ namespace _Script.Robot
         #region Movement
         protected void MoveAlongGrid()
         {
-            if (RobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
+            if (CurrentRobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
 
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
@@ -140,7 +141,7 @@ namespace _Script.Robot
         /// <returns></returns>
         private void ArriveDestination()
         {
-            if (RobotState == RobotStateEnum.Redirecting)
+            if (CurrentRobotState == RobotStateEnum.Redirecting)
             {
                 if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(RedirectGoalCellPosition)) return;
                 
