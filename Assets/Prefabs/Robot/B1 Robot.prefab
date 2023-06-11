@@ -817,10 +817,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Id: 0
-  RobotState: 0
+  CurrentRobotState: 0
   NextCellPosition: {x: 0, y: 0, z: 0}
   LastCellPosition: {x: 0, y: 0, z: 0}
   GoalCellPosition: {x: 0, y: 0, z: 0}
+  RedirectGoalCellPosition: {x: 0, y: 0, z: 0}
   MaxMovementSpeed: 3.5
   PreemptiveDistance: 0
   JamWaitTime: 0.25
