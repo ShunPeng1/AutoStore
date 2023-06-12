@@ -136,7 +136,7 @@ namespace _Script.Robot
         
         /// <summary>
         /// Using a Observer Pattern to store a queue of order and call when the robot reach the goal
-        /// ArrivalDestinationFuncs is the queue that store order and Invoke(), then dequeue to get next Function for next goal
+        /// ArrivalGoalAction, ArrivalRedirectGoalAction is the observer that store order and Invoke()
         /// </summary>
         /// <returns></returns>
         private void ArriveDestination()
