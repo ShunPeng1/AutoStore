@@ -19,14 +19,17 @@ namespace _Script.Robot
     {
         [Header("Stat")] 
         public int Id;
-        public RobotStateEnum RobotState = RobotStateEnum.Idle;
-    
+        public RobotStateEnum CurrentRobotState = RobotStateEnum.Idle;
+        public RobotStateEnum LastRobotState = RobotStateEnum.Idle;  // Can only be Idle, Delivering, Approaching
+        
         [Header("Grid")]
         protected GridXZ<GridXZCell<StackStorage>> CurrentGrid;
         protected int XIndex, ZIndex;
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
         public Vector3 GoalCellPosition;
+        public Vector3 RedirectGoalCellPosition;
+
         protected LinkedList<GridXZCell<StackStorage>> MovingPath;
         
         [Header("Movement")] 
@@ -36,12 +39,13 @@ namespace _Script.Robot
         
         
         [Header("Pathfinding")]
-        protected Queue<Func<IEnumerator>>  ArrivalDestinationFuncs = new ();
+        protected Action ArrivalRedirectGoalAction;
+        protected Action ArrivalGoalAction;
         protected IPathfindingAlgorithm<GridXZCell<StackStorage>,StackStorage> PathfindingAlgorithm;
 
 
         [Header("Crate ")] 
-        protected Crate HoldingCrate;
+        [SerializeField] protected Crate HoldingCrate;
 
         [Header("Components")] 
         protected Rigidbody Rigidbody;
@@ -84,24 +88,29 @@ namespace _Script.Robot
         
         public abstract void ApproachCrate(Crate crate);
         
-        protected abstract IEnumerator PickUpCrate();
-        protected abstract IEnumerator DropDownCrate();
+        protected abstract void PickUpCrate();
+        protected abstract void DropDownCrate();
         
-        
-        protected IEnumerator BecomeIdle()
+        protected IEnumerator JammingForGoalCell()
         {
-            RobotState = RobotStateEnum.Idle;
-            yield break;
+            if(CurrentRobotState != RobotStateEnum.Jamming && CurrentRobotState != RobotStateEnum.Redirecting) LastRobotState = CurrentRobotState;
+            CurrentRobotState = RobotStateEnum.Jamming;
+            
+            yield return new WaitForSeconds(JamWaitTime);
+            CurrentRobotState = LastRobotState;
+            
+            CreatePathFinding(NextCellPosition, GoalCellPosition);
         }
-        
         protected IEnumerator Jamming()
         {
-            RobotStateEnum lastRobotStateEnum = RobotState;
-            RobotState = RobotStateEnum.Jamming;
+            if(CurrentRobotState != RobotStateEnum.Jamming && CurrentRobotState != RobotStateEnum.Redirecting) LastRobotState = CurrentRobotState;
+            CurrentRobotState = RobotStateEnum.Jamming;
             yield return new WaitForSeconds(JamWaitTime);
-            RobotState = lastRobotStateEnum;
+            CurrentRobotState = LastRobotState;
         }
-        
+
+        protected abstract void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
+        protected abstract void CreatePathFinding(Vector3 startPosition, Vector3 endPosition);
         #endregion
 
         #region Detection
@@ -112,32 +121,38 @@ namespace _Script.Robot
         #region Movement
         protected void MoveAlongGrid()
         {
-            if (RobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
+            if (CurrentRobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
 
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
-
+            Rigidbody.velocity = Vector3.zero;
             // Check Cell
             if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
             {
-                StartCoroutine(nameof(ArriveDestination));
+                ArriveDestination();
                 ExtractNextCellInPath();
             }
         }
         
         /// <summary>
         /// Using a Observer Pattern to store a queue of order and call when the robot reach the goal
-        /// ArrivalDestinationFuncs is the queue that store order and Invoke(), then dequeue to get next Function for next goal
+        /// ArrivalGoalAction, ArrivalRedirectGoalAction is the observer that store order and Invoke()
         /// </summary>
         /// <returns></returns>
-        public IEnumerator ArriveDestination()
+        private void ArriveDestination()
         {
-            if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition) ||
-                ArrivalDestinationFuncs.Count == 0) yield break;
+            if (CurrentRobotState == RobotStateEnum.Redirecting)
+            {
+                if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(RedirectGoalCellPosition)) return;
+                
+                ArrivalRedirectGoalAction?.Invoke();
+            }
+            else
+            {
+                if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition)) return;
             
-            var arrivalDestinationFunc = ArrivalDestinationFuncs.Dequeue();
-            StartCoroutine(arrivalDestinationFunc.Invoke());
-
+                ArrivalGoalAction?.Invoke();
+            }
         }
 
         protected void PlayerControl()

@@ -779,6 +779,7 @@ GameObject:
   - component: {fileID: 7121835824611503911}
   - component: {fileID: 6291633208248654895}
   - component: {fileID: 6291633208248654896}
+  - component: {fileID: 6118560559227604877}
   m_Layer: 8
   m_Name: B1 Robot
   m_TagString: Untagged
@@ -817,13 +818,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Id: 0
-  RobotState: 0
+  CurrentRobotState: 0
+  LastRobotState: 0
   NextCellPosition: {x: 0, y: 0, z: 0}
   LastCellPosition: {x: 0, y: 0, z: 0}
   GoalCellPosition: {x: 0, y: 0, z: 0}
+  RedirectGoalCellPosition: {x: 0, y: 0, z: 0}
   MaxMovementSpeed: 3.5
   PreemptiveDistance: 0
   JamWaitTime: 0.25
+  HoldingCrate: {fileID: 0}
   _debugLineRenderer: {fileID: 3908041089777982755}
   centerBodyCast: {fileID: 4179138659058510927}
   castRadius: 1.5
@@ -859,6 +863,20 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 0.9, y: 0.9, z: 0.9}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6118560559227604877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6291633208248654893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbbe47e10faa25f4d83ff99f81a50ecf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _robotBodyRenderer: {fileID: 6291633209195861032}
+  _lineRenderer: {fileID: 3908041089777982755}
 --- !u!1 &6291633208865511136
 GameObject:
   m_ObjectHideFlags: 0
