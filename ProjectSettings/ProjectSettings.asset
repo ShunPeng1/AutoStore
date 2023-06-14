@@ -709,6 +709,7 @@ PlayerSettings:
   webGLPowerPreference: 2
   scriptingDefineSymbols:
     Standalone: SHAPES_URP
+    WebGL: SHAPES_URP
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend: {}

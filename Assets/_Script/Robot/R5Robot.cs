@@ -33,9 +33,14 @@ public class R5Robot : Robot
         Gizmos.DrawWireSphere(tailCast.position, castRadius);
     }
 
+    protected override void CreatePathFinding(Vector3 startPosition, Vector3 endPosition)
+    {
+        throw new NotImplementedException();
+    }
+
     protected override void DetectNearByRobot()
     {
-        if (RobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
+        if (CurrentRobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
         var deltaCastPosition = tailCast.position - headCast.position;
         var hits = Physics.SphereCastAll(headCast.position, castRadius, deltaCastPosition, deltaCastPosition.magnitude,robotLayerMask);
 
@@ -92,7 +97,7 @@ public class R5Robot : Robot
     /// Make the robot go to the last Cell and find new path with the new obstacle
     /// </summary>
     /// <param name="dynamicObstacle"> List of cell that the obstacle is on </param>
-    private void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
+    protected override void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
     {
         var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
          
@@ -109,7 +114,7 @@ public class R5Robot : Robot
 
     void ShowPath()
     {
-        if (RobotState == RobotStateEnum.Idle || MovingPath == null) return;
+        if (CurrentRobotState == RobotStateEnum.Idle || MovingPath == null) return;
         
         _debugLineRenderer.positionCount = MovingPath.Count + 1;
         _debugLineRenderer.SetPosition(0,  transform.position);
@@ -131,29 +136,29 @@ public class R5Robot : Robot
     {
         HoldingCrate = crate;
         GoalCellPosition = crate.transform.position;
-        RobotState = RobotStateEnum.Retrieving;
+        CurrentRobotState = RobotStateEnum.Approaching;
 
         CreatePathFinding();
     }
 
-    protected override IEnumerator PickUpCrate()
+    protected override void PickUpCrate()
     {
-        if (RobotState != RobotStateEnum.Retrieving || CurrentGrid.GetXZ(transform.position) !=
-            CurrentGrid.GetXZ(HoldingCrate.transform.position)) yield break;
+        if (CurrentRobotState != RobotStateEnum.Approaching || CurrentGrid.GetXZ(transform.position) !=
+            CurrentGrid.GetXZ(HoldingCrate.transform.position)) return;
         GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ);
         HoldingCrate.transform.SetParent(transform);
-        RobotState = RobotStateEnum.Delivering;
+        CurrentRobotState = RobotStateEnum.Delivering;
             
         CreatePathFinding();
     }
 
-    protected override IEnumerator DropDownCrate()
+    protected override void DropDownCrate()
     {
-        if (RobotState != RobotStateEnum.Delivering ||
-            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) yield break;
+        if (CurrentRobotState != RobotStateEnum.Delivering ||
+            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) return;
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
-        RobotState = RobotStateEnum.Idle;
+        CurrentRobotState = RobotStateEnum.Idle;
         
     }
 }
