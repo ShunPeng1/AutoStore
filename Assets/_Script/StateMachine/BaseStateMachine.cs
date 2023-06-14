@@ -14,9 +14,14 @@ namespace _Script.StateMachine
         [Header("History")] 
         protected IStateHistory<TStateEnum> StateHistory;
 
-        public virtual void Awake()
+        protected virtual void Awake()
         {
             StateHistory = new StackStateHistory<TStateEnum>(10);
+        }
+
+        protected void ExecuteCurrentState( object[] parameters = null)
+        {
+            CurrentBaseState.ExecuteState(parameters);
         }
 
         protected void AddState(TStateEnum stateEnum, BaseState<TStateEnum> baseState)
