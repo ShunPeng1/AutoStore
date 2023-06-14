@@ -8,20 +8,15 @@ namespace _Script.StateMachine
 {
     public abstract class BaseStateMachine<TStateEnum> : MonoBehaviour where TStateEnum : Enum 
     {
-        protected BaseState<TStateEnum> CurrentBaseState;
+        public BaseState<TStateEnum> CurrentBaseState;
         private Dictionary<TStateEnum, BaseState<TStateEnum>> _states = new ();
 
         [Header("History")] 
-        protected IStateHistory<TStateEnum> StateHistory;
+        protected IStateHistoryStrategy<TStateEnum> StateHistoryStrategy;
 
         protected virtual void Awake()
         {
-            StateHistory = new StackStateHistory<TStateEnum>(10);
-        }
-
-        protected void ExecuteCurrentState( object[] parameters = null)
-        {
-            CurrentBaseState.ExecuteState(parameters);
+            StateHistoryStrategy = new StackStateHistoryStrategy<TStateEnum>(10);
         }
 
         protected void AddState(BaseState<TStateEnum> baseState)
@@ -38,7 +33,7 @@ namespace _Script.StateMachine
         {
             if (_states.TryGetValue(stateEnum, out BaseState<TStateEnum> nextState))
             {
-                StateHistory.Save(nextState, exitOldStateParameters, enterNewStateParameters);
+                StateHistoryStrategy.Save(nextState, exitOldStateParameters, enterNewStateParameters);
                 SwitchState(nextState, exitOldStateParameters, enterNewStateParameters);
             }
             else
@@ -47,12 +42,6 @@ namespace _Script.StateMachine
             }
         }
         
-        public void RestoreState()
-        {
-            var (lastBaseState, exitOldStateParameters, enterNewStateParameters) = StateHistory.Restore();
-            SwitchState(lastBaseState, exitOldStateParameters, enterNewStateParameters);
-        }
-
         public TStateEnum GetState()
         {
             return CurrentBaseState.MyStateEnum;
@@ -60,7 +49,7 @@ namespace _Script.StateMachine
 
         private void SwitchState(BaseState<TStateEnum> nextState , object[] exitOldStateParameters = null, object[] enterNewStateParameters = null)
         {
-            Debug.Log("State Machine Manager Change"+ CurrentBaseState+ " To "+ nextState);
+            Debug.Log("State Machine Manager Change"+ CurrentBaseState.MyStateEnum+ " To "+ nextState.MyStateEnum);
             
             CurrentBaseState.OnExitState(nextState.MyStateEnum,exitOldStateParameters);
             nextState.OnEnterState(CurrentBaseState.MyStateEnum,enterNewStateParameters);

@@ -17,11 +17,8 @@ public class B1Robot : Robot
     
     void FixedUpdate()
     {
-        if (CurrentGrid == null) return;
-        DetectNearByRobot();
-        MoveAlongGrid();
+        CurrentBaseState.ExecuteState();
         ShowPath();
-        
     }
 
     private void OnDrawGizmos()
@@ -37,10 +34,8 @@ public class B1Robot : Robot
         Dodge,
         Continue
     }
-    protected override void DetectNearByRobot()
+    protected override void DetectNearByRobot(RobotStateEnum currentRobotState, object[] parameters)
     {
-        if (CurrentRobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
-        
         var hits = Physics.OverlapSphere(centerBodyCast.position, castRadius, robotLayerMask); // Find robot in a circle 
 
         List<GridXZCell<StackStorage>> dynamicObstacle = new(); 
@@ -60,8 +55,8 @@ public class B1Robot : Robot
                     break;
                 case DetectDecision.Dodge: // We add the detected robot cell as obstacle
                     Debug.Log(gameObject.name +" Dodge "+detectedRobot.gameObject.name);
-                    if(detectedRobot.LastCellPosition == GoalCellPosition 
-                       || detectedRobot.NextCellPosition == GoalCellPosition) detectedRobot.RedirectOrthogonal(this);
+                    if(detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition 
+                       || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) detectedRobot.RedirectOrthogonal(this);
                     dynamicObstacle.Add(CurrentGrid.GetItem(detectedRobot.LastCellPosition));
                     dynamicObstacle.Add(CurrentGrid.GetItem(detectedRobot.NextCellPosition));
                     break;
@@ -80,7 +75,7 @@ public class B1Robot : Robot
         float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
 
         
-        if (detectedRobot.CurrentRobotState is RobotStateEnum.Idle) 
+        if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle) 
         {
             if (!IsBlockAHead(detectedRobot, angleBetweenMyDirectionAndRobotDistance, 5)) return DetectDecision.Continue;
             
@@ -89,10 +84,10 @@ public class B1Robot : Robot
             return DetectDecision.Wait;
         }
 
-        if (CurrentRobotState == RobotStateEnum.Redirecting) return DetectDecision.Continue;
+        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting) return DetectDecision.Continue;
 
         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
-            detectedRobot.CurrentRobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) 
+            detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle or RobotStateEnum.Jamming) 
         {
             return IsBlockAHead(detectedRobot, angleBetweenMyDirectionAndRobotDistance, 5) ? DetectDecision.Dodge : DetectDecision.Continue; // same row or column
         }
@@ -139,8 +134,7 @@ public class B1Robot : Robot
             StartCoroutine(nameof(JammingForGoalCell));
         }
     }
-
-
+    
     protected override void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
     {
         var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
@@ -162,7 +156,7 @@ public class B1Robot : Robot
 
     void ShowPath()
     {
-        if (CurrentRobotState == RobotStateEnum.Idle || MovingPath == null) return;
+        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Idle || MovingPath == null) return;
         
         _debugLineRenderer.positionCount = MovingPath.Count + 1;
         _debugLineRenderer.SetPosition(0, transform.position);
@@ -184,86 +178,82 @@ public class B1Robot : Robot
     /// <param name="requestedRobot"></param>
     public override void RedirectOrthogonal(Robot requestedRobot)
     {
-
         Vector3 requestedRobotDistance = transform.position - requestedRobot.transform.position;
         Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized; // find the orthogonal vector 
         
         //Debug.Log("Cross "+ crossProduct);
         (var redirectX, var redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 1);
 
+        Vector3 redirectGoalCellPosition;
         if (CurrentGrid.IsValidCell(redirectX, redirectZ))
         {
-            RedirectGoalCellPosition = CurrentGrid.GetWorldPosition(redirectX, redirectZ) + Vector3.up * transform.position.y;
+            redirectGoalCellPosition = CurrentGrid.GetWorldPosition(redirectX, redirectZ) + Vector3.up * transform.position.y;
         }
         else
         {
             (var redirectX2, var redirectZ2) = CurrentGrid.GetXZ(transform.position + crossProduct * -1); // the other direction
-            RedirectGoalCellPosition = CurrentGrid.GetWorldPosition(redirectX2, redirectZ2) + Vector3.up * transform.position.y;
+            redirectGoalCellPosition = CurrentGrid.GetWorldPosition(redirectX2, redirectZ2) + Vector3.up * transform.position.y;
         }
 
-        Debug.Log(requestedRobot.gameObject.name+" requested to move "+ gameObject.name + " from "+  CurrentGrid.GetXZ(transform.position) + " to "+ RedirectGoalCellPosition);
-        
+        Debug.Log(requestedRobot.gameObject.name+" requested to move "+ gameObject.name + " from "+  CurrentGrid.GetXZ(transform.position) + " to "+ redirectGoalCellPosition);
 
-        if (CurrentRobotState == RobotStateEnum.Jamming) // Destroy the Jamming State, to restore the LastRobotState
+        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming) // Destroy the Jamming State, to restore the LastRobotState
         {
             StopAllCoroutines();
         }
-        else if (CurrentRobotState == RobotStateEnum.Idle)
-        {
-            GoalCellPosition = RedirectGoalCellPosition;
-            LastRobotState = CurrentRobotState;
-        }
-        else // Save robot state
-        {
-            LastRobotState = CurrentRobotState;
-        }
-        CurrentRobotState = RobotStateEnum.Redirecting;
-        
-        ArrivalRedirectGoalAction = () =>
-        {
-            CurrentRobotState = LastRobotState;
-            ArrivalRedirectGoalAction = null;
-            CreatePathFinding(NextCellPosition, GoalCellPosition);
-        };
 
-        CreatePathFinding(LastCellPosition, RedirectGoalCellPosition);
+        RobotTask robotTask = new RobotTask(redirectGoalCellPosition, () =>
+            {
+                RestoreState();
+                CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
+            }
+        );
+        
+        SetToState(RobotStateEnum.Redirecting, 
+            new object[]{CurrentTask}, 
+            new object[]{robotTask});
+
+        CreatePathFinding(LastCellPosition, redirectGoalCellPosition);
         ExtractNextCellInPath();
     }
 
     public override void ApproachCrate(Crate crate)
     {
         HoldingCrate = crate;
-        GoalCellPosition = crate.transform.position + Vector3.up * transform.position.y;
+
+        Vector3 goalCellPosition = crate.transform.position + Vector3.up * transform.position.y;
+        RobotTask robotTask = new RobotTask(goalCellPosition, PickUpCrate, 0);
         
-        LastRobotState = CurrentRobotState = RobotStateEnum.Approaching;
-        ArrivalGoalAction = PickUpCrate;
-        CreatePathFinding(NextCellPosition, GoalCellPosition);
+        SetToState(RobotStateEnum.Approaching, 
+            new object[]{CurrentTask}, 
+            new object[]{robotTask});
+        
+        CreatePathFinding(NextCellPosition, goalCellPosition);
     }
 
     protected override void PickUpCrate()
     {
-        if (CurrentRobotState != RobotStateEnum.Approaching || CurrentGrid.GetXZ(transform.position) !=
-            CurrentGrid.GetXZ(HoldingCrate.transform.position)) return;
-        
-        GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ) + Vector3.up * transform.position.y;
         HoldingCrate.transform.SetParent(transform);
-        LastRobotState = CurrentRobotState = RobotStateEnum.Delivering;
+
+        var goalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ) + Vector3.up * transform.position.y;
         
-        ArrivalGoalAction = DropDownCrate ;
-        CreatePathFinding(NextCellPosition, GoalCellPosition);
+        RobotTask robotTask = new RobotTask(goalCellPosition, DropDownCrate, 0);
+        
+        SetToState(RobotStateEnum.Delivering, 
+            new object[]{CurrentTask}, 
+            new object[]{robotTask});
+        
+        CreatePathFinding(NextCellPosition, goalCellPosition);
         
     }
 
     protected override void DropDownCrate()
     {
-        if (CurrentRobotState != RobotStateEnum.Delivering ||
-            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) return;
-        
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
-
-        ArrivalGoalAction = null;
-        LastRobotState = CurrentRobotState = RobotStateEnum.Idle;
+        
+        
+        SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
         
     }
     

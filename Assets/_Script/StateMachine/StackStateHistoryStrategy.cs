@@ -8,12 +8,12 @@ namespace _Script.StateMachine
     /// This is a StateHistory using a stack, save and restore form the top of the stack
     /// </summary>
     /// <typeparam name="TStateEnum"></typeparam>
-    public class StackStateHistory<TStateEnum> : IStateHistory<TStateEnum> where TStateEnum : Enum
+    public class StackStateHistoryStrategy<TStateEnum> : IStateHistoryStrategy<TStateEnum> where TStateEnum : Enum
     {
         private int _maxSize = 0;
         private LinkedList<(BaseState<TStateEnum>, object[], object[])> _historyStates = new(); // act as a stack
 
-        public StackStateHistory(int maxSize = 100)
+        public StackStateHistoryStrategy(int maxSize = 100)
         {
             _maxSize = maxSize;
         }
@@ -33,7 +33,7 @@ namespace _Script.StateMachine
             throw new NotImplementedException();
         }
 
-        public (BaseState<TStateEnum> stateEnum, object[] exitOldStateParameters, object[] enterNewStateParameters) Restore(bool isRemoveRestore = true)
+        public (BaseState<TStateEnum> enterStateEnum, object[] exitOldStateParameters, object[] enterNewStateParameters) Restore(bool isRemoveRestore = true)
         {
             if (_historyStates.Count != 0)
             {

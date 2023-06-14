@@ -91,7 +91,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
             foreach (var robot in _robots)
             {
-                if (robot.CurrentRobotState == RobotStateEnum.Idle)
+                if (robot.CurrentBaseState.MyStateEnum == RobotStateEnum.Idle)
                 {
                     int reach = CalculateDistance(robot, crate);
                     if (reach < shortestReach)

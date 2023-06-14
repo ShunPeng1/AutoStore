@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.StateMachine;
 using UnityEngine;
 
 namespace _Script.Robot
@@ -15,21 +16,16 @@ namespace _Script.Robot
         Redirecting
     }
     
-    public abstract class Robot : MonoBehaviour
+    public abstract class Robot : BaseStateMachine<RobotStateEnum>
     {
         [Header("Stat")] 
         public int Id;
-        public RobotStateEnum CurrentRobotState = RobotStateEnum.Idle;
-        public RobotStateEnum LastRobotState = RobotStateEnum.Idle;  // Can only be Idle, Delivering, Approaching
         
         [Header("Grid")]
         protected GridXZ<GridXZCell<StackStorage>> CurrentGrid;
         protected int XIndex, ZIndex;
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
-        public Vector3 GoalCellPosition;
-        public Vector3 RedirectGoalCellPosition;
-
         protected LinkedList<GridXZCell<StackStorage>> MovingPath;
         
         [Header("Movement")] 
@@ -37,52 +33,99 @@ namespace _Script.Robot
         [SerializeField] protected float PreemptiveDistance = 0.05f;
         [SerializeField] protected float JamWaitTime = 5f;
         
-        
         [Header("Pathfinding")]
-        protected Action ArrivalRedirectGoalAction;
-        protected Action ArrivalGoalAction;
         protected IPathfindingAlgorithm<GridXZCell<StackStorage>,StackStorage> PathfindingAlgorithm;
-
-
-        [Header("Crate ")] 
+        
+        [Header("Task ")]
         [SerializeField] protected Crate HoldingCrate;
-
+        [SerializeField] protected RobotTask CurrentTask;
+        
+        
         [Header("Components")] 
         protected Rigidbody Rigidbody;
 
         #region Initial
 
-        void Start()
+        private void Start()
         {
             InitializeGrid();
-            InitializePathfinding();
+            InitializeStrategy();
             InitializeComponents();
+            InitializeState();
         }
         
         private void InitializeGrid()
         {
             CurrentGrid = MapManager.Instance.WorldGrid;
             (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
-            GoalCellPosition = LastCellPosition = NextCellPosition = transform.position;
+            LastCellPosition = NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) + Vector3.up * transform.position.y;
         }
 
-        private void InitializePathfinding()
+        private void InitializeStrategy()
         {
             PathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
+            StateHistoryStrategy = new RobotStateHistoryStrategy();
         }
 
         private void InitializeComponents()
         {
             Rigidbody = GetComponent<Rigidbody>();
         }
+        
+        private void InitializeState()
+        {
+            BaseState<RobotStateEnum> idleState = new(RobotStateEnum.Idle, null, null, AssignTask);
+            BaseState<RobotStateEnum> approachingState = new(RobotStateEnum.Approaching,
+                (myStateEnum, objects) =>
+                {
+                    DetectNearByRobot(myStateEnum, objects);
+                    MoveAlongGrid(myStateEnum, objects);
+                }, null, AssignTask);
+            BaseState<RobotStateEnum> retrievingState = new(RobotStateEnum.Retrieving, null, null, AssignTask);
+            BaseState<RobotStateEnum> deliveringState = new(RobotStateEnum.Delivering,
+                (myStateEnum, objects) =>
+                {
+                    DetectNearByRobot(myStateEnum, objects);
+                    MoveAlongGrid(myStateEnum, objects);
+                }, null, AssignTask);
+            
+            BaseState<RobotStateEnum> jammingState = new(RobotStateEnum.Jamming, null, null, AssignTask);
+            BaseState<RobotStateEnum> redirectingState = new(RobotStateEnum.Redirecting,
+                (myStateEnum, objects) =>
+                {
+                    DetectNearByRobot(myStateEnum, objects);
+                    MoveAlongGrid(myStateEnum, objects);
+                }, null, AssignTask);
+            
+            AddState(idleState);
+            AddState(approachingState);
+            AddState(retrievingState);
+            AddState(deliveringState);
+            AddState(jammingState);
+            AddState(redirectingState);
+
+            CurrentBaseState = idleState;
+        }
 
         #endregion
-        
+
         /// <summary>
         /// Using the Template Method Pattern to store the function that the different type of robot can override for its own implementation
         /// </summary>
         /// <param name="requestedRobot"></param>
+
         #region AssignTask
+
+        private void AssignTask(RobotStateEnum lastRobotState, object [] enterParameters)
+        {
+            CurrentTask = (RobotTask) enterParameters[0];
+        }
+
+        protected void RestoreState()
+        {
+            var (enterState, exitOldStateParameters,enterNewStateParameters)= StateHistoryStrategy.Restore();
+            SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
+        }  
         
         public abstract void RedirectOrthogonal(Robot requestedRobot);
         
@@ -91,22 +134,28 @@ namespace _Script.Robot
         protected abstract void PickUpCrate();
         protected abstract void DropDownCrate();
         
+        
         protected IEnumerator JammingForGoalCell()
         {
-            if(CurrentRobotState != RobotStateEnum.Jamming && CurrentRobotState != RobotStateEnum.Redirecting) LastRobotState = CurrentRobotState;
-            CurrentRobotState = RobotStateEnum.Jamming;
-            
+            SetToState(RobotStateEnum.Jamming);
+
             yield return new WaitForSeconds(JamWaitTime);
-            CurrentRobotState = LastRobotState;
             
-            CreatePathFinding(NextCellPosition, GoalCellPosition);
+            RestoreState();
+            
+            CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
+            
         }
         protected IEnumerator Jamming()
         {
-            if(CurrentRobotState != RobotStateEnum.Jamming && CurrentRobotState != RobotStateEnum.Redirecting) LastRobotState = CurrentRobotState;
-            CurrentRobotState = RobotStateEnum.Jamming;
+            SetToState(RobotStateEnum.Jamming);
+
             yield return new WaitForSeconds(JamWaitTime);
-            CurrentRobotState = LastRobotState;
+            
+            RestoreState();
+            
+            CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
+
         }
 
         protected abstract void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
@@ -114,45 +163,24 @@ namespace _Script.Robot
         #endregion
 
         #region Detection
-        protected abstract void DetectNearByRobot();
+        protected abstract void DetectNearByRobot(RobotStateEnum currentRobotState, object [] parameters);
 
         #endregion
 
         #region Movement
-        protected void MoveAlongGrid()
+        protected void MoveAlongGrid(RobotStateEnum currentRobotState, object [] parameters)
         {
-            if (CurrentRobotState is RobotStateEnum.Jamming or RobotStateEnum.Idle) return;
-
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
             Rigidbody.velocity = Vector3.zero;
-            // Check Cell
-            if (Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)
-            {
-                ArriveDestination();
-                ExtractNextCellInPath();
-            }
-        }
-        
-        /// <summary>
-        /// Using a Observer Pattern to store a queue of order and call when the robot reach the goal
-        /// ArrivalGoalAction, ArrivalRedirectGoalAction is the observer that store order and Invoke()
-        /// </summary>
-        /// <returns></returns>
-        private void ArriveDestination()
-        {
-            if (CurrentRobotState == RobotStateEnum.Redirecting)
-            {
-                if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(RedirectGoalCellPosition)) return;
-                
-                ArrivalRedirectGoalAction?.Invoke();
-            }
-            else
-            {
-                if (CurrentGrid.GetXZ(transform.position) != CurrentGrid.GetXZ(GoalCellPosition)) return;
             
-                ArrivalGoalAction?.Invoke();
-            }
+            // Check Cell
+            if (!(Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)) return;
+
+            if ( CurrentTask != null && CurrentGrid.GetXZ(transform.position) == CurrentGrid.GetXZ(CurrentTask.GoalCellPosition)) 
+                CurrentTask.GoalArrivalAction?.Invoke();
+                
+            ExtractNextCellInPath();
         }
 
         protected void PlayerControl()

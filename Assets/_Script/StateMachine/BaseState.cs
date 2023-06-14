@@ -7,6 +7,7 @@ namespace _Script.StateMachine
     {
         [Header("State Machine ")]
         public readonly TStateEnum MyStateEnum;
+        protected object[] Objects;
         
         protected Action<TStateEnum, object[]> EnterEvents;
         protected Action<TStateEnum, object[]> ExecuteEvents;
@@ -30,17 +31,17 @@ namespace _Script.StateMachine
             ExecuteState
         }
 
-        public void OnExitState(TStateEnum enterState = default, object [] parameters = null)
+        public virtual void OnExitState(TStateEnum enterState = default, object [] parameters = null)
         {
             ExitEvents?.Invoke(enterState, parameters);
         }
         
-        public void OnEnterState(TStateEnum exitState = default, object [] parameters = null)
+        public virtual void OnEnterState(TStateEnum exitState = default, object [] parameters = null)
         {
             ExitEvents?.Invoke(exitState, parameters);
         }
 
-        public void ExecuteState(object [] parameters = null)
+        public virtual void ExecuteState(object [] parameters = null)
         {
             ExecuteEvents?.Invoke(MyStateEnum, parameters);
         }

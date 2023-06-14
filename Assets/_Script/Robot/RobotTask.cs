@@ -7,31 +7,17 @@ using UnityEngine;
 
 
 [RequireComponent(typeof(Robot))]
-public class RobotTask : MonoBehaviour
+public class RobotTask
 {
-    public class Task
+    public Vector3 GoalCellPosition;
+    public readonly Action GoalArrivalAction;
+    public int Priority;
+
+    public RobotTask(Vector3 goalCellPosition, Action goalArrivalAction = null, int priority = 0)
     {
-        public Vector3 GoalCellPosition;
-        public Func<IEnumerator> GoalArrivalFunction;
-        public int Priority;
-
-        public Task( Vector3 goalCellPosition, Func<IEnumerator> goalArrivalFunction, int priority)
-        {
-            GoalCellPosition = goalCellPosition;
-            GoalArrivalFunction = goalArrivalFunction;
-            Priority = priority;
-        }
+        GoalCellPosition = goalCellPosition;
+        GoalArrivalAction = goalArrivalAction;
+        Priority = priority;
     }
-
-    private SimplePriorityQueue<Task, int> _tasks = new ();
-
-    public void AddTask(Vector3 goalCellPosition, Func<IEnumerator> goalArrivalFunction, int priority )
-    {
-        
-    }
-
-    public void ExecuteTask()
-    {
-        
-    }
+    
 }
