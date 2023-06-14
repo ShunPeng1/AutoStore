@@ -24,9 +24,9 @@ namespace _Script.StateMachine
             CurrentBaseState.ExecuteState(parameters);
         }
 
-        protected void AddState(TStateEnum stateEnum, BaseState<TStateEnum> baseState)
+        protected void AddState(BaseState<TStateEnum> baseState)
         {
-            _states[stateEnum] = baseState;
+            _states[baseState.MyStateEnum] = baseState;
         }
 
         protected void RemoveState(TStateEnum stateEnum)
