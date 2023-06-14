@@ -6,21 +6,25 @@ using UnityUtilities;
 
 namespace _Script.StateMachine
 {
-    public class BaseStateMachine<TStateEnum> : MonoBehaviour where TStateEnum : Enum 
+    public abstract class BaseStateMachine<TStateEnum> : MonoBehaviour where TStateEnum : Enum 
     {
         protected BaseState<TStateEnum> CurrentBaseState;
         private Dictionary<TStateEnum, BaseState<TStateEnum>> _states = new ();
 
         [Header("History")] 
-        [SerializeField, Range(0,20)] private int _maxHistoryLength = 10;
-        private LinkedList<(BaseState<TStateEnum>, object[], object[])> _historyStates = new();
+        protected IStateHistory<TStateEnum> StateHistory;
 
-        public void AddState(TStateEnum stateEnum, BaseState<TStateEnum> baseState)
+        public virtual void Awake()
+        {
+            StateHistory = new StackStateHistory<TStateEnum>(10);
+        }
+
+        protected void AddState(TStateEnum stateEnum, BaseState<TStateEnum> baseState)
         {
             _states[stateEnum] = baseState;
         }
 
-        public void RemoveState(TStateEnum stateEnum)
+        protected void RemoveState(TStateEnum stateEnum)
         {
             _states.Remove(stateEnum);
         }
@@ -29,7 +33,8 @@ namespace _Script.StateMachine
         {
             if (_states.TryGetValue(stateEnum, out BaseState<TStateEnum> nextState))
             {
-                AddStateToHistory(nextState, exitOldStateParameters, enterNewStateParameters);
+                StateHistory.Save(nextState, exitOldStateParameters, enterNewStateParameters);
+                SwitchState(nextState, exitOldStateParameters, enterNewStateParameters);
             }
             else
             {
@@ -37,32 +42,12 @@ namespace _Script.StateMachine
             }
         }
         
-        public void SetToLastState()
+        public void RestoreState()
         {
-            if (_historyStates.Count != 0)
-            {
-                 (var lastState, var exitOldStateParameters, var enterNewStateParameters ) = _historyStates.First.Value;
-                 
-                 SwitchState(lastState, exitOldStateParameters, enterNewStateParameters);
-                 _historyStates.RemoveFirst();
-            }
-            else
-            {
-                Debug.LogError("No state in the history state machine");
-            }
-            
+            var (lastBaseState, exitOldStateParameters, enterNewStateParameters) = StateHistory.Restore();
+            SwitchState(lastBaseState, exitOldStateParameters, enterNewStateParameters);
         }
 
-        private void AddStateToHistory(BaseState<TStateEnum> baseState, object[] exitOldStateParameters = null, object[] enterNewStateParameters = null)
-        {
-            if (_historyStates.Count >= _maxHistoryLength)
-            {
-                _historyStates.RemoveLast();
-            }
-
-            _historyStates.AddFirst((baseState, exitOldStateParameters, enterNewStateParameters));
-        }
-        
         public TStateEnum GetState()
         {
             return CurrentBaseState.MyStateEnum;

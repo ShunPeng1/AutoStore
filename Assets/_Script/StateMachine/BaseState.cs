@@ -42,7 +42,7 @@ namespace _Script.StateMachine
             ExecuteEvents.Invoke(MyStateEnum, parameters);
         }
 
-        public void AddFunctionToState(StateEvent stateEvent, Action<TStateEnum, object[]>[] actions )
+        public void SubscribeToState(StateEvent stateEvent, Action<TStateEnum, object[]>[] actions )
         {
             foreach (var action in actions)
             {
@@ -63,6 +63,27 @@ namespace _Script.StateMachine
             }
         }
 
+        private void UnsubscribeToState(StateEvent stateEvent, Action<TStateEnum, object[]>[] actions )
+        {
+            foreach (var action in actions)
+            {
+                switch (stateEvent)
+                {
+                    case StateEvent.EnterState:
+                        EnterEvents -= action;
+                        break;
+                    case StateEvent.ExitState:
+                        ExitEvents -= action;
+                        break;
+                    case StateEvent.ExecuteState:
+                        ExecuteEvents -= action;
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(stateEvent), stateEvent, null);
+                }
+            }
+        }
+        
     }
     
 }
