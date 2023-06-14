@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace _Script.StateMachine
 {
-    public abstract class BaseState<TStateEnum> where TStateEnum : Enum
+    public class BaseState<TStateEnum> where TStateEnum : Enum
     {
         [Header("State Machine ")]
         public readonly TStateEnum MyStateEnum;
@@ -12,7 +12,10 @@ namespace _Script.StateMachine
         protected Action<TStateEnum, object[]> ExecuteEvents;
         protected Action<TStateEnum, object[]> ExitEvents;
 
-        protected BaseState(TStateEnum myStateEnum, Action<TStateEnum, object[]> enterEvents, Action<TStateEnum, object[]> executeEvents, Action<TStateEnum, object[]> exitEvents)
+        public BaseState(TStateEnum myStateEnum,
+            Action<TStateEnum, object[]> executeEvents = null,
+            Action<TStateEnum, object[]> exitEvents = null,
+            Action<TStateEnum, object[]> enterEvents = null)
         {
             MyStateEnum = myStateEnum;
             EnterEvents = enterEvents;
@@ -29,17 +32,17 @@ namespace _Script.StateMachine
 
         public void OnExitState(TStateEnum enterState = default, object [] parameters = null)
         {
-            ExitEvents.Invoke(enterState, parameters);
+            ExitEvents?.Invoke(enterState, parameters);
         }
         
         public void OnEnterState(TStateEnum exitState = default, object [] parameters = null)
         {
-            ExitEvents.Invoke(exitState, parameters);
+            ExitEvents?.Invoke(exitState, parameters);
         }
 
         public void ExecuteState(object [] parameters = null)
         {
-            ExecuteEvents.Invoke(MyStateEnum, parameters);
+            ExecuteEvents?.Invoke(MyStateEnum, parameters);
         }
 
         public void SubscribeToState(StateEvent stateEvent, Action<TStateEnum, object[]>[] actions )
