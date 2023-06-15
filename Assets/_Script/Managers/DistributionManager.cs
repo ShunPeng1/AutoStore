@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.PathFinding;
 using _Script.Robot;
 using UnityEngine;
 using UnityUtilities;
@@ -37,6 +38,33 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     private float _currentTime = 0f;
     private Queue<Crate> _pendingCrates = new();
     private Robot[] _robots;
+    
+    /// <summary>
+    /// Using the Strategy Pattern for the robot to receive 
+    /// </summary>
+    #region PathFindingAlgorithm
+
+    private enum PathFindingAlgorithmType
+    {
+        DStar,
+        AStar
+    }
+
+    [SerializeField] private PathFindingAlgorithmType _pathFindingAlgorithmType; 
+
+    public IPathfindingAlgorithm<GridXZCell<StackStorage>, StackStorage> GetPathFindingAlgorithm()
+    {
+        return _pathFindingAlgorithmType switch
+        {
+            PathFindingAlgorithmType.AStar => new AStarPathFinding<StackStorage>(_storageGrid),
+            PathFindingAlgorithmType.DStar => new DStarLitePathFinding<StackStorage>(_storageGrid),
+            _ => throw new ArgumentOutOfRangeException()
+        };
+    }
+
+    #endregion
+
+
     
     void Start()
     {

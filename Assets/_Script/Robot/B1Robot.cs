@@ -18,7 +18,11 @@ public class B1Robot : Robot
     void FixedUpdate()
     {
         if (CurrentGrid == null) return;
-        DetectNearByRobot();
+        List<GridXZCell<StackStorage>> dynamicObstacle= DetectNearByRobot();
+
+        // Update Path base on dynamic obstacle
+        if (dynamicObstacle !=null && dynamicObstacle.Count != 0) UpdatePathFinding(dynamicObstacle);
+        
         MoveAlongGrid();
         ShowPath();
         
@@ -37,9 +41,9 @@ public class B1Robot : Robot
         Dodge,
         Continue
     }
-    protected override void DetectNearByRobot()
+    protected override List<GridXZCell<StackStorage>> DetectNearByRobot()
     {
-        if (CurrentRobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return;
+        if (CurrentRobotState is RobotStateEnum.Idle or RobotStateEnum.Jamming) return null;
         
         var hits = Physics.OverlapSphere(centerBodyCast.position, castRadius, robotLayerMask); // Find robot in a circle 
 
@@ -69,9 +73,8 @@ public class B1Robot : Robot
                     break;
             }
         }
-        
-        // Update Path base on dynamic obstacle
-        if (dynamicObstacle.Count != 0) UpdatePathFinding(dynamicObstacle);
+
+        return dynamicObstacle;
     }
 
     private DetectDecision CheckDetection(Robot detectedRobot)
@@ -242,9 +245,6 @@ public class B1Robot : Robot
 
     protected override void PickUpCrate()
     {
-        if (CurrentRobotState != RobotStateEnum.Approaching || CurrentGrid.GetXZ(transform.position) !=
-            CurrentGrid.GetXZ(HoldingCrate.transform.position)) return;
-        
         GoalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ) + Vector3.up * transform.position.y;
         HoldingCrate.transform.SetParent(transform);
         LastRobotState = CurrentRobotState = RobotStateEnum.Delivering;
@@ -256,8 +256,6 @@ public class B1Robot : Robot
 
     protected override void DropDownCrate()
     {
-        if (CurrentRobotState != RobotStateEnum.Delivering ||
-            CurrentGrid.GetXZ(transform.position) != (HoldingCrate.storingX, HoldingCrate.storingZ)) return;
         
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;

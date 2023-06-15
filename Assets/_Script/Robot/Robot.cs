@@ -68,7 +68,7 @@ namespace _Script.Robot
 
         private void InitializePathfinding()
         {
-            PathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
+            PathfindingAlgorithm = DistributionManager.Instance.GetPathFindingAlgorithm();
         }
 
         private void InitializeComponents()
@@ -114,7 +114,7 @@ namespace _Script.Robot
         #endregion
 
         #region Detection
-        protected abstract void DetectNearByRobot();
+        protected abstract List<GridXZCell<StackStorage>> DetectNearByRobot();
 
         #endregion
 

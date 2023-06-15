@@ -11,32 +11,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     [SerializeField] private float _cellWidthSize = 1f, _cellHeightSize = 1f;
     public GridXZ<GridXZCell<StackStorage>> WorldGrid;
 
-    /// <summary>
-    /// Using the Strategy Pattern for the robot to receive 
-    /// </summary>
-    #region PathFindingAlgorithm
-
-    private enum PathFindingAlgorithmType
-    {
-        DStar,
-        AStar
-    }
-
-    [SerializeField] private PathFindingAlgorithmType _pathFindingAlgorithmType; 
-
-    public IPathfindingAlgorithm<GridXZCell<StackStorage>, StackStorage> GetPathFindingAlgorithm()
-    {
-        return _pathFindingAlgorithmType switch
-        {
-            PathFindingAlgorithmType.AStar => new AStarPathFinding<StackStorage>(WorldGrid),
-            PathFindingAlgorithmType.DStar => new DStarLitePathFinding<StackStorage>(WorldGrid),
-            _ => throw new ArgumentOutOfRangeException()
-        };
-    }
-
-    #endregion
-    
-
+   
     void Awake()
     {
         WorldGrid = new GridXZ<GridXZCell<StackStorage>>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position
@@ -46,7 +21,6 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
                 return storageGridXZCell;
             }
         );
-
     }
 
     private void Start()
