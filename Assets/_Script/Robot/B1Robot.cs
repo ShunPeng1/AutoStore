@@ -112,7 +112,7 @@ public class B1Robot : Robot
         
         GridXZCell<StackStorage> nextNextCell = MovingPath.First.Value;
 
-        Vector3 nextNextCellPosition = CurrentGrid.GetWorldPosition(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
+        Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
         float dotOf2NextDirection = Vector3.Dot(NextCellPosition - LastCellPosition, nextNextCellPosition - NextCellPosition);
         
         return dotOf2NextDirection != 0; // perpendicular direction or not
@@ -164,7 +164,7 @@ public class B1Robot : Robot
         int itr = 1;
         foreach (var cell in MovingPath)
         {
-            _debugLineRenderer.SetPosition(itr, CurrentGrid.GetWorldPosition(cell.XIndex,cell.ZIndex));
+            _debugLineRenderer.SetPosition(itr, CurrentGrid.GetWorldPositionOfNearestCell(cell.XIndex,cell.ZIndex));
             itr++;
         }
     }
@@ -187,12 +187,12 @@ public class B1Robot : Robot
         Vector3 redirectGoalCellPosition;
         if (CurrentGrid.IsValidCell(redirectX, redirectZ))
         {
-            redirectGoalCellPosition = CurrentGrid.GetWorldPosition(redirectX, redirectZ) + Vector3.up * transform.position.y;
+            redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
         }
         else
         {
             (var redirectX2, var redirectZ2) = CurrentGrid.GetXZ(transform.position + crossProduct * -1); // the other direction
-            redirectGoalCellPosition = CurrentGrid.GetWorldPosition(redirectX2, redirectZ2) + Vector3.up * transform.position.y;
+            redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX2, redirectZ2) + Vector3.up * transform.position.y;
         }
 
         Debug.Log(requestedRobot.gameObject.name+" requested to move "+ gameObject.name + " from "+  CurrentGrid.GetXZ(transform.position) + " to "+ redirectGoalCellPosition);
@@ -202,18 +202,12 @@ public class B1Robot : Robot
             StopAllCoroutines();
         }
 
-        RobotTask robotTask = new RobotTask(redirectGoalCellPosition, () =>
-            {
-                RestoreState();
-                CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
-            }
-        );
+        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.LastCell, redirectGoalCellPosition, RestoreState);
         
         SetToState(RobotStateEnum.Redirecting, 
             new object[]{CurrentTask}, 
             new object[]{robotTask});
-
-        CreatePathFinding(LastCellPosition, redirectGoalCellPosition);
+        
         ExtractNextCellInPath();
     }
 
@@ -222,28 +216,24 @@ public class B1Robot : Robot
         HoldingCrate = crate;
 
         Vector3 goalCellPosition = crate.transform.position + Vector3.up * transform.position.y;
-        RobotTask robotTask = new RobotTask(goalCellPosition, PickUpCrate, 0);
+        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, PickUpCrate, 0);
         
         SetToState(RobotStateEnum.Approaching, 
             new object[]{CurrentTask}, 
             new object[]{robotTask});
-        
-        CreatePathFinding(NextCellPosition, goalCellPosition);
     }
 
     protected override void PickUpCrate()
     {
         HoldingCrate.transform.SetParent(transform);
 
-        var goalCellPosition = CurrentGrid.GetWorldPosition(HoldingCrate.storingX, HoldingCrate.storingZ) + Vector3.up * transform.position.y;
+        var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingCrate.storingX, HoldingCrate.storingZ) + Vector3.up * transform.position.y;
         
-        RobotTask robotTask = new RobotTask(goalCellPosition, DropDownCrate, 0);
+        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, DropDownCrate, 0);
         
         SetToState(RobotStateEnum.Delivering, 
             new object[]{CurrentTask}, 
             new object[]{robotTask});
-        
-        CreatePathFinding(NextCellPosition, goalCellPosition);
         
     }
 

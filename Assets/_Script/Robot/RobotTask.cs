@@ -9,12 +9,21 @@ using UnityEngine;
 [RequireComponent(typeof(Robot))]
 public class RobotTask
 {
+    public StartPosition StartCellPosition;
     public Vector3 GoalCellPosition;
     public readonly Action GoalArrivalAction;
     public int Priority;
-
-    public RobotTask(Vector3 goalCellPosition, Action goalArrivalAction = null, int priority = 0)
+    
+    public enum StartPosition
     {
+        LastCell,
+        NextCell,
+        NearestCell
+    }
+
+    public RobotTask(StartPosition startCellPosition,Vector3 goalCellPosition, Action goalArrivalAction = null, int priority = 0)
+    {
+        StartCellPosition = startCellPosition;
         GoalCellPosition = goalCellPosition;
         GoalArrivalAction = goalArrivalAction;
         Priority = priority;

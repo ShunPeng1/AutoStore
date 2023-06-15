@@ -50,11 +50,18 @@ public class GridXZ<TCell>
         return (x,z);
     }
 
-    public Vector3 GetWorldPosition(int x, int z)
+    public Vector3 GetWorldPositionOfNearestCell(int x, int z)
     {
         return new Vector3(x * _cellWidthSize, 0, z * _cellHeightSize) + _originPosition;
     }
 
+    public Vector3 GetWorldPositionOfNearestCell(Vector3 worldPosition)
+    {
+        int x = Mathf.FloorToInt((worldPosition - _originPosition).x / _cellWidthSize);
+        int z = Mathf.FloorToInt((worldPosition - _originPosition).z / _cellHeightSize);
+        return new Vector3(x * _cellWidthSize, 0, z * _cellHeightSize) + _originPosition;
+    }
+    
     public void SetItem(TCell item, int xIndex, int zIndex)
     {
         if (xIndex < _width && xIndex >= 0 && zIndex < _height && zIndex >= 0)

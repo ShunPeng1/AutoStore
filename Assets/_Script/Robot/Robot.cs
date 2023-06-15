@@ -58,7 +58,7 @@ namespace _Script.Robot
         {
             CurrentGrid = MapManager.Instance.WorldGrid;
             (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
-            LastCellPosition = NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) + Vector3.up * transform.position.y;
+            LastCellPosition = NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
         }
 
         private void InitializeStrategy()
@@ -89,7 +89,7 @@ namespace _Script.Robot
                     MoveAlongGrid(myStateEnum, objects);
                 }, null, AssignTask);
             
-            BaseState<RobotStateEnum> jammingState = new(RobotStateEnum.Jamming, null, null, AssignTask);
+            BaseState<RobotStateEnum> jammingState = new(RobotStateEnum.Jamming, null, null, null);
             BaseState<RobotStateEnum> redirectingState = new(RobotStateEnum.Redirecting,
                 (myStateEnum, objects) =>
                 {
@@ -118,13 +118,34 @@ namespace _Script.Robot
 
         private void AssignTask(RobotStateEnum lastRobotState, object [] enterParameters)
         {
-            CurrentTask = (RobotTask) enterParameters[0];
+            if (enterParameters == null) return;
+            
+            CurrentTask = enterParameters[0] as RobotTask;
+
+            switch (CurrentTask.StartCellPosition)
+            {
+                case RobotTask.StartPosition.LastCell:
+                    CreatePathFinding(LastCellPosition, CurrentTask.GoalCellPosition);
+                    ExtractNextCellInPath();
+                    break;
+                case RobotTask.StartPosition.NextCell:
+                    CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
+                    break;
+                case RobotTask.StartPosition.NearestCell:
+                    Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
+                    CreatePathFinding(nearestCellPosition, CurrentTask.GoalCellPosition);
+                    ExtractNextCellInPath();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         protected void RestoreState()
         {
             var (enterState, exitOldStateParameters,enterNewStateParameters)= StateHistoryStrategy.Restore();
             SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
+            
         }  
         
         public abstract void RedirectOrthogonal(Robot requestedRobot);
@@ -193,7 +214,7 @@ namespace _Script.Robot
                 if (item != default(GridXZCell<StackStorage>))
                 {
                     XIndex += (int)horizontal;
-                    NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
+                    NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) +
                                        Vector3.up * transform.position.y;
                 }
             }
@@ -204,7 +225,7 @@ namespace _Script.Robot
                 if (item != default(GridXZCell<StackStorage>))
                 {
                     ZIndex += (int)vertical;
-                    NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) +
+                    NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) +
                                        Vector3.up * transform.position.y;
                 }
             }
@@ -236,7 +257,7 @@ namespace _Script.Robot
             XIndex = nextDestination.XIndex;
             ZIndex = nextDestination.ZIndex;
             LastCellPosition = NextCellPosition;
-            NextCellPosition = CurrentGrid.GetWorldPosition(XIndex, ZIndex) + Vector3.up * transform.position.y;
+            NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
             //Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
         }
         

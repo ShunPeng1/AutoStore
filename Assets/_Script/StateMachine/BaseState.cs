@@ -38,7 +38,7 @@ namespace _Script.StateMachine
         
         public virtual void OnEnterState(TStateEnum exitState = default, object [] parameters = null)
         {
-            ExitEvents?.Invoke(exitState, parameters);
+            EnterEvents?.Invoke(exitState, parameters);
         }
 
         public virtual void ExecuteState(object [] parameters = null)

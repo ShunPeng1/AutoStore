@@ -129,7 +129,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         int currentX = Random.Range(0, _width), currentZ = Random.Range(0, _height);
         int storingX = Random.Range(0, _width), storingZ = Random.Range(0, _height);
         var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(),
-            _storageGrid.GetWorldPosition(currentX, currentZ), Quaternion.identity);
+            _storageGrid.GetWorldPositionOfNearestCell(currentX, currentZ), Quaternion.identity);
 
         freshCrate.Init(_storageGrid, currentX, currentZ, storingX, storingZ);
         _pendingCrates.Enqueue(freshCrate);
@@ -138,7 +138,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     private void CreateCrateFixed(Vector2Int sourceIndex, Vector2Int destinationIndex)
     {
         var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(),
-            _storageGrid.GetWorldPosition(sourceIndex.x, sourceIndex.y), Quaternion.identity);
+            _storageGrid.GetWorldPositionOfNearestCell(sourceIndex.x, sourceIndex.y), Quaternion.identity);
 
         freshCrate.Init(_storageGrid, sourceIndex.x, sourceIndex.y, destinationIndex.x, destinationIndex.y);
         _pendingCrates.Enqueue(freshCrate);

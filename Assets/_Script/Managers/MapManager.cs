@@ -56,7 +56,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
             for (int z = 0; z < _height; z++)
             {
                 GridXZCell<StackStorage> cell = WorldGrid.GetItem(x, z);
-                cell.Item = Instantiate(ResourceManager.Instance.StackStorage, WorldGrid.GetWorldPosition(x,z),Quaternion.identity ,transform);
+                cell.Item = Instantiate(ResourceManager.Instance.StackStorage, WorldGrid.GetWorldPositionOfNearestCell(x,z),Quaternion.identity ,transform);
                 cell.Item.Init(WorldGrid, x,z, cell);
                 cell.SetAdjacency();
             }
