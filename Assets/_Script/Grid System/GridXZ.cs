@@ -94,13 +94,13 @@ public class GridXZ<TCell>
         };
     }
     
-    public TCell GetItem(int xIndex, int zIndex)
+    public TCell GetCell(int xIndex, int zIndex)
     {
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0) return _gridItems[xIndex, zIndex];
         return default(TCell);
     }
     
-    public TCell GetItem(Vector3 position)
+    public TCell GetCell(Vector3 position)
     {
         (int xIndex, int zIndex) = GetXZ(position);
         if(xIndex<_width && xIndex >=0 && zIndex < _height && zIndex >= 0)

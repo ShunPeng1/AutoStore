@@ -209,7 +209,7 @@ namespace _Script.Robot
             float horizontal = Input.GetAxisRaw("Horizontal"), vertical = Input.GetAxisRaw("Vertical");
             if (Mathf.Abs(horizontal) == 1f)
             {
-                var item = CurrentGrid.GetItem(XIndex + (int)horizontal, ZIndex);
+                var item = CurrentGrid.GetCell(XIndex + (int)horizontal, ZIndex);
                 // If walkable
                 if (item != default(GridXZCell<StackStorage>))
                 {
@@ -220,7 +220,7 @@ namespace _Script.Robot
             }
             else if (Mathf.Abs(vertical) == 1f)
             {
-                var item = CurrentGrid.GetItem(XIndex, ZIndex + (int)vertical);
+                var item = CurrentGrid.GetCell(XIndex, ZIndex + (int)vertical);
                 // If walkable
                 if (item != default(GridXZCell<StackStorage>))
                 {
@@ -264,7 +264,7 @@ namespace _Script.Robot
         
         public GridXZCell<StackStorage> GetCurrentGridCell()
         {
-            return CurrentGrid.GetItem(XIndex, ZIndex);
+            return CurrentGrid.GetCell(XIndex, ZIndex);
         }
         
         #endregion

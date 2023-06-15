@@ -55,10 +55,8 @@ public class B1Robot : Robot
                     break;
                 case DetectDecision.Dodge: // We add the detected robot cell as obstacle
                     Debug.Log(gameObject.name +" Dodge "+detectedRobot.gameObject.name);
-                    if(detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition 
-                       || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) detectedRobot.RedirectOrthogonal(this);
-                    dynamicObstacle.Add(CurrentGrid.GetItem(detectedRobot.LastCellPosition));
-                    dynamicObstacle.Add(CurrentGrid.GetItem(detectedRobot.NextCellPosition));
+                    dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
+                    dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
                     break;
                 case DetectDecision.Continue:
                     break;
@@ -74,22 +72,34 @@ public class B1Robot : Robot
         float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(detectedRobot.transform.position - transform.position, NextCellPosition - transform.position) ;
         float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
 
+
         
         if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle) 
         {
             if (!IsBlockAHead(detectedRobot, angleBetweenMyDirectionAndRobotDistance, 5)) return DetectDecision.Continue;
             
+            // Is block ahead
             detectedRobot.RedirectOrthogonal(this);
             
             return DetectDecision.Wait;
         }
 
         if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting) return DetectDecision.Continue;
-
+        
+        
         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
-            detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle or RobotStateEnum.Jamming) 
+            detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) 
         {
-            return IsBlockAHead(detectedRobot, angleBetweenMyDirectionAndRobotDistance, 5) ? DetectDecision.Dodge : DetectDecision.Continue; // same row or column
+            if(!IsBlockAHead(detectedRobot, angleBetweenMyDirectionAndRobotDistance, 5)) return DetectDecision.Continue; // same row or column
+            
+            // Is block ahead
+            if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
+                || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
+            {
+                detectedRobot.RedirectOrthogonal(this);
+                return DetectDecision.Wait;
+            }
+            else return DetectDecision.Dodge;
         }
         
         if (dotProductOf2RobotDirection == 0) // perpendicular direction
@@ -130,8 +140,8 @@ public class B1Robot : Robot
 
     protected override void CreatePathFinding(Vector3 startPosition, Vector3 endPosition)
     {
-        var startCell = CurrentGrid.GetItem(startPosition);
-        var endCell = CurrentGrid.GetItem(endPosition);
+        var startCell = CurrentGrid.GetCell(startPosition);
+        var endCell = CurrentGrid.GetCell(endPosition);
         
         
         MovingPath = PathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
@@ -144,7 +154,7 @@ public class B1Robot : Robot
     
     protected override void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
     {
-        var currentStartCell = CurrentGrid.GetItem(LastCellPosition);
+        var currentStartCell = CurrentGrid.GetCell(LastCellPosition);
          
         MovingPath = PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
        
@@ -213,13 +223,12 @@ public class B1Robot : Robot
             StopAllCoroutines();
         }
 
-        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, RestoreState);
+        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.LastCell, redirectGoalCellPosition, RestoreState);
         
         SetToState(RobotStateEnum.Redirecting, 
             new object[]{CurrentTask}, 
             new object[]{robotTask});
         
-        ExtractNextCellInPath();
     }
 
     public override void ApproachCrate(Crate crate)

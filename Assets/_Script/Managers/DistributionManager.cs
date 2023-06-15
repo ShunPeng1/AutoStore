@@ -116,7 +116,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     private int CalculateDistance(Robot robot, Crate crate)
     {
         (int x, int z) = GridXZCell<StackStorage>.GetIndexDifferenceAbsolute(
-            _storageGrid.GetItem(crate.currentX, crate.currentZ),
+            _storageGrid.GetCell(crate.currentX, crate.currentZ),
             robot.GetCurrentGridCell());
         return 10 * x + 10 * z;
     }

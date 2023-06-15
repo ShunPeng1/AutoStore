@@ -31,10 +31,10 @@ public class GridXZCell<TItem>
         GridXZCell<TItem>[] adjacentRawItems =
         {
             //in counter clockwise order
-            _gridXZ.GetItem(XIndex + 1, ZIndex),
-            _gridXZ.GetItem(XIndex, ZIndex + 1),
-            _gridXZ.GetItem(XIndex - 1, ZIndex),
-            _gridXZ.GetItem(XIndex, ZIndex - 1)
+            _gridXZ.GetCell(XIndex + 1, ZIndex),
+            _gridXZ.GetCell(XIndex, ZIndex + 1),
+            _gridXZ.GetCell(XIndex - 1, ZIndex),
+            _gridXZ.GetCell(XIndex, ZIndex - 1)
         };
 
         foreach (var rawItem in adjacentRawItems)
