@@ -43,10 +43,18 @@ public class GridXZ<TCell>
         return (xIndex < _width && xIndex >= 0 && zIndex < _height && zIndex >= 0);
     }
     
+    public bool IsValidCell(Vector3 worldPosition)
+    {
+        
+        int x = Mathf.RoundToInt((worldPosition - _originPosition).x / _cellWidthSize);
+        int z = Mathf.RoundToInt((worldPosition - _originPosition).z / _cellHeightSize);
+        return (x < _width && x >= 0 && z < _height && z >= 0);
+    }
+    
     public (int , int ) GetXZ(Vector3 position)
     {
-        int x = Mathf.FloorToInt((position - _originPosition).x / _cellWidthSize);
-        int z = Mathf.FloorToInt((position - _originPosition).z / _cellHeightSize);
+        int x = Mathf.RoundToInt((position - _originPosition).x / _cellWidthSize);
+        int z = Mathf.RoundToInt((position - _originPosition).z / _cellHeightSize);
         return (x,z);
     }
 
@@ -57,8 +65,8 @@ public class GridXZ<TCell>
 
     public Vector3 GetWorldPositionOfNearestCell(Vector3 worldPosition)
     {
-        int x = Mathf.FloorToInt((worldPosition - _originPosition).x / _cellWidthSize);
-        int z = Mathf.FloorToInt((worldPosition - _originPosition).z / _cellHeightSize);
+        int x = Mathf.RoundToInt((worldPosition - _originPosition).x / _cellWidthSize);
+        int z = Mathf.RoundToInt((worldPosition - _originPosition).z / _cellHeightSize);
         return new Vector3(x * _cellWidthSize, 0, z * _cellHeightSize) + _originPosition;
     }
     

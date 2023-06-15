@@ -104,15 +104,22 @@ public class B1Robot : Robot
     private bool IsBlockAHead(Robot detectedRobot,float angleBetweenMyDirectionAndRobotDistance, float isHeadAngleThreshold)
     {
         if (angleBetweenMyDirectionAndRobotDistance >= isHeadAngleThreshold  // Not block ahead 
-                || ((MovingPath == null || MovingPath.Count == 0) && detectedRobot.NextCellPosition != NextCellPosition))  // or the NextCellPosition is the goal or no more way
+                || ((MovingPath == null || MovingPath.Count == 0) && detectedRobot.NextCellPosition != NextCellPosition && detectedRobot.LastCellPosition != NextCellPosition))  // or the NextCellPosition is the goal or no more way
             return false;
         
         // If the direction ahead is a corner or a goal, so we assume it doesn't block
         if (MovingPath == null || MovingPath.Count == 0) return true;
         
         GridXZCell<StackStorage> nextNextCell = MovingPath.First.Value;
-
         Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
+        if (nextNextCellPosition == NextCellPosition)
+        {
+            MovingPath.RemoveFirst();
+            if (MovingPath.Count == 0) return true;
+            nextNextCell = MovingPath.First.Value;
+            nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
+        }
+        
         float dotOf2NextDirection = Vector3.Dot(NextCellPosition - LastCellPosition, nextNextCellPosition - NextCellPosition);
         
         return dotOf2NextDirection != 0; // perpendicular direction or not
@@ -156,7 +163,11 @@ public class B1Robot : Robot
 
     void ShowPath()
     {
-        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Idle || MovingPath == null) return;
+        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Idle || MovingPath == null)
+        {
+            _debugLineRenderer.positionCount = 0;
+            return;
+        }
         
         _debugLineRenderer.positionCount = MovingPath.Count + 1;
         _debugLineRenderer.SetPosition(0, transform.position);
@@ -178,7 +189,7 @@ public class B1Robot : Robot
     /// <param name="requestedRobot"></param>
     public override void RedirectOrthogonal(Robot requestedRobot)
     {
-        Vector3 requestedRobotDistance = transform.position - requestedRobot.transform.position;
+        Vector3 requestedRobotDistance = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) - CurrentGrid.GetWorldPositionOfNearestCell(requestedRobot.transform.position);
         Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized; // find the orthogonal vector 
         
         //Debug.Log("Cross "+ crossProduct);
@@ -202,7 +213,7 @@ public class B1Robot : Robot
             StopAllCoroutines();
         }
 
-        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.LastCell, redirectGoalCellPosition, RestoreState);
+        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, RestoreState);
         
         SetToState(RobotStateEnum.Redirecting, 
             new object[]{CurrentTask}, 
@@ -241,7 +252,6 @@ public class B1Robot : Robot
     {
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
-        
         
         SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
         

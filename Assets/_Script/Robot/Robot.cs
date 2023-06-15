@@ -143,9 +143,9 @@ namespace _Script.Robot
 
         protected void RestoreState()
         {
-            var (enterState, exitOldStateParameters,enterNewStateParameters)= StateHistoryStrategy.Restore();
-            SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
-            
+            var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore();
+            if(enterState!= null) SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
+            else SetToState(RobotStateEnum.Idle);
         }  
         
         public abstract void RedirectOrthogonal(Robot requestedRobot);
@@ -158,25 +158,23 @@ namespace _Script.Robot
         
         protected IEnumerator JammingForGoalCell()
         {
-            SetToState(RobotStateEnum.Jamming);
+            RobotTask newTask = new RobotTask(RobotTask.StartPosition.LastCell, CurrentGrid.GetWorldPositionOfNearestCell(transform.position));
+
+            SetToState(RobotStateEnum.Jamming, new object[]{CurrentTask}, new object[]{newTask});
 
             yield return new WaitForSeconds(JamWaitTime);
             
             RestoreState();
-            
-            CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
-            
         }
         protected IEnumerator Jamming()
         {
-            SetToState(RobotStateEnum.Jamming);
+            RobotTask newTask = new RobotTask(RobotTask.StartPosition.LastCell, CurrentGrid.GetWorldPositionOfNearestCell(transform.position));
+
+            SetToState(RobotStateEnum.Jamming, new object[]{CurrentTask}, new object[]{newTask});
 
             yield return new WaitForSeconds(JamWaitTime);
             
             RestoreState();
-            
-            CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
-
         }
 
         protected abstract void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
@@ -191,6 +189,8 @@ namespace _Script.Robot
         #region Movement
         protected void MoveAlongGrid(RobotStateEnum currentRobotState, object [] parameters)
         {
+            if (CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) return;
+            
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
             Rigidbody.velocity = Vector3.zero;
