@@ -148,7 +148,7 @@ public class B1Robot : Robot
 
         if (MovingPath == null) // No destination was found
         {
-            StartCoroutine(nameof(JammingForGoalCell));
+            StartCoroutine(nameof(Jamming));
         }
     }
     
@@ -160,7 +160,7 @@ public class B1Robot : Robot
        
         if (MovingPath == null) // The path to goal is block
         {
-            StartCoroutine(nameof(JammingForGoalCell));
+            StartCoroutine(nameof(Jamming));
             return;
         }
         
@@ -220,7 +220,7 @@ public class B1Robot : Robot
 
         if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming) // Destroy the Jamming State, to restore the LastRobotState
         {
-            StopAllCoroutines();
+            StopCoroutine(Jamming());
         }
 
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.LastCell, redirectGoalCellPosition, RestoreState);

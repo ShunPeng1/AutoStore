@@ -155,22 +155,9 @@ namespace _Script.Robot
         protected abstract void PickUpCrate();
         protected abstract void DropDownCrate();
         
-        
-        protected IEnumerator JammingForGoalCell()
-        {
-            RobotTask newTask = new RobotTask(RobotTask.StartPosition.LastCell, CurrentGrid.GetWorldPositionOfNearestCell(transform.position));
-
-            SetToState(RobotStateEnum.Jamming, new object[]{CurrentTask}, new object[]{newTask});
-
-            yield return new WaitForSeconds(JamWaitTime);
-            
-            RestoreState();
-        }
         protected IEnumerator Jamming()
         {
-            RobotTask newTask = new RobotTask(RobotTask.StartPosition.LastCell, CurrentGrid.GetWorldPositionOfNearestCell(transform.position));
-
-            SetToState(RobotStateEnum.Jamming, new object[]{CurrentTask}, new object[]{newTask});
+            SetToState(RobotStateEnum.Jamming);
 
             yield return new WaitForSeconds(JamWaitTime);
             
