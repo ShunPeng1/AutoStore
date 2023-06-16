@@ -225,10 +225,8 @@ namespace _Script.Robot
         }
         
         #endregion
-
-
+        
         #region GetCells
-
         
         /// <summary>
         /// Using Iteration Pattern for getting the cell that the robot travelling when getting form the PathFinding Algorithm
@@ -264,6 +262,15 @@ namespace _Script.Robot
             return CurrentGrid.GetCell(XIndex, ZIndex);
         }
         
+        #endregion
+
+        #region Collider
+
+        private void OnCollisionEnter(Collision other)
+        {
+            DebugUIManager.Instance.AddCollision();
+        }
+
         #endregion
     }
 }
