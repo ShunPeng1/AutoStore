@@ -133,7 +133,7 @@ public class B1Robot : Robot
         
         float dotOf2NextDirection = Vector3.Dot(NextCellPosition - LastCellPosition, nextNextCellPosition - NextCellPosition);
         
-        return dotOf2NextDirection != 0; // perpendicular direction or not
+        return !(dotOf2NextDirection == 0 && NextCellPosition != detectedRobot.NextCellPosition); // perpendicular direction and not the same corner of the detected robot
     }
     #endregion
 
