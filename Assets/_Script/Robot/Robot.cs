@@ -20,12 +20,12 @@ namespace _Script.Robot
     {
         [Header("Stat")] 
         public int Id;
-        
+
         [Header("Grid")]
-        protected GridXZ<GridXZCell<StackStorage>> CurrentGrid;
-        protected int XIndex, ZIndex;
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
+        protected GridXZ<GridXZCell<StackStorage>> CurrentGrid;
+        protected int XIndex, ZIndex;
         protected LinkedList<GridXZCell<StackStorage>> MovingPath;
         
         [Header("Movement")] 
@@ -78,6 +78,7 @@ namespace _Script.Robot
             BaseState<RobotStateEnum> approachingState = new(RobotStateEnum.Approaching,
                 (myStateEnum, objects) =>
                 {
+                    CheckArriveCell();
                     DetectNearByRobot(myStateEnum, objects);
                     MoveAlongGrid(myStateEnum, objects);
                 }, null, AssignTask);
@@ -85,6 +86,7 @@ namespace _Script.Robot
             BaseState<RobotStateEnum> deliveringState = new(RobotStateEnum.Delivering,
                 (myStateEnum, objects) =>
                 {
+                    CheckArriveCell();
                     DetectNearByRobot(myStateEnum, objects);
                     MoveAlongGrid(myStateEnum, objects);
                 }, null, AssignTask);
@@ -93,6 +95,7 @@ namespace _Script.Robot
             BaseState<RobotStateEnum> redirectingState = new(RobotStateEnum.Redirecting,
                 (myStateEnum, objects) =>
                 {
+                    CheckArriveCell();
                     DetectNearByRobot(myStateEnum, objects);
                     MoveAlongGrid(myStateEnum, objects);
                 }, null, AssignTask);
@@ -130,6 +133,7 @@ namespace _Script.Robot
                     break;
                 case RobotTask.StartPosition.NextCell:
                     CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
+                    
                     break;
                 case RobotTask.StartPosition.NearestCell:
                     Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
@@ -181,8 +185,10 @@ namespace _Script.Robot
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
             Rigidbody.velocity = Vector3.zero;
-            
-            // Check Cell
+        }
+
+        void CheckArriveCell()
+        {
             if (!(Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)) return;
 
             if ( CurrentTask != null && CurrentGrid.GetXZ(transform.position) == CurrentGrid.GetXZ(CurrentTask.GoalCellPosition)) 
@@ -238,13 +244,17 @@ namespace _Script.Robot
                 LastCellPosition = NextCellPosition;
                 return;
             }
-            var nextDestination = MovingPath.First.Value;
+            var nextNextCell = MovingPath.First.Value;
             MovingPath.RemoveFirst(); // the next standing node
             
-            XIndex = nextDestination.XIndex;
-            ZIndex = nextDestination.ZIndex;
+            XIndex = nextNextCell.XIndex;
+            ZIndex = nextNextCell.ZIndex;
+
+            Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) +
+                                   Vector3.up * transform.position.y;
+
             LastCellPosition = NextCellPosition;
-            NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
+            NextCellPosition = nextNextCellPosition;
             //Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
         }
         

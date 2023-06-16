@@ -3,10 +3,11 @@ using UnityEngine;
 
 namespace _Script.StateMachine
 {
+    [Serializable]
     public class BaseState<TStateEnum> where TStateEnum : Enum
     {
         [Header("State Machine ")]
-        public readonly TStateEnum MyStateEnum;
+        public TStateEnum MyStateEnum;
         protected object[] Objects;
         
         protected Action<TStateEnum, object[]> EnterEvents;

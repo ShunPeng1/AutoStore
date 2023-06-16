@@ -38,7 +38,9 @@ public class B1Robot : Robot
     {
         var hits = Physics.OverlapSphere(centerBodyCast.position, castRadius, robotLayerMask); // Find robot in a circle 
 
-        List<GridXZCell<StackStorage>> dynamicObstacle = new(); 
+        List<GridXZCell<StackStorage>> dynamicObstacle = new();
+        DetectDecision finalDecision; 
+        
         foreach (var hitCollider in hits)
         { 
             var detectedRobot = hitCollider.gameObject.GetComponent<Robot>();
@@ -72,7 +74,6 @@ public class B1Robot : Robot
         float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(detectedRobot.transform.position - transform.position, NextCellPosition - transform.position) ;
         float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
 
-
         
         if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle) 
         {
@@ -84,7 +85,7 @@ public class B1Robot : Robot
             return DetectDecision.Wait;
         }
 
-        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting) return DetectDecision.Continue;
+        //if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting) return DetectDecision.Continue;
         
         
         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
