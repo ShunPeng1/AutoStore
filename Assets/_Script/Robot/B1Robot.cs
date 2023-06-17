@@ -204,7 +204,7 @@ public class B1Robot : Robot
         var raycast = Physics.RaycastAll(transform.position, crossProduct, castRadius, robotLayerMask);
         var (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 1);
 
-        Debug.Log($"Cross {crossProduct}, ({redirectX},{redirectZ}), raycast = {raycast.Length} ");
+        //Debug.Log($"Cross {crossProduct}, ({redirectX},{redirectZ}), raycast = {raycast.Length} ");
 
         if (raycast.Length == 0 && CurrentGrid.IsValidCell(redirectX, redirectZ)) // turn right is valid
         {
@@ -220,12 +220,13 @@ public class B1Robot : Robot
             else
             {
                 raycast = Physics.RaycastAll(transform.position, requestedRobotDistance, castRadius, robotLayerMask);
-                (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + requestedRobotDistance * 2); // the other direction
+                (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + requestedRobotDistance); // the other direction
             
-                if (raycast.Length == 0 && CurrentGrid.IsValidCell(redirectX, redirectZ)) // go forward is valid
+                if (raycast.Length == 0 && CurrentGrid.IsValidCell(redirectX, redirectZ)) // go backward is valid
                     redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
                 else
                 {
+                    Debug.Log($"Backward ({transform.position}-{requestedRobot.transform.position}={requestedRobotDistance}), Last = {LastCellPosition} ");
                     redirectGoalCellPosition = LastCellPosition; // the only choice is staying where it is 
                 }
             }

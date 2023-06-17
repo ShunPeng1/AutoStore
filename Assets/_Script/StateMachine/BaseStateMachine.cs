@@ -49,7 +49,7 @@ namespace _Script.StateMachine
 
         private void SwitchState(BaseState<TStateEnum> nextState , object[] exitOldStateParameters = null, object[] enterNewStateParameters = null)
         {
-            Debug.Log(gameObject.name +" Change "+ CurrentBaseState.MyStateEnum+ " State To "+ nextState.MyStateEnum + " State");
+            //Debug.Log(gameObject.name +" Change "+ CurrentBaseState.MyStateEnum+ " State To "+ nextState.MyStateEnum + " State");
             
             CurrentBaseState.OnExitState(nextState.MyStateEnum,exitOldStateParameters);
             nextState.OnEnterState(CurrentBaseState.MyStateEnum,enterNewStateParameters);
