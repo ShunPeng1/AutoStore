@@ -817,6 +817,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4e1cd235daef624ebb8667239554db1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  CurrentBaseState:
+    MyStateEnum: 0
   Id: 0
   NextCellPosition: {x: 0, y: 0, z: 0}
   LastCellPosition: {x: 0, y: 0, z: 0}
@@ -824,6 +826,7 @@ MonoBehaviour:
   PreemptiveDistance: 0
   JamWaitTime: 0.25
   HoldingCrate: {fileID: 0}
+  BoxColliderSize: 0.9
   _debugLineRenderer: {fileID: 3908041089777982755}
   centerBodyCast: {fileID: 4179138659058510927}
   castRadius: 1.5
