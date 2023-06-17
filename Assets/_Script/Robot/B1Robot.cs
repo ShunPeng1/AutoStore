@@ -57,6 +57,7 @@ public class B1Robot : Robot
             finalDecision = (DetectDecision) Mathf.Max((int)decision, (int)finalDecision);
 
             if (decision != DetectDecision.Dodge) continue;
+            
             dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
             dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
         }
@@ -115,7 +116,6 @@ public class B1Robot : Robot
             return isMaxBlockAhead ? DetectDecision.Wait : DetectDecision.Continue;
         }
         
-
         return DetectDecision.Continue;
     }
 
@@ -130,6 +130,7 @@ public class B1Robot : Robot
             NextCellPosition == detectedRobot.LastCellPosition) // definitely block by its last cell or next cell
             return true;
         else return false;
+
     }
     #endregion
 
