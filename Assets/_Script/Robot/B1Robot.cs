@@ -34,16 +34,16 @@ public class B1Robot : Robot
 
     private enum DetectDecision
     {
-        Wait,
-        Dodge,
-        Continue
+        Continue = 0,
+        Wait = 1,
+        Dodge = 2
     }
     protected override void DetectNearByRobot(RobotStateEnum currentRobotState, object[] parameters)
     {
         var hits = Physics.OverlapSphere(centerBodyCast.position, castRadius, robotLayerMask); // Find robot in a circle 
 
         List<GridXZCell<StackStorage>> dynamicObstacle = new();
-        DetectDecision finalDecision; 
+        DetectDecision finalDecision = DetectDecision.Continue; 
         
         foreach (var hitCollider in hits)
         { 
@@ -52,25 +52,29 @@ public class B1Robot : Robot
             {
                 continue;
             }
-            
-            switch (CheckDetection(detectedRobot))
-            {
-                case DetectDecision.Wait: // We set the robot to jam state
-                    Debug.Log(gameObject.name +" Jam with "+detectedRobot.gameObject.name);
-                    StartCoroutine(nameof(Jamming));
-                    break;
-                case DetectDecision.Dodge: // We add the detected robot cell as obstacle
-                    Debug.Log(gameObject.name +" Dodge "+detectedRobot.gameObject.name);
-                    dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
-                    dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
-                    break;
-                case DetectDecision.Continue:
-                    break;
-            }
+
+            finalDecision = (DetectDecision) Mathf.Max((int)CheckDetection(detectedRobot), (int)finalDecision);
+
+                dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
+            dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
         }
         
-        // Update Path base on dynamic obstacle
-        if (dynamicObstacle.Count != 0) UpdatePathFinding(dynamicObstacle);
+        switch (finalDecision)
+        {
+            case DetectDecision.Wait: // We set the robot to jam state
+                Debug.Log(gameObject.name +" Jam! ");
+                StartCoroutine(nameof(Jamming));
+                break;
+            case DetectDecision.Dodge: // We add the detected robot cell as obstacle
+                Debug.Log(gameObject.name +" Dodge ");
+                UpdatePathFinding(dynamicObstacle); // Update Path base on dynamic obstacle
+                break;
+            case DetectDecision.Continue:
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
     }
 
     private DetectDecision CheckDetection(Robot detectedRobot)
@@ -85,22 +89,6 @@ public class B1Robot : Robot
             detectedRobot.RedirectOrthogonal(this);
             
             return DetectDecision.Wait;
-        }
-
-        //if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting) return DetectDecision.Continue;
-        
-        if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) 
-        {
-            if(!IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE)) return DetectDecision.Continue; // same row or column
-            
-            // Is block ahead
-            if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
-                || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
-            {
-                detectedRobot.RedirectOrthogonal(this);
-                return DetectDecision.Wait;
-            }
-            else return DetectDecision.Dodge;
         }
         
         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
