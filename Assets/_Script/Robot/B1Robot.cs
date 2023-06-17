@@ -53,9 +53,11 @@ public class B1Robot : Robot
                 continue;
             }
 
-            finalDecision = (DetectDecision) Mathf.Max((int)CheckDetection(detectedRobot), (int)finalDecision);
+            DetectDecision decision = CheckDetection(detectedRobot);
+            finalDecision = (DetectDecision) Mathf.Max((int)decision, (int)finalDecision);
 
-                dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
+            if (decision != DetectDecision.Dodge) continue;
+            dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
             dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
         }
         
@@ -80,10 +82,12 @@ public class B1Robot : Robot
     private DetectDecision CheckDetection(Robot detectedRobot)
     {
         float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
+        bool isMinBlockAhead = IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE);
+        bool isMaxBlockAhead = IsBlockAHead(detectedRobot, MAX_BLOCK_AHEAD_ANGLE);
         
         if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle) 
         {
-            if (!IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE)) return DetectDecision.Continue;
+            if (!isMinBlockAhead) return DetectDecision.Continue;
             
             // Is block ahead
             detectedRobot.RedirectOrthogonal(this);
@@ -94,7 +98,7 @@ public class B1Robot : Robot
         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
             detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) 
         {
-            if(!IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE)) return DetectDecision.Continue; // same row or column
+            if(!isMinBlockAhead) return DetectDecision.Continue; // same row or column
             
             // Is block ahead
             if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
@@ -108,7 +112,7 @@ public class B1Robot : Robot
         
         if (dotProductOf2RobotDirection == 0) // perpendicular direction
         {
-            return IsBlockAHead(detectedRobot, MAX_BLOCK_AHEAD_ANGLE) ? DetectDecision.Wait : DetectDecision.Continue;
+            return isMaxBlockAhead ? DetectDecision.Wait : DetectDecision.Continue;
         }
         
 
@@ -126,28 +130,6 @@ public class B1Robot : Robot
             NextCellPosition == detectedRobot.LastCellPosition) // definitely block by its last cell or next cell
             return true;
         else return false;
-        
-            // If the direction ahead is the goal
-        if (NextCellPosition == CurrentTask.GoalCellPosition)
-            return false;
-        
-        if (MovingPath == null || MovingPath.Count == 0) // The NextCellPosition is goal and will be block
-            return true;
-        
-        // Check for corner
-        GridXZCell<StackStorage> nextNextCell = MovingPath.First.Value;
-        Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
-        if (nextNextCellPosition == NextCellPosition)
-        {
-            MovingPath.RemoveFirst();
-            if (MovingPath.Count == 0) return true;
-            nextNextCell = MovingPath.First.Value;
-            nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
-        }
-        
-        float dotOf2NextDirection = Vector3.Dot(NextCellPosition - LastCellPosition, nextNextCellPosition - NextCellPosition);
-        
-        return !(dotOf2NextDirection == 0 ); // perpendicular direction and not the same corner of the detected robot
     }
     #endregion
 
@@ -214,21 +196,38 @@ public class B1Robot : Robot
     /// <param name="requestedRobot"></param>
     public override void RedirectOrthogonal(Robot requestedRobot)
     {
-        Vector3 requestedRobotDistance = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) - CurrentGrid.GetWorldPositionOfNearestCell(requestedRobot.transform.position);
+        Vector3 requestedRobotDistance = (CurrentGrid.GetWorldPositionOfNearestCell(transform.position) - CurrentGrid.GetWorldPositionOfNearestCell(requestedRobot.transform.position)).normalized;
         Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized; // find the orthogonal vector 
-        
-        //Debug.Log("Cross "+ crossProduct);
-        (var redirectX, var redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 1);
-
         Vector3 redirectGoalCellPosition;
-        if (CurrentGrid.IsValidCell(redirectX, redirectZ))
+
+        var raycast = Physics.RaycastAll(transform.position, crossProduct, castRadius, robotLayerMask);
+        var (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 1);
+
+        Debug.Log($"Cross {crossProduct}, ({redirectX},{redirectZ}), raycast = {raycast.Length} ");
+
+        if (raycast.Length == 0 && CurrentGrid.IsValidCell(redirectX, redirectZ)) // turn right is valid
         {
             redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
         }
         else
         {
-            (var redirectX2, var redirectZ2) = CurrentGrid.GetXZ(transform.position + crossProduct * -1); // the other direction
-            redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX2, redirectZ2) + Vector3.up * transform.position.y;
+            raycast = Physics.RaycastAll(transform.position, crossProduct * -1, castRadius, robotLayerMask);
+            (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * -1); // the other direction
+            
+            if (raycast.Length == 0 && CurrentGrid.IsValidCell(redirectX, redirectZ)) // turn left is valid
+                redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
+            else
+            {
+                raycast = Physics.RaycastAll(transform.position, requestedRobotDistance, castRadius, robotLayerMask);
+                (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + requestedRobotDistance * 2); // the other direction
+            
+                if (raycast.Length == 0 && CurrentGrid.IsValidCell(redirectX, redirectZ)) // go forward is valid
+                    redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
+                else
+                {
+                    redirectGoalCellPosition = LastCellPosition; // the only choice is staying where it is 
+                }
+            }
         }
 
         Debug.Log(requestedRobot.gameObject.name+" requested to move "+ gameObject.name + " from "+  CurrentGrid.GetXZ(transform.position) + " to "+ redirectGoalCellPosition);
