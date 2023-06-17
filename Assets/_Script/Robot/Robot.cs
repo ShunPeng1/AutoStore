@@ -43,6 +43,8 @@ namespace _Script.Robot
         
         [Header("Components")] 
         protected Rigidbody Rigidbody;
+        protected BoxCollider BoxCollider;
+        [SerializeField] protected float BoxColliderSize = 0.9f;
 
         #region Initial
 
@@ -70,6 +72,8 @@ namespace _Script.Robot
         private void InitializeComponents()
         {
             Rigidbody = GetComponent<Rigidbody>();
+            BoxCollider = GetComponent<BoxCollider>();
+            BoxCollider.size = BoxColliderSize * Vector3.one;
         }
         
         private void InitializeState()
@@ -269,6 +273,9 @@ namespace _Script.Robot
         private void OnCollisionEnter(Collision other)
         {
             DebugUIManager.Instance.AddCollision();
+            #if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPaused = true;
+            #endif
         }
 
         #endregion

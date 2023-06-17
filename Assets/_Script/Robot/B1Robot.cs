@@ -13,8 +13,12 @@ public class B1Robot : Robot
     [SerializeField] private Transform centerBodyCast;
     [SerializeField] private float castRadius;
     [SerializeField] private LayerMask robotLayerMask;
-    
-    
+
+
+    private float MIN_BLOCK_AHEAD_ANGLE => Mathf.Atan((castRadius + BoxColliderSize/2)/(0.5f + BoxColliderSize/2)) * Mathf.PI;
+    private float MAX_BLOCK_AHEAD_ANGLE = 45f;
+
+
     void FixedUpdate()
     {
         CurrentBaseState.ExecuteState();
@@ -71,13 +75,11 @@ public class B1Robot : Robot
 
     private DetectDecision CheckDetection(Robot detectedRobot)
     {
-        float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(detectedRobot.transform.position - transform.position, NextCellPosition - transform.position) ;
         float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
-
         
         if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle) 
         {
-            if (!IsBlockAHead(detectedRobot, angleBetweenMyDirectionAndRobotDistance, 5)) return DetectDecision.Continue;
+            if (!IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE)) return DetectDecision.Continue;
             
             // Is block ahead
             detectedRobot.RedirectOrthogonal(this);
@@ -87,11 +89,24 @@ public class B1Robot : Robot
 
         //if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting) return DetectDecision.Continue;
         
+        if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) 
+        {
+            if(!IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE)) return DetectDecision.Continue; // same row or column
+            
+            // Is block ahead
+            if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
+                || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
+            {
+                detectedRobot.RedirectOrthogonal(this);
+                return DetectDecision.Wait;
+            }
+            else return DetectDecision.Dodge;
+        }
         
         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
             detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) 
         {
-            if(!IsBlockAHead(detectedRobot, angleBetweenMyDirectionAndRobotDistance, 5)) return DetectDecision.Continue; // same row or column
+            if(!IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE)) return DetectDecision.Continue; // same row or column
             
             // Is block ahead
             if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
@@ -105,22 +120,33 @@ public class B1Robot : Robot
         
         if (dotProductOf2RobotDirection == 0) // perpendicular direction
         {
-            return angleBetweenMyDirectionAndRobotDistance < 45 ? DetectDecision.Wait : DetectDecision.Continue;
+            return IsBlockAHead(detectedRobot, MAX_BLOCK_AHEAD_ANGLE) ? DetectDecision.Wait : DetectDecision.Continue;
         }
         
 
         return DetectDecision.Continue;
     }
 
-    private bool IsBlockAHead(Robot detectedRobot,float angleBetweenMyDirectionAndRobotDistance, float isHeadAngleThreshold)
+    private bool IsBlockAHead(Robot detectedRobot, float isHeadAngleThreshold)
     {
-        if (angleBetweenMyDirectionAndRobotDistance >= isHeadAngleThreshold  // Not block ahead 
-                || ((MovingPath == null || MovingPath.Count == 0) && detectedRobot.NextCellPosition != NextCellPosition && detectedRobot.LastCellPosition != NextCellPosition))  // or the NextCellPosition is the goal or no more way
+        float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(detectedRobot.transform.position - transform.position, NextCellPosition - transform.position) ;
+
+        if (angleBetweenMyDirectionAndRobotDistance >= isHeadAngleThreshold  )  // Not block ahead when larger than angle threadhold 
+            return false;
+
+        if (NextCellPosition == detectedRobot.NextCellPosition ||
+            NextCellPosition == detectedRobot.LastCellPosition) // definitely block by its last cell or next cell
+            return true;
+        else return false;
+        
+            // If the direction ahead is the goal
+        if (NextCellPosition == CurrentTask.GoalCellPosition)
             return false;
         
-        // If the direction ahead is a corner or a goal, so we assume it doesn't block
-        if (MovingPath == null || MovingPath.Count == 0) return true;
+        if (MovingPath == null || MovingPath.Count == 0) // The NextCellPosition is goal and will be block
+            return true;
         
+        // Check for corner
         GridXZCell<StackStorage> nextNextCell = MovingPath.First.Value;
         Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.ZIndex) + Vector3.up * transform.position.y;
         if (nextNextCellPosition == NextCellPosition)
@@ -133,7 +159,7 @@ public class B1Robot : Robot
         
         float dotOf2NextDirection = Vector3.Dot(NextCellPosition - LastCellPosition, nextNextCellPosition - NextCellPosition);
         
-        return !(dotOf2NextDirection == 0 && NextCellPosition != detectedRobot.NextCellPosition); // perpendicular direction and not the same corner of the detected robot
+        return !(dotOf2NextDirection == 0 ); // perpendicular direction and not the same corner of the detected robot
     }
     #endregion
 
