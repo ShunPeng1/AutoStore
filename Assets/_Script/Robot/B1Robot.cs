@@ -89,8 +89,7 @@ public class B1Robot : Robot
         if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle) 
         {
             // Is block ahead
-            if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
-                || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
+            if (detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
             {
                 detectedRobot.RedirectOrthogonal(this);
                 return DetectDecision.Wait;
@@ -233,9 +232,9 @@ public class B1Robot : Robot
         Vector3 requestedRobotDistance = (CurrentGrid.GetWorldPositionOfNearestCell(requestedRobot.transform.position) - CurrentGrid.GetWorldPositionOfNearestCell(transform.position)).normalized;
         
         Vector3 roundDirection = new Vector3(
-            Mathf.FloorToInt(requestedRobotDistance.x),
-            Mathf.FloorToInt(requestedRobotDistance.y),
-            Mathf.CeilToInt(requestedRobotDistance.z)
+            Mathf.FloorToInt(Mathf.Abs(requestedRobotDistance.x)), // -1 or 1, or 0 when -1<x<1 
+            0,
+            Mathf.Sign(requestedRobotDistance.z) * Mathf.CeilToInt(Mathf.Abs(requestedRobotDistance.z)) // 0 or -1 when -1<=z<0 or -1 when 0<z<=1
         );
         Vector3 orthogonalDirection = Vector3.Cross(Vector3.up, roundDirection).normalized; // find the orthogonal vector
         
