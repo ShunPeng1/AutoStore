@@ -32,6 +32,7 @@ namespace _Script.Robot
         [SerializeField] protected float MaxMovementSpeed = 1f;
         [SerializeField] protected float PreemptiveDistance = 0.05f;
         [SerializeField] protected float JamWaitTime = 5f;
+        protected Coroutine JamCoroutine;
         
         [Header("Pathfinding")]
         protected IPathfindingAlgorithm<GridXZCell<StackStorage>,StackStorage> PathfindingAlgorithm;

@@ -56,7 +56,7 @@ public class B1Robot : Robot
             DetectDecision decision = CheckDetection(detectedRobot);
             finalDecision = (DetectDecision) Mathf.Max((int)decision, (int)finalDecision);
 
-            if (decision != DetectDecision.Dodge) continue;
+            //if (decision != DetectDecision.Dodge) continue;
             
             dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
             dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
@@ -66,7 +66,7 @@ public class B1Robot : Robot
         {
             case DetectDecision.Wait: // We set the robot to jam state
                 Debug.Log(gameObject.name +" Jam! ");
-                StartCoroutine(nameof(Jamming));
+                JamCoroutine = StartCoroutine(nameof(Jamming));
                 break;
             case DetectDecision.Dodge: // We add the detected robot cell as obstacle
                 Debug.Log(gameObject.name +" Dodge ");
@@ -88,6 +88,14 @@ public class B1Robot : Robot
         
         if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle) 
         {
+            // Is block ahead
+            if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
+                || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
+            {
+                detectedRobot.RedirectOrthogonal(this);
+                return DetectDecision.Wait;
+            }
+            
             if (!isMinBlockAhead) return DetectDecision.Continue;
             
             // Is block ahead
@@ -111,8 +119,7 @@ public class B1Robot : Robot
             else return DetectDecision.Dodge;
         }
         
-        if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
-            detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) 
+        if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f) // opposite direction 
         {
             if(!isMinBlockAhead) return DetectDecision.Continue; // same row or column
             
@@ -161,7 +168,7 @@ public class B1Robot : Robot
 
         if (MovingPath == null) // No destination was found
         {
-            StartCoroutine(nameof(Jamming));
+            JamCoroutine = StartCoroutine(nameof(Jamming));
         }
     }
     
@@ -173,7 +180,7 @@ public class B1Robot : Robot
        
         if (MovingPath == null) // The path to goal is block
         {
-            StartCoroutine(nameof(Jamming));
+            JamCoroutine = StartCoroutine(nameof(Jamming));
             return;
         }
         
@@ -214,7 +221,7 @@ public class B1Robot : Robot
     {
         if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming)
         {
-            StopCoroutine(Jamming()); // Destroy the Jamming State, to restore the LastRobotState
+            StopCoroutine(JamCoroutine); // Destroy the Jamming State, to restore the LastRobotState
         }
 
         if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting)
@@ -247,7 +254,7 @@ public class B1Robot : Robot
         else
         {
             Debug.Log($"Backward ({transform.position}-{requestedRobot.transform.position}={requestedRobotDistance}), Last = {LastCellPosition} ");
-            StartCoroutine(nameof(Jamming)); // the only choice is staying where it is 
+            JamCoroutine = StartCoroutine(nameof(Jamming)); // the only choice is staying where it is 
             return;
         }        
         
