@@ -96,6 +96,21 @@ public class B1Robot : Robot
             return DetectDecision.Wait;
         }
         
+        
+        if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) 
+        {
+            if(!isMaxBlockAhead) return DetectDecision.Continue; // block in between the next cell
+            
+            // Is block ahead
+            if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
+                || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
+            {
+                detectedRobot.RedirectOrthogonal(this);
+                return DetectDecision.Wait;
+            }
+            else return DetectDecision.Dodge;
+        }
+        
         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f || // opposite direction
             detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) 
         {
@@ -191,60 +206,67 @@ public class B1Robot : Robot
     #region AssignTask
 
     /// <summary>
-    /// This function will be requested when the robot is Idle
-    /// It will move to a empty cell to right orthogonal, if not valid to the left orthogonal instead
+    /// This function will be requested when the robot is Idle, or standing on others goal. To move to a other direction
+    /// The direction is right, left, backward, prefer mostly the direction which is not blocking
     /// </summary>
     /// <param name="requestedRobot"></param>
     public override void RedirectOrthogonal(Robot requestedRobot)
     {
+        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming)
+        {
+            StopCoroutine(Jamming()); // Destroy the Jamming State, to restore the LastRobotState
+        }
+
+        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting)
+        {
+            return;  // Cannot redirect twice
+        }
+
         Vector3 requestedRobotDistance = (CurrentGrid.GetWorldPositionOfNearestCell(transform.position) - CurrentGrid.GetWorldPositionOfNearestCell(requestedRobot.transform.position)).normalized;
         Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized; // find the orthogonal vector 
-        Vector3 redirectGoalCellPosition;
+        Vector3 redirectGoalCellPosition = LastCellPosition;
+        
+        // Check validity and detect obstacles for redirecting right, left, and backward
+        bool goRightValid = IsValidRedirectPosition(crossProduct, out Vector3 redirectRightGoalCellPosition, out bool isNotBlockRight);
+        bool goLeftValid = IsValidRedirectPosition(crossProduct * -1, out Vector3 redirectLeftGoalCellPosition, out bool isNotBlockLeft);
+        bool goBackwardValid = IsValidRedirectPosition(requestedRobotDistance, out Vector3 redirectBackwardGoalCellPosition, out bool isNotBlockBackward);
 
-        var raycast = Physics.RaycastAll(transform.position, crossProduct, castRadius, robotLayerMask);
-        var (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * 1);
-
-        //Debug.Log($"Cross {crossProduct}, ({redirectX},{redirectZ}), raycast = {raycast.Length} ");
-
-        if (raycast.Length == 0 && CurrentGrid.IsValidCell(redirectX, redirectZ)) // turn right is valid
-        {
-            redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
-        }
+        // Determine the final redirect goal position based on validity and obstacles
+        if (goRightValid && isNotBlockRight)
+            redirectGoalCellPosition = redirectRightGoalCellPosition;
+        else if (goLeftValid && isNotBlockLeft)
+            redirectGoalCellPosition = redirectLeftGoalCellPosition;
+        else if (goBackwardValid && isNotBlockBackward)
+            redirectGoalCellPosition = redirectBackwardGoalCellPosition;
+        else if (goRightValid)
+            redirectGoalCellPosition = redirectRightGoalCellPosition;
+        else if (goLeftValid)
+            redirectGoalCellPosition = redirectLeftGoalCellPosition;
+        else if (goBackwardValid)
+            redirectGoalCellPosition = redirectBackwardGoalCellPosition;
         else
         {
-            raycast = Physics.RaycastAll(transform.position, crossProduct * -1, castRadius, robotLayerMask);
-            (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + crossProduct * -1); // the other direction
-            
-            if (raycast.Length == 0 && CurrentGrid.IsValidCell(redirectX, redirectZ)) // turn left is valid
-                redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
-            else
-            {
-                raycast = Physics.RaycastAll(transform.position, requestedRobotDistance, castRadius, robotLayerMask);
-                (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + requestedRobotDistance); // the other direction
-            
-                if (raycast.Length == 0 && CurrentGrid.IsValidCell(redirectX, redirectZ)) // go backward is valid
-                    redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
-                else
-                {
-                    Debug.Log($"Backward ({transform.position}-{requestedRobot.transform.position}={requestedRobotDistance}), Last = {LastCellPosition} ");
-                    redirectGoalCellPosition = LastCellPosition; // the only choice is staying where it is 
-                }
-            }
-        }
-
-        Debug.Log(requestedRobot.gameObject.name+" requested to move "+ gameObject.name + " from "+  CurrentGrid.GetXZ(transform.position) + " to "+ redirectGoalCellPosition);
-
-        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming) // Destroy the Jamming State, to restore the LastRobotState
-        {
-            StopCoroutine(Jamming());
-        }
-
+            Debug.Log($"Backward ({transform.position}-{requestedRobot.transform.position}={requestedRobotDistance}), Last = {LastCellPosition} ");
+            StartCoroutine(nameof(Jamming)); // the only choice is staying where it is 
+            return;
+        }        
+        
+        Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetXZ(transform.position) + " to " + redirectGoalCellPosition);
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.LastCell, redirectGoalCellPosition, RestoreState);
-        
-        SetToState(RobotStateEnum.Redirecting, 
-            new object[]{CurrentTask}, 
-            new object[]{robotTask});
-        
+        SetToState(RobotStateEnum.Redirecting,
+            new object[] { CurrentTask },
+            new object[] { robotTask });
+    }
+
+    private bool IsValidRedirectPosition(Vector3 direction, out Vector3 redirectGoalCellPosition, out bool isNotBlockAHead)
+    {
+        var raycast = Physics.RaycastAll(transform.position, direction, castRadius, robotLayerMask);
+        var (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + direction * 1);
+
+        isNotBlockAHead = raycast.Length == 0;
+        redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
+
+        return CurrentGrid.IsValidCell(redirectX, redirectZ);
     }
 
     public override void ApproachCrate(Crate crate)
