@@ -306,6 +306,7 @@ public class B1Robot : Robot
     {
         Destroy(HoldingCrate.gameObject);
         HoldingCrate = null;
+        DebugUIManager.Instance.AddFinish();
         
         SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
         

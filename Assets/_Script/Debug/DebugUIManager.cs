@@ -14,6 +14,11 @@ public class DebugUIManager : SingletonMonoBehaviour<DebugUIManager>
     [SerializeField] private TMP_Text collisionText;
     private int _collosionCount;
     
+    [Header("Crate finish")]
+    [SerializeField] private TMP_Text finishText;
+    private int _finishCount;
+
+    
     void Update () {
         if(!isActive) return;
 
@@ -25,7 +30,14 @@ public class DebugUIManager : SingletonMonoBehaviour<DebugUIManager>
     public void AddCollision()
     {
         _collosionCount++;
-        collisionText.text = "Collide: " + _collosionCount.ToString();
+        collisionText.text = "Collide: " + _collosionCount/2;
+    }
+    
+    
+    public void AddFinish()
+    {
+        _finishCount++;
+        finishText.text = "finish: " + _finishCount;
     }
     
 }
