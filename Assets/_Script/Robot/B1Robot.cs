@@ -228,32 +228,45 @@ public class B1Robot : Robot
         {
             return;  // Cannot redirect twice
         }
-
-        Vector3 requestedRobotDistance = (CurrentGrid.GetWorldPositionOfNearestCell(transform.position) - CurrentGrid.GetWorldPositionOfNearestCell(requestedRobot.transform.position)).normalized;
-        Vector3 crossProduct = Vector3.Cross(Vector3.up, requestedRobotDistance).normalized; // find the orthogonal vector 
-        Vector3 redirectGoalCellPosition = LastCellPosition;
+        
+        // Calculate the direction
+        Vector3 requestedRobotDistance = (CurrentGrid.GetWorldPositionOfNearestCell(requestedRobot.transform.position) - CurrentGrid.GetWorldPositionOfNearestCell(transform.position)).normalized;
+        
+        Vector3 roundDirection = new Vector3(
+            Mathf.RoundToInt(requestedRobotDistance.x),
+            Mathf.RoundToInt(requestedRobotDistance.y),
+            Mathf.RoundToInt(requestedRobotDistance.z)
+        );
+        Vector3 orthogonalDirection = Vector3.Cross(Vector3.up, roundDirection).normalized; // find the orthogonal vector
+        
         
         // Check validity and detect obstacles for redirecting right, left, and backward
-        bool goRightValid = IsValidRedirectPosition(crossProduct, out Vector3 redirectRightGoalCellPosition, out bool isNotBlockRight);
-        bool goLeftValid = IsValidRedirectPosition(crossProduct * -1, out Vector3 redirectLeftGoalCellPosition, out bool isNotBlockLeft);
-        bool goBackwardValid = IsValidRedirectPosition(requestedRobotDistance, out Vector3 redirectBackwardGoalCellPosition, out bool isNotBlockBackward);
+        bool goRightValid = IsValidRedirectPosition(orthogonalDirection, requestedRobotDistance, out Vector3 redirectRightGoalCellPosition, out bool isNotBlockRight);
+        bool goLeftValid = IsValidRedirectPosition(orthogonalDirection * -1, requestedRobotDistance, out Vector3 redirectLeftGoalCellPosition, out bool isNotBlockLeft);
+        bool goBackwardValid = IsValidRedirectPosition(roundDirection * -1, requestedRobotDistance, out Vector3 redirectBackwardGoalCellPosition, out bool isNotBlockBackward); 
+        bool goForwardValid = IsValidRedirectPosition(roundDirection * 1, requestedRobotDistance, out Vector3 redirectForwardGoalCellPosition, out bool isNotBlockForward);
 
         // Determine the final redirect goal position based on validity and obstacles
+        Vector3 redirectGoalCellPosition;
+
         if (goRightValid && isNotBlockRight)
             redirectGoalCellPosition = redirectRightGoalCellPosition;
         else if (goLeftValid && isNotBlockLeft)
             redirectGoalCellPosition = redirectLeftGoalCellPosition;
         else if (goBackwardValid && isNotBlockBackward)
             redirectGoalCellPosition = redirectBackwardGoalCellPosition;
+        else if (goForwardValid && isNotBlockForward)
+            redirectGoalCellPosition = redirectForwardGoalCellPosition;
         else if (goRightValid)
             redirectGoalCellPosition = redirectRightGoalCellPosition;
         else if (goLeftValid)
             redirectGoalCellPosition = redirectLeftGoalCellPosition;
         else if (goBackwardValid)
             redirectGoalCellPosition = redirectBackwardGoalCellPosition;
+        else if (goForwardValid)
+            redirectGoalCellPosition = redirectForwardGoalCellPosition;
         else
         {
-            Debug.Log($"Backward ({transform.position}-{requestedRobot.transform.position}={requestedRobotDistance}), Last = {LastCellPosition} ");
             JamCoroutine = StartCoroutine(nameof(Jamming)); // the only choice is staying where it is 
             return;
         }        
@@ -265,7 +278,7 @@ public class B1Robot : Robot
             new object[] { robotTask });
     }
 
-    private bool IsValidRedirectPosition(Vector3 direction, out Vector3 redirectGoalCellPosition, out bool isNotBlockAHead)
+    private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, out Vector3 redirectGoalCellPosition, out bool isNotBlockAHead)
     {
         var raycast = Physics.RaycastAll(transform.position, direction, castRadius, robotLayerMask);
         var (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + direction * 1);
@@ -273,7 +286,7 @@ public class B1Robot : Robot
         isNotBlockAHead = raycast.Length == 0;
         redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
 
-        return CurrentGrid.IsValidCell(redirectX, redirectZ);
+        return CurrentGrid.IsValidCell(redirectX, redirectZ) && exceptDirection != direction;
     }
 
     public override void ApproachCrate(Crate crate)
