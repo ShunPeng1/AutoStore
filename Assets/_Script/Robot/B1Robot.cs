@@ -233,18 +233,18 @@ public class B1Robot : Robot
         Vector3 requestedRobotDistance = (CurrentGrid.GetWorldPositionOfNearestCell(requestedRobot.transform.position) - CurrentGrid.GetWorldPositionOfNearestCell(transform.position)).normalized;
         
         Vector3 roundDirection = new Vector3(
-            Mathf.RoundToInt(requestedRobotDistance.x),
-            Mathf.RoundToInt(requestedRobotDistance.y),
-            Mathf.RoundToInt(requestedRobotDistance.z)
+            Mathf.FloorToInt(requestedRobotDistance.x),
+            Mathf.FloorToInt(requestedRobotDistance.y),
+            Mathf.CeilToInt(requestedRobotDistance.z)
         );
         Vector3 orthogonalDirection = Vector3.Cross(Vector3.up, roundDirection).normalized; // find the orthogonal vector
         
         
         // Check validity and detect obstacles for redirecting right, left, and backward
-        bool goRightValid = IsValidRedirectPosition(orthogonalDirection, requestedRobotDistance, out Vector3 redirectRightGoalCellPosition, out bool isNotBlockRight);
-        bool goLeftValid = IsValidRedirectPosition(orthogonalDirection * -1, requestedRobotDistance, out Vector3 redirectLeftGoalCellPosition, out bool isNotBlockLeft);
+        bool goRightValid = IsValidRedirectPosition(orthogonalDirection * -1, requestedRobotDistance, out Vector3 redirectRightGoalCellPosition, out bool isNotBlockRight);
+        bool goLeftValid = IsValidRedirectPosition(orthogonalDirection, requestedRobotDistance, out Vector3 redirectLeftGoalCellPosition, out bool isNotBlockLeft);
         bool goBackwardValid = IsValidRedirectPosition(roundDirection * -1, requestedRobotDistance, out Vector3 redirectBackwardGoalCellPosition, out bool isNotBlockBackward); 
-        bool goForwardValid = IsValidRedirectPosition(roundDirection * 1, requestedRobotDistance, out Vector3 redirectForwardGoalCellPosition, out bool isNotBlockForward);
+        bool goForwardValid = IsValidRedirectPosition(roundDirection, requestedRobotDistance, out Vector3 redirectForwardGoalCellPosition, out bool isNotBlockForward);
 
         // Determine the final redirect goal position based on validity and obstacles
         Vector3 redirectGoalCellPosition;
