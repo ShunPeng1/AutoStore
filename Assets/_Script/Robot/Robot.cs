@@ -19,6 +19,7 @@ namespace _Script.Robot
     public abstract class Robot : BaseStateMachine<RobotStateEnum>
     {
         [Header("Stat")] 
+        private static int _idCount = 0;
         public int Id;
 
         [Header("Grid")]
@@ -39,7 +40,7 @@ namespace _Script.Robot
         
         [Header("Task ")]
         [SerializeField] protected Crate HoldingCrate;
-        [SerializeField] protected RobotTask CurrentTask;
+        [SerializeField] public RobotTask CurrentTask;
         
         
         [Header("Components")] 
@@ -49,6 +50,13 @@ namespace _Script.Robot
 
         #region Initial
 
+        protected override void Awake()
+        {
+            base.Awake();
+            Id = _idCount;
+            _idCount++;
+        }
+        
         private void Start()
         {
             InitializeGrid();
