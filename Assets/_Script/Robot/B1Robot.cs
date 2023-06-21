@@ -86,37 +86,44 @@ public class B1Robot : Robot
         bool isMinBlockAhead = IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE);
         bool isMaxBlockAhead = IsBlockAHead(detectedRobot, MAX_BLOCK_AHEAD_ANGLE);
         
-        if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Idle) 
+        switch (detectedRobot.CurrentBaseState.MyStateEnum)
         {
-            // Is block ahead
-            if (detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
-            {
+            /* Idle state cases */
+            case RobotStateEnum.Idle when detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition || isMinBlockAhead: 
+                // If they are standing on this robot goal or blocking ahead of this robot
                 detectedRobot.RedirectOrthogonal(this);
                 return DetectDecision.Wait;
-            }
             
-            if (!isMinBlockAhead) return DetectDecision.Continue;
+            case RobotStateEnum.Idle: // Not blocking at all
+                return DetectDecision.Continue;
             
-            // Is block ahead
-            detectedRobot.RedirectOrthogonal(this);
             
-            return DetectDecision.Wait;
-        }
-        
-        
-        if (detectedRobot.CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) 
-        {
-            if(!isMaxBlockAhead) return DetectDecision.Continue; // block in between the next cell
+            /* Jamming state cases */
+            case RobotStateEnum.Jamming when !isMaxBlockAhead: //  is not block in between the next cell
+                return DetectDecision.Continue; 
             
-            // Is block ahead
-            if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
-                || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
-            {
+            // Currently blocking in between the next cell , and they are standing on this robot goal
+            case RobotStateEnum.Jamming when detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
+                                             || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition:
                 detectedRobot.RedirectOrthogonal(this);
                 return DetectDecision.Wait;
-            }
-            else return DetectDecision.Dodge;
+            case RobotStateEnum.Jamming: // Currently blocking in between the next cell, and not on this robot goal
+                return DetectDecision.Dodge;
+            
+            
+            /* Handling states cases */
+            case RobotStateEnum.Handling when !isMinBlockAhead: //  is not block ahead
+                return DetectDecision.Continue; 
+            
+            // Currently blocking in between the next cell , and they are standing on this robot goal
+            case RobotStateEnum.Handling when detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
+                                              || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition:
+                return DetectDecision.Wait;
+            case RobotStateEnum.Handling: // Currently blocking in between the next cell, and not on this robot goal
+                return DetectDecision.Dodge;
         }
+
+        // These are the rest of moving state
         
         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f) // opposite direction 
         {
@@ -293,35 +300,21 @@ public class B1Robot : Robot
         HoldingCrate = crate;
 
         Vector3 goalCellPosition = crate.transform.position + Vector3.up * transform.position.y;
-        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, PickUpCrate, 0);
+        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateSource, 0);
         
         SetToState(RobotStateEnum.Approaching, 
             new object[]{CurrentTask}, 
             new object[]{robotTask});
     }
 
-    protected override void PickUpCrate()
+    protected override void ArriveCrateSource()
     {
-        HoldingCrate.transform.SetParent(transform);
-
-        var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingCrate.storingX, HoldingCrate.storingZ) + Vector3.up * transform.position.y;
-        
-        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, DropDownCrate, 0);
-        
-        SetToState(RobotStateEnum.Delivering, 
-            new object[]{CurrentTask}, 
-            new object[]{robotTask});
-        
+        StartCoroutine(nameof(PullingUp));
     }
 
-    protected override void DropDownCrate()
+    protected override void ArriveCrateDestination()
     {
-        Destroy(HoldingCrate.gameObject);
-        HoldingCrate = null;
-        DebugUIManager.Instance.AddFinish();
-        
-        SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
-        
+        StartCoroutine(nameof(DroppingDown));
     }
     
     

@@ -10,7 +10,7 @@ namespace _Script.Robot
     {
         Idle,
         Delivering,
-        Retrieving,
+        Handling,
         Approaching,
         Jamming,
         Redirecting
@@ -95,7 +95,7 @@ namespace _Script.Robot
                     DetectNearByRobot(myStateEnum, objects);
                     MoveAlongGrid(myStateEnum, objects);
                 }, null, AssignTask);
-            BaseState<RobotStateEnum> retrievingState = new(RobotStateEnum.Retrieving, null, null, AssignTask);
+            BaseState<RobotStateEnum> retrievingState = new(RobotStateEnum.Handling, null, null, AssignTask);
             BaseState<RobotStateEnum> deliveringState = new(RobotStateEnum.Delivering,
                 (myStateEnum, objects) =>
                 {
@@ -169,8 +169,8 @@ namespace _Script.Robot
         
         public abstract void ApproachCrate(Crate crate);
         
-        protected abstract void PickUpCrate();
-        protected abstract void DropDownCrate();
+        protected abstract void ArriveCrateSource();
+        protected abstract void ArriveCrateDestination();
         
         protected IEnumerator Jamming()
         {
@@ -179,6 +179,39 @@ namespace _Script.Robot
             yield return new WaitForSeconds(JamWaitTime);
             
             RestoreState();
+        }
+        
+        protected IEnumerator PullingUp()
+        {
+            SetToState(RobotStateEnum.Handling);
+
+            yield return new WaitForSeconds(HoldingCrate.PullUpTime);
+            
+            
+            HoldingCrate.transform.SetParent(transform);
+
+            var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingCrate.StoringX, HoldingCrate.StoringZ) + Vector3.up * transform.position.y;
+        
+            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateDestination, 0);
+        
+            SetToState(RobotStateEnum.Delivering, 
+                new object[]{CurrentTask}, 
+                new object[]{robotTask});
+            
+        }
+        
+        
+        protected IEnumerator DroppingDown()
+        {
+            SetToState(RobotStateEnum.Handling);
+
+            yield return new WaitForSeconds(HoldingCrate.DropDownTime);
+            
+            Destroy(HoldingCrate.gameObject);
+            HoldingCrate = null;
+            DebugUIManager.Instance.AddFinish();
+        
+            SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
         }
 
         protected abstract void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using _Script.Robot;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityUtilities;
 using Random = UnityEngine.Random;
 
@@ -14,6 +15,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         public float ArriveTime;
         public Vector2Int SourceGridIndex;
         public Vector2Int DestinationGridIndex;
+        public float PullUpTime, DropDownTime;
     }
 
     enum SpawnStyle
@@ -26,7 +28,9 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     [Header("Random Spawn")] 
     [SerializeField, Range(1f, 100f)] private float _spawnRate = 5f;
     [SerializeField, Range(1, 100)] private int _maxPendingCrate = 100;
-
+    [SerializeField] private Vector2 _pullUpRandomRange = Vector2.up;
+    [SerializeField] private Vector2 _dropDownRandomRange = Vector2.up;
+    
     [Header("Fixed Spawn")]
     [SerializeField] private List<CrateSpawnInfo> _crateSpawnInfos;
     
@@ -67,7 +71,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             case SpawnStyle.Fixed:
                 if (_crateSpawnInfos.Count > 0 && _currentTime >= _crateSpawnInfos[0].ArriveTime)
                 {
-                    CreateCrateFixed(_crateSpawnInfos[0].SourceGridIndex, _crateSpawnInfos[0].DestinationGridIndex);
+                    CreateCrateFixed(_crateSpawnInfos[0]);
                     _crateSpawnInfos.RemoveAt(0);
                 }
                 break;
@@ -116,7 +120,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     private int CalculateDistance(Robot robot, Crate crate)
     {
         (int x, int z) = GridXZCell<StackStorage>.GetIndexDifferenceAbsolute(
-            _storageGrid.GetCell(crate.currentX, crate.currentZ),
+            _storageGrid.GetCell(crate.CurrentX, crate.CurrentZ),
             robot.GetCurrentGridCell());
         return 10 * x + 10 * z;
     }
@@ -128,19 +132,30 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     {
         int currentX = Random.Range(0, _width), currentZ = Random.Range(0, _height);
         int storingX = Random.Range(0, _width), storingZ = Random.Range(0, _height);
+        float pullUpTime = Random.Range(_pullUpRandomRange.x, _pullUpRandomRange.y);
+        float dropDownTime = Random.Range(_dropDownRandomRange.x, _dropDownRandomRange.y);
+        
         var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(),
             _storageGrid.GetWorldPositionOfNearestCell(currentX, currentZ), Quaternion.identity);
 
-        freshCrate.Init(_storageGrid, currentX, currentZ, storingX, storingZ);
+        freshCrate.Init(_storageGrid, currentX, currentZ, storingX, storingZ, pullUpTime, dropDownTime);
         _pendingCrates.Enqueue(freshCrate);
     }
 
-    private void CreateCrateFixed(Vector2Int sourceIndex, Vector2Int destinationIndex)
+    private void CreateCrateFixed(CrateSpawnInfo crateSpawnInfo)
     {
         var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(),
-            _storageGrid.GetWorldPositionOfNearestCell(sourceIndex.x, sourceIndex.y), Quaternion.identity);
+            _storageGrid.GetWorldPositionOfNearestCell(crateSpawnInfo.SourceGridIndex.x, crateSpawnInfo.SourceGridIndex.y), Quaternion.identity);
 
-        freshCrate.Init(_storageGrid, sourceIndex.x, sourceIndex.y, destinationIndex.x, destinationIndex.y);
+        freshCrate.Init(
+            _storageGrid, 
+            crateSpawnInfo.SourceGridIndex.x, 
+            crateSpawnInfo.SourceGridIndex.y, 
+            crateSpawnInfo.DestinationGridIndex.x, 
+            crateSpawnInfo.DestinationGridIndex.y, 
+            crateSpawnInfo.PullUpTime,
+            crateSpawnInfo.DropDownTime);
+        
         _pendingCrates.Enqueue(freshCrate);
     }
     
