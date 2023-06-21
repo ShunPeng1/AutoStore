@@ -121,30 +121,32 @@ public class B1Robot : Robot
                 return DetectDecision.Wait;
             case RobotStateEnum.Handling: // Currently blocking in between the next cell, and not on this robot goal
                 return DetectDecision.Dodge;
-        }
-
-        // These are the rest of moving state
-        
-        if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f) // opposite direction 
-        {
-            if(!isMinBlockAhead) return DetectDecision.Continue; // same row or column
             
-            // Is block ahead
-            if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
-                || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
-            {
-                detectedRobot.RedirectOrthogonal(this);
-                return DetectDecision.Wait;
-            }
-            else return DetectDecision.Dodge;
+
+            /* These are the rest of moving state */
+            default:
+                if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f) // opposite direction 
+                {
+                    if(!isMinBlockAhead) return DetectDecision.Continue; // same row or column
+            
+                    // Is block ahead
+                    if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
+                        || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
+                    {
+                        detectedRobot.RedirectOrthogonal(this);
+                        return DetectDecision.Wait;
+                    }
+                    else return DetectDecision.Dodge;
+                }
+        
+                if (dotProductOf2RobotDirection == 0) // perpendicular direction
+                {
+                    return isMaxBlockAhead ? DetectDecision.Wait : DetectDecision.Continue;
+                }
+        
+                return DetectDecision.Continue;
         }
         
-        if (dotProductOf2RobotDirection == 0) // perpendicular direction
-        {
-            return isMaxBlockAhead ? DetectDecision.Wait : DetectDecision.Continue;
-        }
-        
-        return DetectDecision.Continue;
     }
 
     private bool IsBlockAHead(Robot detectedRobot, float isHeadAngleThreshold)
