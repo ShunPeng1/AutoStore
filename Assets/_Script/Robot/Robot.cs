@@ -145,13 +145,28 @@ namespace _Script.Robot
                     ExtractNextCellInPath();
                     break;
                 case RobotTask.StartPosition.NextCell:
-                    CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
+                    if(CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition))
+                        MovingPath.RemoveFirst();
                     
                     break;
                 case RobotTask.StartPosition.NearestCell:
-                    Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
-                    CreatePathFinding(nearestCellPosition, CurrentTask.GoalCellPosition);
-                    ExtractNextCellInPath();
+                    Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
+
+                    if (nearestCellPosition == LastCellPosition)
+                    {
+                        CreatePathFinding(nearestCellPosition, CurrentTask.GoalCellPosition);
+                        ExtractNextCellInPath();
+                    }
+                    else if (nearestCellPosition == NextCellPosition)
+                    {
+                        if(CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition))
+                            MovingPath.RemoveFirst();
+                    }
+                    else
+                    {
+                        Debug.LogError( gameObject.name+" THE NEAREST CELL IS NOT LAST OR NEXT CELL "+ nearestCellPosition);
+                    }
+                    
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -214,8 +229,8 @@ namespace _Script.Robot
             SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
         }
 
-        protected abstract void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
-        protected abstract void CreatePathFinding(Vector3 startPosition, Vector3 endPosition);
+        protected abstract bool UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
+        protected abstract bool CreatePathFinding(Vector3 startPosition, Vector3 endPosition);
         #endregion
 
         #region Detection

@@ -166,21 +166,22 @@ public class B1Robot : Robot
 
     #region Pathfinding
 
-    protected override void CreatePathFinding(Vector3 startPosition, Vector3 endPosition)
+    protected override bool CreatePathFinding(Vector3 startPosition, Vector3 endPosition)
     {
         var startCell = CurrentGrid.GetCell(startPosition);
         var endCell = CurrentGrid.GetCell(endPosition);
         
-        
         MovingPath = PathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
 
-        if (MovingPath == null) // No destination was found
-        {
-            JamCoroutine = StartCoroutine(nameof(Jamming));
-        }
+        if (MovingPath != null) return true; 
+        
+        // No destination was found
+        JamCoroutine = StartCoroutine(nameof(Jamming));
+        return false;
+
     }
     
-    protected override void UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
+    protected override bool UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
     {
         var currentStartCell = CurrentGrid.GetCell(LastCellPosition);
          
@@ -189,10 +190,11 @@ public class B1Robot : Robot
         if (MovingPath == null) // The path to goal is block
         {
             JamCoroutine = StartCoroutine(nameof(Jamming));
-            return;
+            return false;
         }
         
         ExtractNextCellInPath(); // return to the last cell
+        return true;
     }
 
     #endregion
@@ -280,7 +282,7 @@ public class B1Robot : Robot
         }        
         
         Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetXZ(transform.position) + " to " + redirectGoalCellPosition);
-        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.LastCell, redirectGoalCellPosition, RestoreState);
+        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, RestoreState);
         SetToState(RobotStateEnum.Redirecting,
             new object[] { CurrentTask },
             new object[] { robotTask });
