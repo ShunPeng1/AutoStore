@@ -26,7 +26,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     [SerializeField] private SpawnStyle _spawnStyle = SpawnStyle.Random;
 
     [Header("Random Spawn")] 
-    [SerializeField, Range(1f, 100f)] private float _spawnRate = 5f;
+    [SerializeField, Range(0.001f, 100f)] private float _spawnRate = 5f;
     [SerializeField, Range(1, 100)] private int _maxPendingCrate = 100;
     [SerializeField] private Vector2 _pullUpRandomRange = Vector2.up;
     [SerializeField] private Vector2 _dropDownRandomRange = Vector2.up;

@@ -144,11 +144,12 @@ namespace _Script.Robot
                     CreatePathFinding(LastCellPosition, CurrentTask.GoalCellPosition);
                     ExtractNextCellInPath();
                     break;
+                
                 case RobotTask.StartPosition.NextCell:
-                    if(CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition))
-                        MovingPath.RemoveFirst();
-                    
+                    CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
+                    MovingPath.RemoveFirst();
                     break;
+                
                 case RobotTask.StartPosition.NearestCell:
                     Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
 
@@ -180,7 +181,7 @@ namespace _Script.Robot
             else SetToState(RobotStateEnum.Idle);
         }  
         
-        public abstract void RedirectOrthogonal(Robot requestedRobot);
+        public abstract bool RedirectOrthogonal(Robot requestedRobot);
         
         public abstract void ApproachCrate(Crate crate);
         

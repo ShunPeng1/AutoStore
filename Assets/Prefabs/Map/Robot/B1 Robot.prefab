@@ -822,17 +822,18 @@ MonoBehaviour:
   Id: 0
   NextCellPosition: {x: 0, y: 0, z: 0}
   LastCellPosition: {x: 0, y: 0, z: 0}
-  MaxMovementSpeed: 3.5
+  MaxMovementSpeed: 10
   PreemptiveDistance: 0
   JamWaitTime: 0.25
   HoldingCrate: {fileID: 0}
   BoxColliderSize: 0.9
   _debugLineRenderer: {fileID: 3908041089777982755}
-  centerBodyCast: {fileID: 4179138659058510927}
-  castRadius: 1.5
-  robotLayerMask:
+  _centerBodyCast: {fileID: 6291633209195861030}
+  _castRadius: 1.5
+  _robotLayerMask:
     serializedVersion: 2
     m_Bits: 256
+  _safeDistanceAhead: 1.5
 --- !u!54 &6291633208248654895
 Rigidbody:
   m_ObjectHideFlags: 0

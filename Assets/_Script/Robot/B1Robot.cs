@@ -10,12 +10,12 @@ public class B1Robot : Robot
     [SerializeField] private LineRenderer _debugLineRenderer;
     
     [Header("Casting")] 
-    [SerializeField] private Transform centerBodyCast;
-    [SerializeField] private float castRadius;
-    [SerializeField] private LayerMask robotLayerMask;
+    [SerializeField] private Transform _centerBodyCast;
+    [SerializeField] private float _castRadius = 1.5f;
+    [SerializeField] private LayerMask _robotLayerMask;
+    [SerializeField] private float _safeDistanceAhead = 1.5f;
 
-
-    private float MIN_BLOCK_AHEAD_ANGLE => Mathf.Atan((castRadius + BoxColliderSize/2)/(0.5f + BoxColliderSize/2)) * Mathf.PI;
+    private float MIN_BLOCK_AHEAD_ANGLE => Mathf.Atan((_castRadius + BoxColliderSize/2)/(0.5f + BoxColliderSize/2)) * Mathf.PI;
     private float MAX_BLOCK_AHEAD_ANGLE = 45f;
 
 
@@ -27,7 +27,7 @@ public class B1Robot : Robot
 
     private void OnDrawGizmos()
     {
-        Gizmos.DrawWireSphere(centerBodyCast.position, castRadius);
+        Gizmos.DrawWireSphere(_centerBodyCast.position, _castRadius);
     }
 
     #region RobotDetect
@@ -40,7 +40,7 @@ public class B1Robot : Robot
     }
     protected override void DetectNearByRobot(RobotStateEnum currentRobotState, object[] parameters)
     {
-        var hits = Physics.OverlapSphere(centerBodyCast.position, castRadius, robotLayerMask); // Find robot in a circle 
+        var hits = Physics.OverlapSphere(_centerBodyCast.position, _castRadius, _robotLayerMask); // Find robot in a circle 
 
         List<GridXZCell<StackStorage>> dynamicObstacle = new();
         DetectDecision finalDecision = DetectDecision.Continue; 
@@ -83,6 +83,7 @@ public class B1Robot : Robot
     private DetectDecision CheckDetection(Robot detectedRobot)
     {
         float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
+        float distanceOf2Robot = Vector3.Distance(transform.position, detectedRobot.transform.position);
         bool isMinBlockAhead = IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE);
         bool isMaxBlockAhead = IsBlockAHead(detectedRobot, MAX_BLOCK_AHEAD_ANGLE);
         
@@ -91,8 +92,7 @@ public class B1Robot : Robot
             /* Idle state cases */
             case RobotStateEnum.Idle when detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition || isMinBlockAhead: 
                 // If they are standing on this robot goal or blocking ahead of this robot
-                detectedRobot.RedirectOrthogonal(this);
-                return DetectDecision.Wait;
+                return detectedRobot.RedirectOrthogonal(this) ? DetectDecision.Wait : DetectDecision.Dodge;
             
             case RobotStateEnum.Idle: // Not blocking at all
                 return DetectDecision.Continue;
@@ -105,8 +105,8 @@ public class B1Robot : Robot
             // Currently blocking in between the next cell , and they are standing on this robot goal
             case RobotStateEnum.Jamming when detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
                                              || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition:
-                detectedRobot.RedirectOrthogonal(this);
-                return DetectDecision.Wait;
+                return detectedRobot.RedirectOrthogonal(this) ? DetectDecision.Wait : DetectDecision.Dodge;
+            
             case RobotStateEnum.Jamming: // Currently blocking in between the next cell, and not on this robot goal
                 return DetectDecision.Dodge;
             
@@ -133,12 +133,17 @@ public class B1Robot : Robot
                     if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
                         || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
                     {
-                        detectedRobot.RedirectOrthogonal(this);
-                        return DetectDecision.Wait;
+                        return detectedRobot.RedirectOrthogonal(this) ? DetectDecision.Wait : DetectDecision.Dodge;
                     }
                     else return DetectDecision.Dodge;
                 }
-        
+
+                if (Math.Abs(dotProductOf2RobotDirection - 1) < 0.01f && distanceOf2Robot <= _safeDistanceAhead && isMinBlockAhead) // same direction
+                {
+                    Debug.Log(gameObject.name + " Keep safe distance ahead with "+detectedRobot.gameObject.name);
+                    return DetectDecision.Wait;
+                }
+                
                 if (dotProductOf2RobotDirection == 0) // perpendicular direction
                 {
                     return isMaxBlockAhead ? DetectDecision.Wait : DetectDecision.Continue;
@@ -227,7 +232,7 @@ public class B1Robot : Robot
     /// The direction is right, left, backward, prefer mostly the direction which is not blocking
     /// </summary>
     /// <param name="requestedRobot"></param>
-    public override void RedirectOrthogonal(Robot requestedRobot)
+    public override bool RedirectOrthogonal(Robot requestedRobot)
     {
         if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming)
         {
@@ -236,7 +241,7 @@ public class B1Robot : Robot
 
         if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting)
         {
-            return;  // Cannot redirect twice
+            return false;  // Cannot redirect twice
         }
         
         // Calculate the direction
@@ -278,7 +283,7 @@ public class B1Robot : Robot
         else
         {
             JamCoroutine = StartCoroutine(nameof(Jamming)); // the only choice is staying where it is 
-            return;
+            return false;
         }        
         
         Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetXZ(transform.position) + " to " + redirectGoalCellPosition);
@@ -286,11 +291,12 @@ public class B1Robot : Robot
         SetToState(RobotStateEnum.Redirecting,
             new object[] { CurrentTask },
             new object[] { robotTask });
+        return true;
     }
 
     private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, out Vector3 redirectGoalCellPosition, out bool isNotBlockAHead)
     {
-        var raycast = Physics.RaycastAll(transform.position, direction, castRadius, robotLayerMask);
+        var raycast = Physics.RaycastAll(transform.position, direction, _castRadius, _robotLayerMask);
         var (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + direction * 1);
 
         isNotBlockAHead = raycast.Length == 0;
