@@ -87,7 +87,11 @@ namespace _Script.Robot
         
         private void InitializeState()
         {
-            BaseState<RobotStateEnum> idleState = new(RobotStateEnum.Idle, null, null, AssignTask);
+            BaseState<RobotStateEnum> idleState = new(RobotStateEnum.Idle, null, null,
+                (_, _) =>
+                {
+                    if (transform.position != LastCellPosition) RedirectToNearestCell();
+                });
             BaseState<RobotStateEnum> approachingState = new(RobotStateEnum.Approaching,
                 (myStateEnum, objects) =>
                 {
