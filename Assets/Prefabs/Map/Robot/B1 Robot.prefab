@@ -822,7 +822,7 @@ MonoBehaviour:
   Id: 0
   NextCellPosition: {x: 0, y: 0, z: 0}
   LastCellPosition: {x: 0, y: 0, z: 0}
-  MaxMovementSpeed: 10
+  MaxMovementSpeed: 4
   PreemptiveDistance: 0
   JamWaitTime: 0.25
   HoldingCrate: {fileID: 0}
