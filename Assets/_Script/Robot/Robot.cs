@@ -104,7 +104,7 @@ namespace _Script.Robot
                     MoveAlongGrid(myStateEnum, objects);
                 }, null, AssignTask);
             
-            BaseState<RobotStateEnum> jammingState = new(RobotStateEnum.Jamming, null, null, null);
+            BaseState<RobotStateEnum> jammingState = new(RobotStateEnum.Jamming, null, null, AssignTask);
             BaseState<RobotStateEnum> redirectingState = new(RobotStateEnum.Redirecting,
                 (myStateEnum, objects) =>
                 {
@@ -137,7 +137,8 @@ namespace _Script.Robot
             if (enterParameters == null) return;
             
             CurrentTask = enterParameters[0] as RobotTask;
-
+            if (CurrentTask == null) return;
+            
             switch (CurrentTask.StartCellPosition)
             {
                 case RobotTask.StartPosition.LastCell:
@@ -196,7 +197,7 @@ namespace _Script.Robot
             
             RestoreState();
         }
-        
+
         protected IEnumerator PullingUp()
         {
             SetToState(RobotStateEnum.Handling);
@@ -216,7 +217,6 @@ namespace _Script.Robot
             
         }
         
-        
         protected IEnumerator DroppingDown()
         {
             SetToState(RobotStateEnum.Handling);
@@ -232,6 +232,17 @@ namespace _Script.Robot
 
         protected abstract bool UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
         protected abstract bool CreatePathFinding(Vector3 startPosition, Vector3 endPosition);
+
+        protected void RedirectToNearestCell()
+        {
+            Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
+            
+            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, RestoreState);
+            SetToState(RobotStateEnum.Redirecting,
+                new object[] { CurrentTask },
+                new object[] { robotTask });
+        }
+        
         #endregion
 
         #region Detection

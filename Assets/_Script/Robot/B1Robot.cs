@@ -181,7 +181,10 @@ public class B1Robot : Robot
         if (MovingPath != null) return true; 
         
         // No destination was found
-        JamCoroutine = StartCoroutine(nameof(Jamming));
+        
+        //JamCoroutine = StartCoroutine(nameof(Jamming));
+        RedirectToNearestCell();
+
         return false;
 
     }
@@ -197,7 +200,8 @@ public class B1Robot : Robot
             
             if (MovingPath == null) // The path to goal is block
             {
-                JamCoroutine = StartCoroutine(nameof(Jamming));
+                //JamCoroutine = StartCoroutine(nameof(Jamming));
+                RedirectToNearestCell();
                 return false;
             }
             ExtractNextCellInPath();
@@ -209,7 +213,8 @@ public class B1Robot : Robot
                 
             if (MovingPath == null) // The path to goal is block
             {
-                JamCoroutine = StartCoroutine(nameof(Jamming));
+                //JamCoroutine = StartCoroutine(nameof(Jamming));
+                RedirectToNearestCell();
                 return false;
             }
             MovingPath.RemoveFirst();
