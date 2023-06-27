@@ -188,6 +188,37 @@ public class B1Robot : Robot
     
     protected override bool UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
     {
+        Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
+        var currentStartCell = CurrentGrid.GetCell(nearestCellPosition);
+
+        if (nearestCellPosition == LastCellPosition)
+        {
+            MovingPath = PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
+            
+            if (MovingPath == null) // The path to goal is block
+            {
+                JamCoroutine = StartCoroutine(nameof(Jamming));
+                return false;
+            }
+            ExtractNextCellInPath();
+            return true;
+        }
+        if (nearestCellPosition == NextCellPosition)
+        {
+            MovingPath = PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
+                
+            if (MovingPath == null) // The path to goal is block
+            {
+                JamCoroutine = StartCoroutine(nameof(Jamming));
+                return false;
+            }
+            MovingPath.RemoveFirst();
+            return true;
+        }
+
+        return false;
+
+        /*
         var currentStartCell = CurrentGrid.GetCell(LastCellPosition);
          
         MovingPath = PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
@@ -200,6 +231,7 @@ public class B1Robot : Robot
         
         ExtractNextCellInPath(); // return to the last cell
         return true;
+        */
     }
 
     #endregion
