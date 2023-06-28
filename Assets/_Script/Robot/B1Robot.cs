@@ -71,7 +71,7 @@ public class B1Robot : Robot
     private DetectDecision CheckDetection(Robot detectedRobot)
     {
         float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
-        float distanceOf2Robot = Vector3.Distance(transform.position, detectedRobot.transform.position);
+        bool isUnsafeDistanceOf2Robot = Vector3.Distance(transform.position, detectedRobot.transform.position) <= _safeDistanceAhead ;
         bool isMinBlockingAhead = IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE);
         bool isMaxBlockingAhead = IsBlockAHead(detectedRobot, MAX_BLOCK_AHEAD_ANGLE);
         bool isOccupyingGoal = detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition 
@@ -106,6 +106,7 @@ public class B1Robot : Robot
             // Currently blocking in between the next cell , and they are standing on this robot goal
             case RobotStateEnum.Handling when isOccupyingGoal:
                 return DetectDecision.Wait;
+            
             case RobotStateEnum.Handling: // Currently blocking in between the next cell, and not on this robot goal
                 return DetectDecision.Dodge;
             
@@ -127,8 +128,8 @@ public class B1Robot : Robot
                     else return DetectDecision.Dodge;
                 }
 
-                if (Math.Abs(dotProductOf2RobotDirection - 1) < 0.01f && isMinBlockingAhead 
-                        && distanceOf2Robot <= _safeDistanceAhead) // 2 robot moving same direction and smaller than safe distance
+                if (Math.Abs(dotProductOf2RobotDirection - 1) < 0.01f && isMinBlockingAhead && isUnsafeDistanceOf2Robot) 
+                    // 2 robot moving same direction and smaller than safe distance
                 {
                     Debug.Log(gameObject.name + " Keep safe distance ahead with "+detectedRobot.gameObject.name);
                     return DetectDecision.Wait;
