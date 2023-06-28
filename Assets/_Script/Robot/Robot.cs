@@ -90,7 +90,8 @@ namespace _Script.Robot
             BaseState<RobotStateEnum> idleState = new(RobotStateEnum.Idle, null, null,
                 (_, _) =>
                 {
-                    if (transform.position != LastCellPosition) RedirectToNearestCell();
+                    if (transform.position != LastCellPosition) 
+                        RedirectToNearestCell();
                 });
             BaseState<RobotStateEnum> approachingState = new(RobotStateEnum.Approaching,
                 (myStateEnum, objects) =>
@@ -186,12 +187,30 @@ namespace _Script.Robot
             else SetToState(RobotStateEnum.Idle);
         }  
         
-        public abstract bool RedirectOrthogonal(Robot requestedRobot);
+        protected void RedirectToNearestCell()
+        {
+            Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
+            
+            Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
+            
+            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
+            SetToState(RobotStateEnum.Redirecting,
+                new object[] { CurrentTask },
+                new object[] { robotTask });
+        }
+        
+        public abstract bool RedirectToOrthogonalCell(Robot requestedRobot);
         
         public abstract void ApproachCrate(Crate crate);
         
         protected abstract void ArriveCrateSource();
         protected abstract void ArriveCrateDestination();
+
+        protected void SetToJam()
+        {
+            if (JamCoroutine != null) StopCoroutine(JamCoroutine);
+            JamCoroutine = StartCoroutine(nameof(Jamming));
+        }
         
         protected IEnumerator Jamming()
         {
@@ -236,16 +255,7 @@ namespace _Script.Robot
 
         protected abstract bool UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
         protected abstract bool CreatePathFinding(Vector3 startPosition, Vector3 endPosition);
-
-        protected void RedirectToNearestCell()
-        {
-            Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
-            
-            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, RestoreState);
-            SetToState(RobotStateEnum.Redirecting,
-                new object[] { CurrentTask },
-                new object[] { robotTask });
-        }
+        
         
         #endregion
 

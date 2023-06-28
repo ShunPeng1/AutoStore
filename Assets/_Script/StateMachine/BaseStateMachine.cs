@@ -52,8 +52,9 @@ namespace _Script.StateMachine
             Debug.Log(gameObject.name +" Change "+ CurrentBaseState.MyStateEnum+ " State To "+ nextState.MyStateEnum + " State");
             
             CurrentBaseState.OnExitState(nextState.MyStateEnum,exitOldStateParameters);
-            nextState.OnEnterState(CurrentBaseState.MyStateEnum,enterNewStateParameters);
+            TStateEnum lastStateEnum = CurrentBaseState.MyStateEnum;
             CurrentBaseState = nextState;
+            nextState.OnEnterState(lastStateEnum,enterNewStateParameters);
         }
         
     }

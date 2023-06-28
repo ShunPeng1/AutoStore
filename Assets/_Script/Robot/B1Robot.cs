@@ -66,7 +66,7 @@ public class B1Robot : Robot
         {
             case DetectDecision.Wait: // We set the robot to jam state
                 Debug.Log(gameObject.name +" Jam! ");
-                JamCoroutine = StartCoroutine(nameof(Jamming));
+                SetToJam();
                 break;
             case DetectDecision.Dodge: // We add the detected robot cell as obstacle
                 Debug.Log(gameObject.name +" Dodge ");
@@ -92,7 +92,7 @@ public class B1Robot : Robot
             /* Idle state cases */
             case RobotStateEnum.Idle when detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition || isMinBlockAhead: 
                 // If they are standing on this robot goal or blocking ahead of this robot
-                return detectedRobot.RedirectOrthogonal(this) ? DetectDecision.Wait : DetectDecision.Dodge;
+                return detectedRobot.RedirectToOrthogonalCell(this) ? DetectDecision.Wait : DetectDecision.Dodge;
             
             case RobotStateEnum.Idle: // Not blocking at all
                 return DetectDecision.Continue;
@@ -105,7 +105,7 @@ public class B1Robot : Robot
             // Currently blocking in between the next cell , and they are standing on this robot goal
             case RobotStateEnum.Jamming when detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
                                              || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition:
-                return detectedRobot.RedirectOrthogonal(this) ? DetectDecision.Wait : DetectDecision.Dodge;
+                return detectedRobot.RedirectToOrthogonalCell(this) ? DetectDecision.Wait : DetectDecision.Dodge;
             
             case RobotStateEnum.Jamming: // Currently blocking in between the next cell, and not on this robot goal
                 return DetectDecision.Dodge;
@@ -133,7 +133,7 @@ public class B1Robot : Robot
                     if (detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition
                         || detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition) // If they are standing on this robot goal
                     {
-                        return detectedRobot.RedirectOrthogonal(this) ? DetectDecision.Wait : DetectDecision.Dodge;
+                        return detectedRobot.RedirectToOrthogonalCell(this) ? DetectDecision.Wait : DetectDecision.Dodge;
                     }
                     else return DetectDecision.Dodge;
                 }
@@ -269,7 +269,7 @@ public class B1Robot : Robot
     /// The direction is right, left, backward, prefer mostly the direction which is not blocking
     /// </summary>
     /// <param name="requestedRobot"></param>
-    public override bool RedirectOrthogonal(Robot requestedRobot)
+    public override bool RedirectToOrthogonalCell(Robot requestedRobot)
     {
         if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming)
         {
@@ -319,7 +319,7 @@ public class B1Robot : Robot
             redirectGoalCellPosition = redirectForwardGoalCellPosition;
         else
         {
-            JamCoroutine = StartCoroutine(nameof(Jamming)); // the only choice is staying where it is 
+            SetToJam(); // the only choice is staying where it is 
             return false;
         }        
         
