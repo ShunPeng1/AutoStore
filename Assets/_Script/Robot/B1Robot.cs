@@ -6,10 +6,7 @@ using UnityEngine;
 
 public class B1Robot : Robot
 {
-    [Header("Debug")] 
-    [SerializeField] private LineRenderer _debugLineRenderer;
-    
-    [Header("Casting")] 
+    [Header("Collider Casting")] 
     [SerializeField] private Transform _centerBodyCast;
     [SerializeField] private float _castRadius = 1.5f;
     [SerializeField] private LayerMask _robotLayerMask;
@@ -18,19 +15,12 @@ public class B1Robot : Robot
     private float MIN_BLOCK_AHEAD_ANGLE => Mathf.Atan((_castRadius + BoxColliderSize/2)/(0.5f + BoxColliderSize/2)) * Mathf.PI;
     private float MAX_BLOCK_AHEAD_ANGLE = 45f;
 
-
-    void FixedUpdate()
-    {
-        CurrentBaseState.ExecuteState();
-        ShowPath();
-    }
-
     private void OnDrawGizmos()
     {
         Gizmos.DrawWireSphere(_centerBodyCast.position, _castRadius);
     }
 
-    #region RobotDetect
+    #region DETECTION
 
     private enum DetectDecision
     {
@@ -70,7 +60,7 @@ public class B1Robot : Robot
                 break;
             case DetectDecision.Dodge: // We add the detected robot cell as obstacle
                 Debug.Log(gameObject.name +" Dodge ");
-                UpdatePathFinding(dynamicObstacle); // Update Path base on dynamic obstacle
+                UpdateInitialPath(dynamicObstacle); // Update Path base on dynamic obstacle
                 break;
             case DetectDecision.Continue:
                 break;
@@ -169,9 +159,9 @@ public class B1Robot : Robot
     }
     #endregion
 
-    #region Pathfinding
+    #region PATH_FINDING
 
-    protected override bool CreatePathFinding(Vector3 startPosition, Vector3 endPosition)
+    protected override bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition)
     {
         var startCell = CurrentGrid.GetCell(startPosition);
         var endCell = CurrentGrid.GetCell(endPosition);
@@ -181,15 +171,13 @@ public class B1Robot : Robot
         if (MovingPath != null) return true; 
         
         // No destination was found
-        
-        //JamCoroutine = StartCoroutine(nameof(Jamming));
         RedirectToNearestCell();
 
         return false;
 
     }
     
-    protected override bool UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle)
+    protected override bool UpdateInitialPath(List<GridXZCell<StackStorage>> dynamicObstacle)
     {
         Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
         var currentStartCell = CurrentGrid.GetCell(nearestCellPosition);
@@ -200,7 +188,6 @@ public class B1Robot : Robot
             
             if (MovingPath == null) // The path to goal is block
             {
-                //JamCoroutine = StartCoroutine(nameof(Jamming));
                 RedirectToNearestCell();
                 return false;
             }
@@ -213,7 +200,6 @@ public class B1Robot : Robot
                 
             if (MovingPath == null) // The path to goal is block
             {
-                //JamCoroutine = StartCoroutine(nameof(Jamming));
                 RedirectToNearestCell();
                 return false;
             }
@@ -222,48 +208,25 @@ public class B1Robot : Robot
         }
 
         return false;
-
-        /*
-        var currentStartCell = CurrentGrid.GetCell(LastCellPosition);
-         
-        MovingPath = PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
-       
-        if (MovingPath == null) // The path to goal is block
-        {
-            JamCoroutine = StartCoroutine(nameof(Jamming));
-            return false;
-        }
-        
-        ExtractNextCellInPath(); // return to the last cell
-        return true;
-        */
     }
 
     #endregion
-    
 
+    #region TASK_FUNCTIONS
 
-    void ShowPath()
+    protected override void RedirectToNearestCell()
     {
-        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Idle || MovingPath == null)
-        {
-            _debugLineRenderer.positionCount = 0;
-            return;
-        }
-        
-        _debugLineRenderer.positionCount = MovingPath.Count + 1;
-        _debugLineRenderer.SetPosition(0, transform.position);
-
-        int itr = 1;
-        foreach (var cell in MovingPath)
-        {
-            _debugLineRenderer.SetPosition(itr, CurrentGrid.GetWorldPositionOfNearestCell(cell.XIndex,cell.ZIndex));
-            itr++;
-        }
+        Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
+            
+        Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
+            
+        RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
+        SetToState(RobotStateEnum.Redirecting,
+            new object[] { CurrentTask },
+            new object[] { robotTask });
     }
 
-    #region AssignTask
-
+    
     /// <summary>
     /// This function will be requested when the robot is Idle, or standing on others goal. To move to a other direction
     /// The direction is right, left, backward, prefer mostly the direction which is not blocking
@@ -354,16 +317,5 @@ public class B1Robot : Robot
             new object[]{robotTask});
     }
 
-    protected override void ArriveCrateSource()
-    {
-        StartCoroutine(nameof(PullingUp));
-    }
-
-    protected override void ArriveCrateDestination()
-    {
-        StartCoroutine(nameof(DroppingDown));
-    }
-    
-    
     #endregion
 }

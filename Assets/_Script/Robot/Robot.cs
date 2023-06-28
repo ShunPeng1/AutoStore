@@ -25,9 +25,9 @@ namespace _Script.Robot
         [Header("Grid")]
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
-        protected GridXZ<GridXZCell<StackStorage>> CurrentGrid;
+        protected internal GridXZ<GridXZCell<StackStorage>> CurrentGrid;
         protected int XIndex, ZIndex;
-        protected LinkedList<GridXZCell<StackStorage>> MovingPath;
+        protected internal LinkedList<GridXZCell<StackStorage>> MovingPath;
         
         [Header("Movement")] 
         [SerializeField] protected float MaxMovementSpeed = 1f;
@@ -48,7 +48,7 @@ namespace _Script.Robot
         protected BoxCollider BoxCollider;
         [SerializeField] protected float BoxColliderSize = 0.9f;
 
-        #region Initial
+        #region INITIALIZE
 
         protected override void Awake()
         {
@@ -64,7 +64,12 @@ namespace _Script.Robot
             InitializeComponents();
             InitializeState();
         }
-        
+
+        private void FixedUpdate()
+        {
+            CurrentBaseState.ExecuteState();
+        }
+
         private void InitializeGrid()
         {
             CurrentGrid = MapManager.Instance.WorldGrid;
@@ -135,7 +140,7 @@ namespace _Script.Robot
         /// </summary>
         /// <param name="requestedRobot"></param>
 
-        #region AssignTask
+        #region TASK_FUNCTIONS
 
         private void AssignTask(RobotStateEnum lastRobotState, object [] enterParameters)
         {
@@ -147,12 +152,12 @@ namespace _Script.Robot
             switch (CurrentTask.StartCellPosition)
             {
                 case RobotTask.StartPosition.LastCell:
-                    CreatePathFinding(LastCellPosition, CurrentTask.GoalCellPosition);
+                    CreateInitialPath(LastCellPosition, CurrentTask.GoalCellPosition);
                     ExtractNextCellInPath();
                     break;
                 
                 case RobotTask.StartPosition.NextCell:
-                    CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition);
+                    CreateInitialPath(NextCellPosition, CurrentTask.GoalCellPosition);
                     MovingPath.RemoveFirst();
                     break;
                 
@@ -161,12 +166,12 @@ namespace _Script.Robot
 
                     if (nearestCellPosition == LastCellPosition)
                     {
-                        CreatePathFinding(nearestCellPosition, CurrentTask.GoalCellPosition);
+                        CreateInitialPath(nearestCellPosition, CurrentTask.GoalCellPosition);
                         ExtractNextCellInPath();
                     }
                     else if (nearestCellPosition == NextCellPosition)
                     {
-                        if(CreatePathFinding(NextCellPosition, CurrentTask.GoalCellPosition))
+                        if(CreateInitialPath(NextCellPosition, CurrentTask.GoalCellPosition))
                             MovingPath.RemoveFirst();
                     }
                     else
@@ -185,26 +190,11 @@ namespace _Script.Robot
             var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore();
             if(enterState!= null) SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
             else SetToState(RobotStateEnum.Idle);
-        }  
-        
-        protected void RedirectToNearestCell()
-        {
-            Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
-            
-            Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
-            
-            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
-            SetToState(RobotStateEnum.Redirecting,
-                new object[] { CurrentTask },
-                new object[] { robotTask });
         }
-        
+
+        protected abstract void RedirectToNearestCell();        
         public abstract bool RedirectToOrthogonalCell(Robot requestedRobot);
-        
         public abstract void ApproachCrate(Crate crate);
-        
-        protected abstract void ArriveCrateSource();
-        protected abstract void ArriveCrateDestination();
 
         protected void SetToJam()
         {
@@ -220,7 +210,12 @@ namespace _Script.Robot
             
             RestoreState();
         }
-
+        
+        protected void ArriveCrateSource()
+        {
+            StartCoroutine(nameof(PullingUp));
+        }
+        
         protected IEnumerator PullingUp()
         {
             SetToState(RobotStateEnum.Handling);
@@ -240,6 +235,11 @@ namespace _Script.Robot
             
         }
         
+        protected void ArriveCrateDestination()
+        {
+            StartCoroutine(nameof(DroppingDown));
+        }
+
         protected IEnumerator DroppingDown()
         {
             SetToState(RobotStateEnum.Handling);
@@ -253,18 +253,14 @@ namespace _Script.Robot
             SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
         }
 
-        protected abstract bool UpdatePathFinding(List<GridXZCell<StackStorage>> dynamicObstacle);
-        protected abstract bool CreatePathFinding(Vector3 startPosition, Vector3 endPosition);
-        
-        
         #endregion
 
-        #region Detection
+        #region DETECTION
         protected abstract void DetectNearByRobot(RobotStateEnum currentRobotState, object [] parameters);
 
         #endregion
 
-        #region Movement
+        #region MOVEMENT
         protected void MoveAlongGrid(RobotStateEnum currentRobotState, object [] parameters)
         {
             if (CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) return;
@@ -313,7 +309,7 @@ namespace _Script.Robot
         
         #endregion
         
-        #region GetCells
+        #region PATHS_AND_CELLS
         
         /// <summary>
         /// Using Iteration Pattern for getting the cell that the robot travelling when getting form the PathFinding Algorithm
@@ -349,9 +345,13 @@ namespace _Script.Robot
             return CurrentGrid.GetCell(XIndex, ZIndex);
         }
         
+        protected abstract bool UpdateInitialPath(List<GridXZCell<StackStorage>> dynamicObstacle);
+        protected abstract bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition);
+
+        
         #endregion
 
-        #region Collider
+        #region DEBUG
 
         private void OnCollisionEnter(Collision other)
         {

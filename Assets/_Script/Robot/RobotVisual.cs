@@ -19,8 +19,33 @@ public class RobotVisual : MonoBehaviour
     {
         _robot = GetComponent<Robot>();
      
-        SetBodyColorNoPattern();
-        //SetBodyColorUsingFlyWeightPattern();   
+        //SetBodyColorNoPattern();
+        SetBodyColorUsingFlyWeightPattern();   
+        
+    }
+
+    private void Update()
+    {
+        ShowPath();
+    }
+
+    void ShowPath()
+    {
+        if (_robot.CurrentBaseState.MyStateEnum == RobotStateEnum.Idle || _robot.MovingPath == null)
+        {
+            _lineRenderer.positionCount = 0;
+            return;
+        }
+        
+        _lineRenderer.positionCount = _robot.MovingPath.Count + 1;
+        _lineRenderer.SetPosition(0, transform.position);
+
+        int itr = 1;
+        foreach (var cell in _robot.MovingPath)
+        {
+            _lineRenderer.SetPosition(itr, _robot.CurrentGrid.GetWorldPositionOfNearestCell(cell.XIndex,cell.ZIndex));
+            itr++;
+        }
     }
 
     /// <summary>
