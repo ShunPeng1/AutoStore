@@ -193,12 +193,14 @@ namespace _Script.Robot
         }
 
         protected abstract void RedirectToNearestCell();        
-        public abstract bool RedirectToOrthogonalCell(Robot requestedRobot);
+        public abstract bool RedirectToOrthogonalCell(Robot requestedRobot, Vector3 requestedRobotGoalPosition);
         public abstract void ApproachCrate(Crate crate);
 
         protected void SetToJam()
         {
             if (JamCoroutine != null) StopCoroutine(JamCoroutine);
+
+            if (LastCellPosition == transform.position) NextCellPosition = LastCellPosition;
             JamCoroutine = StartCoroutine(nameof(Jamming));
         }
         
