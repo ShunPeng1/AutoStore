@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using _Script.Robot;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class B1Robot : Robot
 {
@@ -268,7 +269,7 @@ public class B1Robot : Robot
         
         // Determine the final redirect goal position based on validity and obstacles
         Vector3 redirectGoalCellPosition;
-
+        List<Vector3> potentialRedirectGoalCells = new();
         if (goRightValid && isNotBlockRight)
             redirectGoalCellPosition = redirectRightGoalCellPosition;
         else if (goLeftValid && isNotBlockLeft)
@@ -277,19 +278,21 @@ public class B1Robot : Robot
             redirectGoalCellPosition = redirectBackwardGoalCellPosition;
         else if (goForwardValid && isNotBlockForward)
             redirectGoalCellPosition = redirectForwardGoalCellPosition;
-        else if (goRightValid)
-            redirectGoalCellPosition = redirectRightGoalCellPosition;
-        else if (goLeftValid)
-            redirectGoalCellPosition = redirectLeftGoalCellPosition;
-        else if (goBackwardValid)
-            redirectGoalCellPosition = redirectBackwardGoalCellPosition;
-        else if (goForwardValid)
-            redirectGoalCellPosition = redirectForwardGoalCellPosition;
         else
         {
-            SetToJam(); // the only choice is staying where it is 
-            return false;
-        }        
+            if (goRightValid) potentialRedirectGoalCells.Add(redirectRightGoalCellPosition);
+            if (goLeftValid) potentialRedirectGoalCells.Add( redirectLeftGoalCellPosition);
+            if (goBackwardValid) potentialRedirectGoalCells.Add( redirectBackwardGoalCellPosition);
+            if (goForwardValid) potentialRedirectGoalCells.Add(redirectForwardGoalCellPosition);
+            
+            if (potentialRedirectGoalCells.Count == 0)
+            {
+                SetToJam(); // the only choice is staying where it is 
+                return false;
+            }
+
+           redirectGoalCellPosition = potentialRedirectGoalCells[Random.Range(0, potentialRedirectGoalCells.Count)];
+        }
         
         Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetXZ(transform.position) + " to " + redirectGoalCellPosition);
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
