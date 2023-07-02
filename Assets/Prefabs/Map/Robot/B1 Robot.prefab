@@ -780,6 +780,7 @@ GameObject:
   - component: {fileID: 6291633208248654895}
   - component: {fileID: 6291633208248654896}
   - component: {fileID: 6118560559227604877}
+  - component: {fileID: 8312243882458420952}
   m_Layer: 8
   m_Name: B1 Robot
   m_TagString: Untagged
@@ -827,13 +828,10 @@ MonoBehaviour:
   JamWaitTime: 0.25
   HoldingCrate: {fileID: 0}
   BoxColliderSize: 0.9
-  _debugLineRenderer: {fileID: 3908041089777982755}
-  _centerBodyCast: {fileID: 6291633209195861030}
-  _castRadius: 1.5
-  _robotLayerMask:
+  CastRadius: 1.5
+  RobotLayerMask:
     serializedVersion: 2
     m_Bits: 256
-  _safeDistanceAhead: 1.5
 --- !u!54 &6291633208248654895
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -877,6 +875,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _robotBodyRenderer: {fileID: 6291633209195861032}
   _lineRenderer: {fileID: 3908041089777982755}
+--- !u!135 &8312243882458420952
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6291633208248654893}
+  m_Material: {fileID: 0}
+  m_IsTrigger: 1
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 1.5
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6291633208865511136
 GameObject:
   m_ObjectHideFlags: 0

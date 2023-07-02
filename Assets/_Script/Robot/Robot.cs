@@ -42,11 +42,14 @@ namespace _Script.Robot
         [SerializeField] protected Crate HoldingCrate;
         [SerializeField] public RobotTask CurrentTask;
         
-        
         [Header("Components")] 
         protected Rigidbody Rigidbody;
         protected BoxCollider BoxCollider;
+        protected SphereCollider SphereCollider;
+        
         [SerializeField] protected float BoxColliderSize = 0.9f;
+        [SerializeField] protected float CastRadius = 1.5f;
+        [SerializeField] protected LayerMask RobotLayerMask;
 
         #region INITIALIZE
 
@@ -87,7 +90,9 @@ namespace _Script.Robot
         {
             Rigidbody = GetComponent<Rigidbody>();
             BoxCollider = GetComponent<BoxCollider>();
+            SphereCollider = GetComponent<SphereCollider>();
             BoxCollider.size = BoxColliderSize * Vector3.one;
+            SphereCollider.radius = CastRadius;
         }
         
         private void InitializeState()
@@ -102,7 +107,7 @@ namespace _Script.Robot
                 (myStateEnum, objects) =>
                 {
                     CheckArriveCell();
-                    DetectNearByRobot(myStateEnum, objects);
+                    DecideFromRobotDetection(myStateEnum, objects);
                     MoveAlongGrid(myStateEnum, objects);
                 }, null, AssignTask);
             BaseState<RobotStateEnum> retrievingState = new(RobotStateEnum.Handling, null, null, AssignTask);
@@ -110,7 +115,7 @@ namespace _Script.Robot
                 (myStateEnum, objects) =>
                 {
                     CheckArriveCell();
-                    DetectNearByRobot(myStateEnum, objects);
+                    DecideFromRobotDetection(myStateEnum, objects);
                     MoveAlongGrid(myStateEnum, objects);
                 }, null, AssignTask);
             
@@ -119,7 +124,7 @@ namespace _Script.Robot
                 (myStateEnum, objects) =>
                 {
                     CheckArriveCell();
-                    DetectNearByRobot(myStateEnum, objects);
+                    DecideFromRobotDetection(myStateEnum, objects);
                     MoveAlongGrid(myStateEnum, objects);
                 }, null, AssignTask);
             
@@ -264,12 +269,10 @@ namespace _Script.Robot
 
         #endregion
 
-        #region DETECTION
-        protected abstract void DetectNearByRobot(RobotStateEnum currentRobotState, object [] parameters);
-
-        #endregion
-
         #region MOVEMENT
+        
+        protected abstract void DecideFromRobotDetection(RobotStateEnum currentRobotState, object[] parameters);
+        
         protected void MoveAlongGrid(RobotStateEnum currentRobotState, object [] parameters)
         {
             if (CurrentBaseState.MyStateEnum != currentRobotState) return;
@@ -372,5 +375,6 @@ namespace _Script.Robot
         }
 
         #endregion
+
     }
 }

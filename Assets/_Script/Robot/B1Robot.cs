@@ -1,25 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using _Script.Robot;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
 public class B1Robot : Robot
 {
-    [Header("Collider Casting")] 
-    [SerializeField] private Transform _centerBodyCast;
-    [SerializeField] private float _castRadius = 1.5f;
-    [SerializeField] private LayerMask _robotLayerMask;
-    [SerializeField] private float _safeDistanceAhead = 1.5f;
-
-    private float MIN_BLOCK_AHEAD_ANGLE => Mathf.Atan((_castRadius + BoxColliderSize/2)/(0.5f + BoxColliderSize/2)) * Mathf.PI;
+    private List<Robot> _nearbyRobots = new();
+    private float MIN_BLOCK_AHEAD_ANGLE => Mathf.Atan((CastRadius + BoxColliderSize/2)/(0.5f + BoxColliderSize/2)) * Mathf.PI;
     private float MAX_BLOCK_AHEAD_ANGLE = 45f;
-
-    private void OnDrawGizmos()
-    {
-        Gizmos.DrawWireSphere(_centerBodyCast.position, _castRadius);
-    }
 
     #region DETECTION
 
@@ -29,21 +20,33 @@ public class B1Robot : Robot
         Wait = 1,
         Dodge = 2
     }
-    protected override void DetectNearByRobot(RobotStateEnum currentRobotState, object[] parameters)
-    {
-        var hits = Physics.OverlapSphere(_centerBodyCast.position, _castRadius, _robotLayerMask); // Find robot in a circle 
 
+    private void OnTriggerEnter(Collider other)
+    {
+        if(((1<<other.gameObject.layer) & RobotLayerMask) != 0)
+        {
+            Robot nearbyRobot = other.GetComponent<Robot>();
+            _nearbyRobots.Add(nearbyRobot);
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (((1 << other.gameObject.layer) & RobotLayerMask) != 0)
+        {
+            Robot nearbyRobot = other.GetComponent<Robot>();
+            _nearbyRobots.Remove(nearbyRobot);
+        }
+    }
+
+    protected override void DecideFromRobotDetection(RobotStateEnum currentRobotState, object[] parameters)
+    {
         List<GridXZCell<StackStorage>> dynamicObstacle = new();
         DetectDecision finalDecision = DetectDecision.Ignore; 
         
-        foreach (var hitCollider in hits)
-        { 
-            var detectedRobot = hitCollider.gameObject.GetComponent<Robot>();
-            if (detectedRobot == this) // This robot itself
-            {
-                continue;
-            }
-
+        foreach (var detectedRobot in _nearbyRobots)
+        {
+            
             DetectDecision decision = CheckDetection(detectedRobot);
             finalDecision = (DetectDecision) Mathf.Max((int)decision, (int)finalDecision);
 
@@ -66,13 +69,12 @@ public class B1Robot : Robot
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        
     }
 
     private DetectDecision CheckDetection(Robot detectedRobot)
     {
         float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
-        bool isUnsafeDistanceOf2Robot = Vector3.Distance(transform.position, detectedRobot.transform.position) <= _safeDistanceAhead ;
+        bool isUnsafeDistanceOf2Robot = Vector3.Distance(transform.position, detectedRobot.transform.position) <= CastRadius ;
         bool isMinBlockingAhead = IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE);
         bool isMaxBlockingAhead = IsBlockAHead(detectedRobot, MAX_BLOCK_AHEAD_ANGLE);
         bool isOccupyingGoal = detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition 
@@ -82,7 +84,7 @@ public class B1Robot : Robot
             /* Idle state cases */
             case RobotStateEnum.Idle when isOccupyingGoal || isMinBlockingAhead: 
                 // If they are standing on this robot goal or blocking ahead of this robot
-                return detectedRobot.RedirectToOrthogonalCell(this,  CurrentTask.GoalCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
+                return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
             
             case RobotStateEnum.Idle: // Not blocking at all
                 return DetectDecision.Ignore;
@@ -93,12 +95,13 @@ public class B1Robot : Robot
                 return DetectDecision.Ignore; 
             
             // Currently blocking in between the next cell , and they are standing on this robot goal
-            case RobotStateEnum.Jamming when isOccupyingGoal:
-                return detectedRobot.RedirectToOrthogonalCell(this, CurrentTask.GoalCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
+            //case RobotStateEnum.Jamming when isOccupyingGoal:
+                //return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
             
             case RobotStateEnum.Jamming: // Currently blocking in between the next cell, and not on this robot goal
-                return DetectDecision.Dodge;
-            
+                //return DetectDecision.Dodge;
+                return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
+
             
             /* Handling states cases */
             case RobotStateEnum.Handling when !isMinBlockingAhead: //  is not block ahead
@@ -117,14 +120,14 @@ public class B1Robot : Robot
             case RobotStateEnum.Approaching:
             case RobotStateEnum.Redirecting:
             default:
-                if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f) // 2 robots moving at opposite direction 
+                if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f ) // opposite direction
                 {
                     if(!isMinBlockingAhead) return DetectDecision.Ignore; // same row or column
             
                     // Is block ahead
                     if (isOccupyingGoal) // If they are standing on this robot goal
                     {
-                        return detectedRobot.RedirectToOrthogonalCell(this,  CurrentTask.GoalCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
+                        return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
                     }
                     else return DetectDecision.Dodge;
                 }
@@ -140,7 +143,7 @@ public class B1Robot : Robot
                 {
                     return isMaxBlockingAhead ? DetectDecision.Wait : DetectDecision.Ignore;
                 }
-        
+                
                 return DetectDecision.Ignore;
         }
         
@@ -223,7 +226,7 @@ public class B1Robot : Robot
     protected override void RedirectToNearestCell()
     {
         Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
-            
+        
         Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
             
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
@@ -240,11 +243,6 @@ public class B1Robot : Robot
     /// <param name="requestedRobot"></param>
     public override bool RedirectToOrthogonalCell(Robot requestedRobot, Vector3 requestedRobotGoalPosition)
     {
-        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming)
-        {
-            StopCoroutine(JamCoroutine); // Destroy the Jamming State, to restore the LastRobotState
-        }
-
         if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting)
         {
             return true;  // Cannot redirect twice, but this is already redirecting
@@ -304,12 +302,20 @@ public class B1Robot : Robot
 
     private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isNotBlockAHead)
     {
-        var raycast = Physics.RaycastAll(transform.position, direction, _castRadius, _robotLayerMask);
         var (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + direction * 1);
-
-        isNotBlockAHead = raycast.Length == 0;
         redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
-
+        isNotBlockAHead = true;
+        
+        foreach (var nearbyRobot in _nearbyRobots)
+        {
+            if (nearbyRobot.LastCellPosition == redirectGoalCellPosition ||
+                nearbyRobot.NextCellPosition == redirectGoalCellPosition)
+            {
+                isNotBlockAHead = false;
+                if (nearbyRobot.CurrentBaseState.MyStateEnum == RobotStateEnum.Handling) return false;
+            }
+        }
+        
         return CurrentGrid.IsValidCell(redirectX, redirectZ) && exceptDirection != direction && detectedRobotGoalPosition != redirectGoalCellPosition;
     }
 
