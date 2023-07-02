@@ -183,17 +183,23 @@ namespace _Script.Robot
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+            
+            CheckArriveCell();
         }
 
         protected void RestoreState()
         {
             var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore();
-            if(enterState!= null) SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
+            if (enterState != null)
+            {
+                SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
+            }
             else SetToState(RobotStateEnum.Idle);
+            
         }
 
         protected abstract void RedirectToNearestCell();        
-        public abstract bool RedirectToOrthogonalCell(Robot requestedRobot, Vector3 requestedRobotGoalPosition);
+        public abstract bool RedirectToOrthogonalCell(Robot requestedRobot, Vector3 exceptionPosition);
         public abstract void ApproachCrate(Crate crate);
 
         protected void SetToJam()
@@ -211,6 +217,7 @@ namespace _Script.Robot
             yield return new WaitForSeconds(JamWaitTime);
             
             RestoreState();
+            
         }
         
         protected void ArriveCrateSource()
@@ -265,7 +272,7 @@ namespace _Script.Robot
         #region MOVEMENT
         protected void MoveAlongGrid(RobotStateEnum currentRobotState, object [] parameters)
         {
-            if (CurrentBaseState.MyStateEnum is RobotStateEnum.Jamming) return;
+            if (CurrentBaseState.MyStateEnum != currentRobotState) return;
             
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
