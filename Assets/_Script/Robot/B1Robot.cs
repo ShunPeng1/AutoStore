@@ -222,7 +222,7 @@ public class B1Robot : Robot
 
     protected override void RedirectToNearestCell()
     {
-        Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
+        Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
             
         Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
             
@@ -291,10 +291,10 @@ public class B1Robot : Robot
                 return false;
             }
 
-           redirectGoalCellPosition = potentialRedirectGoalCells[Random.Range(0, potentialRedirectGoalCells.Count)];
+            redirectGoalCellPosition = potentialRedirectGoalCells[Random.Range(0, potentialRedirectGoalCells.Count)];
         }
         
-        Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetXZ(transform.position) + " to " + redirectGoalCellPosition);
+        Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetXZ(transform.position) + " to " + CurrentGrid.GetXZ(redirectGoalCellPosition));
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
         SetToState(RobotStateEnum.Redirecting,
             new object[] { CurrentTask },
