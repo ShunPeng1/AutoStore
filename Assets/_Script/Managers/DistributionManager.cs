@@ -121,7 +121,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     {
         (int x, int z) = GridXZCell<StackStorage>.GetIndexDifferenceAbsolute(
             _storageGrid.GetCell(crate.CurrentX, crate.CurrentZ),
-            robot.GetCurrentGridCell());
+            _storageGrid.GetCell(robot.LastCellPosition));
         return 10 * x + 10 * z;
     }
 

@@ -25,7 +25,7 @@ namespace _Script.Robot
         [Header("Grid")]
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
-        public bool IsBetween2Cell = true;
+        public bool IsBetween2Cells = true;
         protected internal GridXZ<GridXZCell<StackStorage>> CurrentGrid;
         protected int XIndex, ZIndex;
         protected internal LinkedList<GridXZCell<StackStorage>> MovingPath;
@@ -36,8 +36,9 @@ namespace _Script.Robot
         [SerializeField] protected float JamWaitTime = 5f;
         protected Coroutine JamCoroutine;
         
-        [Header("Pathfinding")]
+        [Header("Pathfinding and obstacle")]
         protected IPathfindingAlgorithm<GridXZCell<StackStorage>,StackStorage> PathfindingAlgorithm;
+        protected List<Robot> NearbyRobots = new();
         
         [Header("Task ")]
         [SerializeField] protected Crate HoldingCrate;
@@ -130,12 +131,7 @@ namespace _Script.Robot
 
         #endregion
 
-        /// <summary>
-        /// Using the Template Method Pattern to store the function that the different type of robot can override for its own implementation
-        /// </summary>
-        /// <param name="requestedRobot"></param>
-
-        #region TASK_FUNCTIONS
+        #region StateEvents
 
         private void MovingStateExecute(RobotStateEnum currentState, object [] enterParameters)
         {
@@ -143,7 +139,6 @@ namespace _Script.Robot
             if (!DecideFromRobotDetection()) return; // change state during executing this function
 
             MoveAlongGrid();
-
         }
 
         private void AssignTask(RobotStateEnum lastRobotState, object [] enterParameters)
@@ -190,7 +185,7 @@ namespace _Script.Robot
             
             CheckArriveCell();
         }
-
+        
         protected void RestoreState()
         {
             var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore();
@@ -202,6 +197,15 @@ namespace _Script.Robot
             
         }
 
+        #endregion
+        
+        /// <summary>
+        /// Using the Template Method Pattern to store the function that the different type of robot can override for its own implementation
+        /// </summary>
+        /// <param name="requestedRobot"></param>
+
+        #region TASK_FUNCTIONS
+        
         protected abstract void RedirectToNearestCell();        
         public abstract bool RedirectToOrthogonalCell(Robot requestedRobot, Vector3 exceptionPosition);
         public abstract void ApproachCrate(Crate crate);
@@ -213,13 +217,13 @@ namespace _Script.Robot
             if (LastCellPosition == transform.position)
             {
                 NextCellPosition = LastCellPosition;
-                IsBetween2Cell = false;
+                IsBetween2Cells = false;
             }
 
             if (NextCellPosition == transform.position)
             {
                 LastCellPosition = NextCellPosition;
-                IsBetween2Cell = false;
+                IsBetween2Cells = false;
             }
             
             JamCoroutine = StartCoroutine(nameof(Jamming));
@@ -289,14 +293,14 @@ namespace _Script.Robot
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
             Rigidbody.velocity = Vector3.zero;
 
-            IsBetween2Cell = true;
+            IsBetween2Cells = true;
         }
 
         bool CheckArriveCell()
         {
             if (Vector3.Distance(transform.position, NextCellPosition) != 0) return true;
             
-            IsBetween2Cell = false;
+            IsBetween2Cells = false;
             if (CurrentTask != null &&
                 CurrentGrid.GetXZ(transform.position) == CurrentGrid.GetXZ(CurrentTask.GoalCellPosition))
             {
@@ -367,11 +371,6 @@ namespace _Script.Robot
             NextCellPosition = nextNextCellPosition;
             //Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
         }
-        
-        public GridXZCell<StackStorage> GetCurrentGridCell()
-        {
-            return CurrentGrid.GetCell(XIndex, ZIndex);
-        }
 
         protected abstract bool UpdateInitialPath(List<GridXZCell<StackStorage>> dynamicObstacle);
         protected abstract bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition);
@@ -379,8 +378,8 @@ namespace _Script.Robot
         
         #endregion
 
-        #region DEBUG
-
+        #region COLLIDERS
+        
         private void OnCollisionEnter(Collision other)
         {
             DebugUIManager.Instance.AddCollision();
@@ -390,6 +389,31 @@ namespace _Script.Robot
             #endif
         }
 
+        /// <summary>
+        /// Add nearby robot to list
+        /// </summary>
+        private void OnTriggerEnter(Collider other)
+        {
+            if (((1 << other.gameObject.layer) & RobotLayerMask) != 0)
+            {
+                Robot nearbyRobot = other.GetComponent<Robot>();
+                if (!NearbyRobots.Contains(nearbyRobot)) NearbyRobots.Add(nearbyRobot);
+            }
+        }
+
+        /// <summary>
+        /// Remove nearby robot in the list 
+        /// </summary>
+        private void OnTriggerExit(Collider other)
+        {
+            if (((1 << other.gameObject.layer) & RobotLayerMask) != 0)
+            {
+                Robot nearbyRobot = other.GetComponent<Robot>();
+                if (NearbyRobots.Contains(nearbyRobot)) NearbyRobots.Remove(nearbyRobot);
+            }
+        }
+
+        
         #endregion
 
     }
