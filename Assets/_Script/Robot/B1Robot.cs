@@ -18,7 +18,7 @@ public class B1Robot : Robot
         Ignore = 0,
         Wait = 1,
         Dodge = 2,
-        Redirect = 3
+        Deflected = 3
     }
     protected override bool DecideFromRobotDetection()
     {
@@ -49,7 +49,7 @@ public class B1Robot : Robot
                 Debug.Log(gameObject.name +" Dodge ");
                 return UpdateInitialPath(dynamicObstacle); // Update Path base on dynamic obstacle
              
-            case DetectDecision.Redirect:
+            case DetectDecision.Deflected:
                 return false;
             
             default:
@@ -69,7 +69,7 @@ public class B1Robot : Robot
             /* Idle state cases */
             case RobotStateEnum.Idle when isBlockingGoal || isBlockAHead: // If they are standing on this robot goal or blocking ahead of this robot
                 return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : 
-                    RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Redirect : DetectDecision.Dodge;
+                    RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Deflected : DetectDecision.Dodge;
 
             case RobotStateEnum.Idle: // Not blocking at all
                 return DetectDecision.Ignore;
@@ -79,7 +79,7 @@ public class B1Robot : Robot
             case RobotStateEnum.Jamming when isBlockAHead: // Currently blocking in between the next cell
                 //return DetectDecision.Dodge;
                 return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : 
-                    RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Redirect : DetectDecision.Dodge;
+                    RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Deflected : DetectDecision.Dodge;
 
             case RobotStateEnum.Jamming: //  is not blocking ahead in between the next cell
                 return DetectDecision.Ignore; 
@@ -110,7 +110,7 @@ public class B1Robot : Robot
                     if (isBlockingGoal) // If they are standing on this robot goal
                     {
                         return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : 
-                            RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Redirect : DetectDecision.Dodge;
+                            RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Deflected : DetectDecision.Dodge;
 
                     }
                     else return DetectDecision.Dodge;
