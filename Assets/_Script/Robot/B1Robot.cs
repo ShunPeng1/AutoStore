@@ -18,15 +18,16 @@ public class B1Robot : Robot
     {
         Ignore = 0,
         Wait = 1,
-        Dodge = 2
+        Dodge = 2,
+        Redirect = 3
     }
 
     private void OnTriggerEnter(Collider other)
     {
-        if(((1<<other.gameObject.layer) & RobotLayerMask) != 0)
+        if (((1 << other.gameObject.layer) & RobotLayerMask) != 0)
         {
             Robot nearbyRobot = other.GetComponent<Robot>();
-            _nearbyRobots.Add(nearbyRobot);
+            if (!_nearbyRobots.Contains(nearbyRobot)) _nearbyRobots.Add(nearbyRobot);
         }
     }
 
@@ -35,11 +36,11 @@ public class B1Robot : Robot
         if (((1 << other.gameObject.layer) & RobotLayerMask) != 0)
         {
             Robot nearbyRobot = other.GetComponent<Robot>();
-            _nearbyRobots.Remove(nearbyRobot);
+            if (_nearbyRobots.Contains(nearbyRobot)) _nearbyRobots.Remove(nearbyRobot);
         }
     }
 
-    protected override void DecideFromRobotDetection(RobotStateEnum currentRobotState, object[] parameters)
+    protected override bool DecideFromRobotDetection()
     {
         List<GridXZCell<StackStorage>> dynamicObstacle = new();
         DetectDecision finalDecision = DetectDecision.Ignore; 
@@ -51,23 +52,28 @@ public class B1Robot : Robot
             finalDecision = (DetectDecision) Mathf.Max((int)decision, (int)finalDecision);
 
             dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
-            dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
+            if(detectedRobot.IsBetween2Cell) dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
         }
         
         switch (finalDecision)
         {
+            case DetectDecision.Ignore:
+                return true;
+            
             case DetectDecision.Wait: // We set the robot to jam state
                 Debug.Log(gameObject.name +" Jam! ");
                 SetToJam();
-                break;
+                return false;
+            
             case DetectDecision.Dodge: // We add the detected robot cell as obstacle
                 Debug.Log(gameObject.name +" Dodge ");
-                UpdateInitialPath(dynamicObstacle); // Update Path base on dynamic obstacle
-                break;
-            case DetectDecision.Ignore:
-                break;
+                return UpdateInitialPath(dynamicObstacle); // Update Path base on dynamic obstacle
+             
+            case DetectDecision.Redirect:
+                return false;
+            
             default:
-                throw new ArgumentOutOfRangeException();
+                return true;
         }
     }
 
@@ -75,40 +81,44 @@ public class B1Robot : Robot
     {
         float dotProductOf2RobotDirection = Vector3.Dot(NextCellPosition - LastCellPosition,detectedRobot.NextCellPosition - detectedRobot.LastCellPosition);
         bool isUnsafeDistanceOf2Robot = Vector3.Distance(transform.position, detectedRobot.transform.position) <= CastRadius ;
-        bool isMinBlockingAhead = IsBlockAHead(detectedRobot, MIN_BLOCK_AHEAD_ANGLE);
-        bool isMaxBlockingAhead = IsBlockAHead(detectedRobot, MAX_BLOCK_AHEAD_ANGLE);
-        bool isOccupyingGoal = detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition 
-                               || detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition;
+        bool isBlockAHead = IsBlockAHead(detectedRobot, NextCellPosition);
+        bool isBlockingGoal = detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition 
+                              || detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition;
         switch (detectedRobot.CurrentBaseState.MyStateEnum)
         {
             /* Idle state cases */
-            case RobotStateEnum.Idle when isOccupyingGoal || isMinBlockingAhead: 
+            case RobotStateEnum.Idle when isBlockingGoal || isBlockAHead: 
                 // If they are standing on this robot goal or blocking ahead of this robot
-                return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
-            
+                //return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
+                return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : 
+                    RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Redirect : DetectDecision.Dodge;
+
             case RobotStateEnum.Idle: // Not blocking at all
                 return DetectDecision.Ignore;
             
             
             /* Jamming state cases */
-            case RobotStateEnum.Jamming when !isMaxBlockingAhead: //  is not block in between the next cell
+            case RobotStateEnum.Jamming when !isBlockAHead: //  is not block in between the next cell
                 return DetectDecision.Ignore; 
             
             // Currently blocking in between the next cell , and they are standing on this robot goal
-            //case RobotStateEnum.Jamming when isOccupyingGoal:
+            case RobotStateEnum.Jamming when isBlockingGoal:
                 //return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
+                return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : 
+                                    RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Redirect : DetectDecision.Dodge;
+
             
             case RobotStateEnum.Jamming: // Currently blocking in between the next cell, and not on this robot goal
                 //return DetectDecision.Dodge;
-                return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
+                return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : 
+                    RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Redirect : DetectDecision.Dodge;
 
-            
             /* Handling states cases */
-            case RobotStateEnum.Handling when !isMinBlockingAhead: //  is not block ahead
+            case RobotStateEnum.Handling when !isBlockAHead: //  is not block ahead
                 return DetectDecision.Ignore; 
             
             // Currently blocking in between the next cell , and they are standing on this robot goal
-            case RobotStateEnum.Handling when isOccupyingGoal:
+            case RobotStateEnum.Handling when isBlockingGoal:
                 return DetectDecision.Wait;
             
             case RobotStateEnum.Handling: // Currently blocking in between the next cell, and not on this robot goal
@@ -122,26 +132,30 @@ public class B1Robot : Robot
             default:
                 if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f ) // opposite direction
                 {
-                    if(!isMinBlockingAhead) return DetectDecision.Ignore; // same row or column
+                    if(!isBlockAHead) return DetectDecision.Ignore; // same row or column
             
                     // Is block ahead
-                    if (isOccupyingGoal) // If they are standing on this robot goal
+                    if (isBlockingGoal) // If they are standing on this robot goal
                     {
-                        return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
+                        //return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : DetectDecision.Dodge;
+                        return detectedRobot.RedirectToOrthogonalCell(this, NextCellPosition) ? DetectDecision.Wait : 
+                            RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Redirect : DetectDecision.Dodge;
+
                     }
                     else return DetectDecision.Dodge;
                 }
 
-                if (Math.Abs(dotProductOf2RobotDirection - 1) < 0.01f && isMinBlockingAhead && isUnsafeDistanceOf2Robot) 
+                if (Math.Abs(dotProductOf2RobotDirection - 1) < 0.01f && isBlockAHead && isUnsafeDistanceOf2Robot) 
                     // 2 robot moving same direction and smaller than safe distance
                 {
                     Debug.Log(gameObject.name + " Keep safe distance ahead with "+detectedRobot.gameObject.name);
                     return DetectDecision.Wait;
                 }
                 
+                
                 if (dotProductOf2RobotDirection == 0) // perpendicular direction
                 {
-                    return isMaxBlockingAhead ? DetectDecision.Wait : DetectDecision.Ignore;
+                    return isBlockAHead ? DetectDecision.Wait : DetectDecision.Ignore;
                 }
                 
                 return DetectDecision.Ignore;
@@ -149,21 +163,10 @@ public class B1Robot : Robot
         
     }
 
-    private bool IsBlockAHead(Robot detectedRobot, float isHeadAngleThreshold)
+    private bool IsBlockAHead(Robot detectedRobot, Vector3 checkPosition)
     {
-         /*
-        var thisRobotCenterPosition = this.transform.position;
-        var detectedRobotCenterPosition = detectedRobot.transform.position;
-        float angleBetweenMyDirectionAndRobotDistance = Vector3.Angle(detectedRobotCenterPosition - thisRobotCenterPosition, this.NextCellPosition - thisRobotCenterPosition) ;
-
-        if (angleBetweenMyDirectionAndRobotDistance >= isHeadAngleThreshold  )  // Not block ahead when larger than angle threadhold 
-            return false;
-        // */
-        
-        if (this.NextCellPosition == detectedRobot.NextCellPosition ||
-            this.NextCellPosition == detectedRobot.LastCellPosition) // definitely being block by detected robot's last cell or next cell
-            return true;
-        else return false;
+        return (checkPosition == detectedRobot.NextCellPosition && detectedRobot.IsBetween2Cell) ||
+               checkPosition == detectedRobot.LastCellPosition; // definitely being block by detected robot's last cell or next cell
     }
     
     #endregion
@@ -260,36 +263,49 @@ public class B1Robot : Robot
         
         
         // Check validity and detect obstacles for redirecting right, left, and backward
-        bool goRightValid = IsValidRedirectPosition(orthogonalDirection * -1, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectRightGoalCellPosition, out bool isNotBlockRight);
-        bool goLeftValid = IsValidRedirectPosition(orthogonalDirection, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectLeftGoalCellPosition, out bool isNotBlockLeft);
-        bool goBackwardValid = IsValidRedirectPosition(roundDirection * -1, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectBackwardGoalCellPosition, out bool isNotBlockBackward); 
-        bool goForwardValid = IsValidRedirectPosition(roundDirection, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectForwardGoalCellPosition, out bool isNotBlockForward);
+        bool goRightValid = IsValidRedirectPosition(orthogonalDirection * -1, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectRightGoalCellPosition, out bool isBlockRight);
+        bool goLeftValid = IsValidRedirectPosition(orthogonalDirection, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectLeftGoalCellPosition, out bool isBlockLeft);
+        bool goBackwardValid = IsValidRedirectPosition(roundDirection * -1, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectBackwardGoalCellPosition, out bool isBlockBackward); 
+        bool goForwardValid = IsValidRedirectPosition(roundDirection, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectForwardGoalCellPosition, out bool isBlockForward);
         
         // Determine the final redirect goal position based on validity and obstacles
         Vector3 redirectGoalCellPosition;
         List<Vector3> potentialRedirectGoalCells = new();
-        if (goRightValid && isNotBlockRight)
-            redirectGoalCellPosition = redirectRightGoalCellPosition;
-        else if (goLeftValid && isNotBlockLeft)
-            redirectGoalCellPosition = redirectLeftGoalCellPosition;
-        else if (goBackwardValid && isNotBlockBackward)
-            redirectGoalCellPosition = redirectBackwardGoalCellPosition;
-        else if (goForwardValid && isNotBlockForward)
-            redirectGoalCellPosition = redirectForwardGoalCellPosition;
-        else
+        
+        // Select randomly no blocking redirect goal
+        if (goRightValid && ! isBlockRight)
+            potentialRedirectGoalCells.Add(redirectRightGoalCellPosition); 
+        if (goLeftValid && ! isBlockLeft)
+            potentialRedirectGoalCells.Add(redirectLeftGoalCellPosition);
+        if (goBackwardValid && ! isBlockBackward)
+            potentialRedirectGoalCells.Add(redirectBackwardGoalCellPosition);
+        if (goForwardValid && ! isBlockForward)
+            potentialRedirectGoalCells.Add(redirectForwardGoalCellPosition);
+        
+        if (potentialRedirectGoalCells.Count != 0) // There is a non-blocking redirect goal
+        {
+            redirectGoalCellPosition = potentialRedirectGoalCells[Random.Range(0, potentialRedirectGoalCells.Count)];
+        }
+        else // All redirect goal are block, randomly choose a path that is valid and may redirect other if needed
         {
             if (goRightValid) potentialRedirectGoalCells.Add(redirectRightGoalCellPosition);
             if (goLeftValid) potentialRedirectGoalCells.Add( redirectLeftGoalCellPosition);
             if (goBackwardValid) potentialRedirectGoalCells.Add( redirectBackwardGoalCellPosition);
             if (goForwardValid) potentialRedirectGoalCells.Add(redirectForwardGoalCellPosition);
             
-            if (potentialRedirectGoalCells.Count == 0)
+            if (potentialRedirectGoalCells.Count == 0) // No valid path was found either
             {
-                SetToJam(); // the only choice is staying where it is 
+                //SetToJam(); 
+                RedirectToNearestCell();
                 return false;
             }
 
             redirectGoalCellPosition = potentialRedirectGoalCells[Random.Range(0, potentialRedirectGoalCells.Count)];
+        }
+
+        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming)
+        {
+            StopCoroutine(JamCoroutine);
         }
         
         Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetXZ(transform.position) + " to " + CurrentGrid.GetXZ(redirectGoalCellPosition));
@@ -300,19 +316,33 @@ public class B1Robot : Robot
         return true;
     }
 
-    private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isNotBlockAHead)
+    private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isBlockAhead)
     {
         var (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + direction * 1);
         redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
-        isNotBlockAHead = true;
+        isBlockAhead = false;
         
         foreach (var nearbyRobot in _nearbyRobots)
         {
-            if (nearbyRobot.LastCellPosition == redirectGoalCellPosition ||
-                nearbyRobot.NextCellPosition == redirectGoalCellPosition)
+            bool isBlockingGoal = IsBlockAHead(nearbyRobot, redirectGoalCellPosition);
+            if (isBlockingGoal)
             {
-                isNotBlockAHead = false;
-                if (nearbyRobot.CurrentBaseState.MyStateEnum == RobotStateEnum.Handling) return false;
+                switch (nearbyRobot.CurrentBaseState.MyStateEnum)
+                {
+                    case RobotStateEnum.Idle:
+                        isBlockAhead = false;
+                        break;
+                    case RobotStateEnum.Handling:
+                        isBlockAhead = true;
+                        return false;
+                    case RobotStateEnum.Delivering:
+                    case RobotStateEnum.Approaching:
+                    case RobotStateEnum.Jamming:
+                    case RobotStateEnum.Redirecting:
+                    default:
+                        isBlockAhead = true;
+                        break;
+                }
             }
         }
         

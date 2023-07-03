@@ -25,6 +25,7 @@ namespace _Script.Robot
         [Header("Grid")]
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
+        public bool IsBetween2Cell = true;
         protected internal GridXZ<GridXZCell<StackStorage>> CurrentGrid;
         protected int XIndex, ZIndex;
         protected internal LinkedList<GridXZCell<StackStorage>> MovingPath;
@@ -103,30 +104,19 @@ namespace _Script.Robot
                     if (transform.position != LastCellPosition) 
                         RedirectToNearestCell();
                 });
+            
             BaseState<RobotStateEnum> approachingState = new(RobotStateEnum.Approaching,
-                (myStateEnum, objects) =>
-                {
-                    CheckArriveCell();
-                    DecideFromRobotDetection(myStateEnum, objects);
-                    MoveAlongGrid(myStateEnum, objects);
-                }, null, AssignTask);
+                MovingStateExecute, null, AssignTask);
+            
             BaseState<RobotStateEnum> retrievingState = new(RobotStateEnum.Handling, null, null, AssignTask);
+            
             BaseState<RobotStateEnum> deliveringState = new(RobotStateEnum.Delivering,
-                (myStateEnum, objects) =>
-                {
-                    CheckArriveCell();
-                    DecideFromRobotDetection(myStateEnum, objects);
-                    MoveAlongGrid(myStateEnum, objects);
-                }, null, AssignTask);
+                MovingStateExecute, null, AssignTask);
             
             BaseState<RobotStateEnum> jammingState = new(RobotStateEnum.Jamming, null, null, AssignTask);
+            
             BaseState<RobotStateEnum> redirectingState = new(RobotStateEnum.Redirecting,
-                (myStateEnum, objects) =>
-                {
-                    CheckArriveCell();
-                    DecideFromRobotDetection(myStateEnum, objects);
-                    MoveAlongGrid(myStateEnum, objects);
-                }, null, AssignTask);
+                MovingStateExecute, null, AssignTask);
             
             AddState(idleState);
             AddState(approachingState);
@@ -146,6 +136,15 @@ namespace _Script.Robot
         /// <param name="requestedRobot"></param>
 
         #region TASK_FUNCTIONS
+
+        private void MovingStateExecute(RobotStateEnum currentState, object [] enterParameters)
+        {
+            if (!CheckArriveCell()) return; // change state during executing this function
+            if (!DecideFromRobotDetection()) return; // change state during executing this function
+
+            MoveAlongGrid();
+
+        }
 
         private void AssignTask(RobotStateEnum lastRobotState, object [] enterParameters)
         {
@@ -211,7 +210,18 @@ namespace _Script.Robot
         {
             if (JamCoroutine != null) StopCoroutine(JamCoroutine);
 
-            if (LastCellPosition == transform.position) NextCellPosition = LastCellPosition;
+            if (LastCellPosition == transform.position)
+            {
+                NextCellPosition = LastCellPosition;
+                IsBetween2Cell = false;
+            }
+
+            if (NextCellPosition == transform.position)
+            {
+                LastCellPosition = NextCellPosition;
+                IsBetween2Cell = false;
+            }
+            
             JamCoroutine = StartCoroutine(nameof(Jamming));
         }
         
@@ -271,25 +281,32 @@ namespace _Script.Robot
 
         #region MOVEMENT
         
-        protected abstract void DecideFromRobotDetection(RobotStateEnum currentRobotState, object[] parameters);
+        protected abstract bool DecideFromRobotDetection();
         
-        protected void MoveAlongGrid(RobotStateEnum currentRobotState, object [] parameters)
+        protected void MoveAlongGrid()
         {
-            if (CurrentBaseState.MyStateEnum != currentRobotState) return;
-            
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
             Rigidbody.velocity = Vector3.zero;
+
+            IsBetween2Cell = true;
         }
 
-        void CheckArriveCell()
+        bool CheckArriveCell()
         {
-            if (!(Vector3.Distance(transform.position, NextCellPosition) <= PreemptiveDistance)) return;
-
-            if ( CurrentTask != null && CurrentGrid.GetXZ(transform.position) == CurrentGrid.GetXZ(CurrentTask.GoalCellPosition)) 
+            if (Vector3.Distance(transform.position, NextCellPosition) != 0) return true;
+            
+            IsBetween2Cell = false;
+            if (CurrentTask != null &&
+                CurrentGrid.GetXZ(transform.position) == CurrentGrid.GetXZ(CurrentTask.GoalCellPosition))
+            {
                 CurrentTask.GoalArrivalAction?.Invoke();
+                ExtractNextCellInPath();
+                return false;
+            }
                 
             ExtractNextCellInPath();
+            return true;
         }
 
         protected void PlayerControl()
@@ -351,12 +368,11 @@ namespace _Script.Robot
             //Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
         }
         
-        
         public GridXZCell<StackStorage> GetCurrentGridCell()
         {
             return CurrentGrid.GetCell(XIndex, ZIndex);
         }
-        
+
         protected abstract bool UpdateInitialPath(List<GridXZCell<StackStorage>> dynamicObstacle);
         protected abstract bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition);
 

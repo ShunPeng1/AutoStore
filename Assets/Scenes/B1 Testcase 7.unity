@@ -715,25 +715,39 @@ MonoBehaviour:
   _spawnStyle: 1
   _spawnRate: 5
   _maxPendingCrate: 100
+  _pullUpRandomRange: {x: 0, y: 1}
+  _dropDownRandomRange: {x: 0, y: 1}
   _crateSpawnInfos:
   - ArriveTime: 3
     SourceGridIndex: {x: 0, y: 0}
     DestinationGridIndex: {x: 3, y: 0}
+    PullUpTime: 0
+    DropDownTime: 0
   - ArriveTime: 3
     SourceGridIndex: {x: 0, y: 1}
     DestinationGridIndex: {x: 3, y: 1}
+    PullUpTime: 0
+    DropDownTime: 0
   - ArriveTime: 3
     SourceGridIndex: {x: 0, y: 2}
     DestinationGridIndex: {x: 3, y: 2}
+    PullUpTime: 0
+    DropDownTime: 0
   - ArriveTime: 3
     SourceGridIndex: {x: 3, y: 0}
     DestinationGridIndex: {x: 0, y: 0}
+    PullUpTime: 0
+    DropDownTime: 0
   - ArriveTime: 3
     SourceGridIndex: {x: 3, y: 1}
     DestinationGridIndex: {x: 0, y: 1}
+    PullUpTime: 0
+    DropDownTime: 0
   - ArriveTime: 3
     SourceGridIndex: {x: 3, y: 1}
     DestinationGridIndex: {x: 0, y: 1}
+    PullUpTime: 0
+    DropDownTime: 0
 --- !u!1 &1261637375
 GameObject:
   m_ObjectHideFlags: 0

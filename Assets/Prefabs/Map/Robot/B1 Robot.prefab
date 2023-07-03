@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2569292982813248260}
   - component: {fileID: 5559708150236706250}
   - component: {fileID: 4159850511951203032}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -146,7 +146,7 @@ GameObject:
   - component: {fileID: 5719784308896240880}
   - component: {fileID: 3143004765589887212}
   - component: {fileID: 6772805880604553931}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -280,7 +280,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2524461526046900072}
   - component: {fileID: 3908041089777982755}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Line Path
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -410,7 +410,7 @@ GameObject:
   - component: {fileID: 6287385686191564751}
   - component: {fileID: 8599890996470213751}
   - component: {fileID: 5912123489615150572}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Text (TMP)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -546,7 +546,7 @@ GameObject:
   - component: {fileID: 8951030184420590224}
   - component: {fileID: 3152795253362983546}
   - component: {fileID: 1814634472318702855}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Canvas Right
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -644,7 +644,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4179138659058510927}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Head
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -678,7 +678,7 @@ GameObject:
   - component: {fileID: 1292574780586371694}
   - component: {fileID: 7055038074848191140}
   - component: {fileID: 7557347205284100502}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Canvas Left
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -899,7 +899,7 @@ GameObject:
   - component: {fileID: 6291633208865511137}
   - component: {fileID: 6291633208865511140}
   - component: {fileID: 6291633208865511139}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Wheel 3
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -982,7 +982,7 @@ GameObject:
   - component: {fileID: 6291633208884546363}
   - component: {fileID: 6291633208884546366}
   - component: {fileID: 6291633208884546365}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Wheel 2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1065,7 +1065,7 @@ GameObject:
   - component: {fileID: 6291633209108137427}
   - component: {fileID: 6291633209108137430}
   - component: {fileID: 6291633209108137429}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Wheel 8
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1148,7 +1148,7 @@ GameObject:
   - component: {fileID: 6291633209195861030}
   - component: {fileID: 6291633209195861033}
   - component: {fileID: 6291633209195861032}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1242,7 +1242,7 @@ GameObject:
   - component: {fileID: 6291633209455533133}
   - component: {fileID: 6291633209455533136}
   - component: {fileID: 6291633209455533135}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Wheel 4
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1325,7 +1325,7 @@ GameObject:
   - component: {fileID: 6291633209516271405}
   - component: {fileID: 6291633209516271408}
   - component: {fileID: 6291633209516271407}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Wheel 1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1408,7 +1408,7 @@ GameObject:
   - component: {fileID: 6291633209808980297}
   - component: {fileID: 6291633209808980300}
   - component: {fileID: 6291633209808980299}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Wheel 7
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1491,7 +1491,7 @@ GameObject:
   - component: {fileID: 6291633210018050390}
   - component: {fileID: 6291633210018050393}
   - component: {fileID: 6291633210018050392}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Wheel 6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1574,7 +1574,7 @@ GameObject:
   - component: {fileID: 6291633210300448339}
   - component: {fileID: 6291633210300448342}
   - component: {fileID: 6291633210300448341}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Wheel 5
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1658,7 +1658,7 @@ GameObject:
   - component: {fileID: 8989298799573734829}
   - component: {fileID: 1369672292018444457}
   - component: {fileID: 2843672874259805527}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Canvas Back
   m_TagString: Untagged
   m_Icon: {fileID: 0}
