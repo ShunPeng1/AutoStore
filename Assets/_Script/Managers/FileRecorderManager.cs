@@ -51,7 +51,7 @@ namespace _Script.Managers
                     Time.time, 
                     robot.LastCellPosition, 
                     robot.CurrentTask?.GoalCellPosition ?? robot.LastCellPosition, 
-                    robot.CurrentBaseState.MyStateEnum);
+                    robot.CurrentRobotState);
                 _robotRecordsDictionary[robot].Add(record);
             }   
         }

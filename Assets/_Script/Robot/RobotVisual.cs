@@ -31,7 +31,7 @@ public class RobotVisual : MonoBehaviour
 
     void ShowPath()
     {
-        if (_robot.CurrentBaseState.MyStateEnum == RobotStateEnum.Idle || _robot.MovingPath == null)
+        if (_robot.CurrentRobotState == RobotStateEnum.Idle || _robot.MovingPath == null)
         {
             _lineRenderer.positionCount = 0;
             return;

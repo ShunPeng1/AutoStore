@@ -64,7 +64,7 @@ public class B1Robot : Robot
         bool isBlockAHead = IsBlockAHead(detectedRobot, NextCellPosition);
         bool isBlockingGoal = detectedRobot.NextCellPosition == CurrentTask.GoalCellPosition 
                               || detectedRobot.LastCellPosition == CurrentTask.GoalCellPosition;
-        switch (detectedRobot.CurrentBaseState.MyStateEnum)
+        switch (detectedRobot.CurrentRobotState)
         {
             /* Idle state cases */
             case RobotStateEnum.Idle when isBlockingGoal || isBlockAHead: // If they are standing on this robot goal or blocking ahead of this robot
@@ -213,7 +213,7 @@ public class B1Robot : Robot
     /// <param name="requestedRobot"></param>
     public override bool RedirectToOrthogonalCell(Robot requestedRobot, Vector3 requestedRobotGoalPosition)
     {
-        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Redirecting)
+        if (CurrentRobotState == RobotStateEnum.Redirecting)
         {
             return true;  // Cannot redirect twice, but this is already redirecting
         }
@@ -269,7 +269,7 @@ public class B1Robot : Robot
             redirectGoalCellPosition = potentialRedirectGoalCells[Random.Range(0, potentialRedirectGoalCells.Count)];
         }
 
-        if (CurrentBaseState.MyStateEnum == RobotStateEnum.Jamming)
+        if (CurrentRobotState == RobotStateEnum.Jamming)
         {
             StopCoroutine(JamCoroutine);
         }
@@ -293,7 +293,7 @@ public class B1Robot : Robot
             bool isBlockingGoal = IsBlockAHead(nearbyRobot, redirectGoalCellPosition);
             if (isBlockingGoal)
             {
-                switch (nearbyRobot.CurrentBaseState.MyStateEnum)
+                switch (nearbyRobot.CurrentRobotState)
                 {
                     case RobotStateEnum.Idle:
                         isBlockAhead = false;

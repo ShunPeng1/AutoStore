@@ -21,6 +21,7 @@ namespace _Script.Robot
         [Header("Stat")] 
         private static int _idCount = 0;
         public int Id;
+        public RobotStateEnum CurrentRobotState => CurrentBaseState.MyStateEnum;
 
         [Header("Grid")]
         public Vector3 NextCellPosition;

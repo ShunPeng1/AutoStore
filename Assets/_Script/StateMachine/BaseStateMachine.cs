@@ -8,7 +8,7 @@ namespace _Script.StateMachine
 {
     public abstract class BaseStateMachine<TStateEnum> : MonoBehaviour where TStateEnum : Enum 
     {
-        public BaseState<TStateEnum> CurrentBaseState;
+        protected BaseState<TStateEnum> CurrentBaseState;
         private Dictionary<TStateEnum, BaseState<TStateEnum>> _states = new ();
 
         [Header("History")] 
