@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using _Script.Managers;
 using TMPro;
 using UnityEngine;
 using UnityUtilities;
@@ -38,6 +39,8 @@ public class DebugUIManager : SingletonMonoBehaviour<DebugUIManager>
     {
         _finishCount++;
         finishText.text = "finish: " + _finishCount;
+        FileRecorderManager.Instance.ResultRecords.Add(new FileRecorderManager.ResultRecord(Time.time, _finishCount));
     }
+    
     
 }
