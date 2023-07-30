@@ -39,7 +39,6 @@ public class DebugUIManager : SingletonMonoBehaviour<DebugUIManager>
     {
         _finishCount++;
         finishText.text = "finish: " + _finishCount;
-        FileRecorderManager.Instance.ResultRecords.Add(new FileRecorderManager.ResultRecord(Time.time, _finishCount));
     }
     
     

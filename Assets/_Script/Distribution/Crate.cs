@@ -8,26 +8,32 @@ public class Crate : MonoBehaviour
 {
     private GridXZ<GridXZCell<StackStorage>> _storageGrid;
 
-    public int CurrentX;
-    public int CurrentZ;
-    public int StoringX;
-    public int StoringZ;
-    public float PullUpTime, DropDownTime;
-    
-    
+    public int PickUpIndexX;
+    public int PickUpIndexZ;
+    public int DropDownIndexX;
+    public int DropDownIndexZ;
+    public float PickUpTime, DropDownTime;
+
+    public float RequestedTime;
     private void Start()
     {
         
     }
 
-    public void Init(GridXZ<GridXZCell<StackStorage>> storageGrid,int spawnX, int spawnZ , int destinationX, int destinationZ, float pullUpTime, float dropDownTime)
+    public void Init(GridXZ<GridXZCell<StackStorage>> storageGrid,int pickUpIndexX, int pickUpIndexZ , int dropDownIndexX, int dropDownIndexZ, float pickUpTime, float dropDownTime)
     {
         _storageGrid = storageGrid;
-        CurrentX = spawnX;
-        CurrentZ = spawnZ;
-        StoringX = destinationX;
-        StoringZ = destinationZ;
-        PullUpTime = pullUpTime;
+        PickUpIndexX = pickUpIndexX;
+        PickUpIndexZ = pickUpIndexZ;
+        DropDownIndexX = dropDownIndexX;
+        DropDownIndexZ = dropDownIndexZ;
+        PickUpTime = pickUpTime;
         DropDownTime = dropDownTime;
+
+    }
+
+    public void PickUp()
+    {
+        RequestedTime = Time.time;
     }
 }

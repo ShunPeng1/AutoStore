@@ -32,12 +32,22 @@ namespace _Script.Managers
         }
         public class ResultRecord
         {
-            public float CurrentTime;
-            public float FinishCount;
-            public ResultRecord(float currentTime, float finishCount)
+            public readonly float ActualTime;
+            public readonly float AssumptionTime;
+
+            public int PickUpX;
+            public int PickUpZ;
+            public int DropDownX;
+            public int DropDownZ;
+            
+            public ResultRecord(float actualTime, float assumptionTime, int pickUpX, int pickUpZ, int dropDownX, int dropDownZ)
             {
-                CurrentTime = currentTime;
-                FinishCount = finishCount;
+                ActualTime = actualTime;
+                AssumptionTime = assumptionTime;
+                PickUpX = pickUpX;
+                PickUpZ = pickUpZ;
+                DropDownX = dropDownX;
+                DropDownZ = dropDownZ;
             }
         }
 
@@ -137,7 +147,9 @@ namespace _Script.Managers
             
             foreach (var resultRecord in ResultRecords)
             {
-                tw.WriteLine(resultRecord.CurrentTime + "," + resultRecord.FinishCount );
+                tw.WriteLine(resultRecord.PickUpX + "," + resultRecord.PickUpZ + "," + 
+                             resultRecord.DropDownX + "," + resultRecord.DropDownZ + "," +
+                             resultRecord.ActualTime + "," + resultRecord.AssumptionTime );
             }
 
             tw.Close();

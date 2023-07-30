@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using _Script.Managers;
 using _Script.Robot;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -120,7 +121,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     private int CalculateDistance(Robot robot, Crate crate)
     {
         (int x, int z) = GridXZCell<StackStorage>.GetIndexDifferenceAbsolute(
-            _storageGrid.GetCell(crate.CurrentX, crate.CurrentZ),
+            _storageGrid.GetCell(crate.PickUpIndexX, crate.PickUpIndexZ),
             _storageGrid.GetCell(robot.LastCellPosition));
         return 10 * x + 10 * z;
     }
@@ -167,4 +168,19 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             robot.ApproachCrate(crate);
         }
     }
+
+    public void ArriveDestination(Robot robot, Crate crate)
+    {
+        DebugUIManager.Instance.AddFinish();
+        
+        FileRecorderManager.Instance.ResultRecords.Add(new FileRecorderManager.ResultRecord(Time.time - crate.RequestedTime, GetTimeFinishAssumption(robot, crate), crate.PickUpIndexX, crate.PickUpIndexZ, crate.DropDownIndexX, crate.DropDownIndexZ ));
+    }
+
+    public float GetTimeFinishAssumption(Robot robot, Crate crate)
+    {
+        float time = (( Mathf.Abs(crate.DropDownIndexX - crate.PickUpIndexX) +  Mathf.Abs(crate.DropDownIndexZ - crate.PickUpIndexZ) ) * (robot.MaxMovementSpeed / Time.fixedDeltaTime ) / 1000f );
+        Debug.Log(time + " - " + crate.RequestedTime);
+        return time;
+    }
+    
 }

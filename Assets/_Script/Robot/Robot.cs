@@ -32,7 +32,7 @@ namespace _Script.Robot
         protected internal LinkedList<GridXZCell<StackStorage>> MovingPath;
         
         [Header("Movement")] 
-        [SerializeField] protected float MaxMovementSpeed = 1f;
+        public float MaxMovementSpeed = 1f;
         [SerializeField] protected float PreemptiveDistance = 0.05f;
         [SerializeField] protected float JamWaitTime = 5f;
         protected Coroutine JamCoroutine;
@@ -249,12 +249,14 @@ namespace _Script.Robot
         {
             SetToState(RobotStateEnum.Handling);
 
-            yield return new WaitForSeconds(HoldingCrate.PullUpTime);
+            yield return new WaitForSeconds(HoldingCrate.PickUpTime);
             
             
             HoldingCrate.transform.SetParent(transform);
-
-            var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingCrate.StoringX, HoldingCrate.StoringZ) + Vector3.up * transform.position.y;
+            HoldingCrate.PickUp();
+            
+            
+            var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingCrate.DropDownIndexX, HoldingCrate.DropDownIndexZ) + Vector3.up * transform.position.y;
         
             RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateDestination, 0);
         
@@ -266,6 +268,8 @@ namespace _Script.Robot
         
         protected void ArriveCrateDestination()
         {
+            DistributionManager.Instance.ArriveDestination(this, HoldingCrate);
+            
             StartCoroutine(nameof(DroppingDown));
         }
 
@@ -275,10 +279,10 @@ namespace _Script.Robot
 
             yield return new WaitForSeconds(HoldingCrate.DropDownTime);
             
+            
             Destroy(HoldingCrate.gameObject);
             HoldingCrate = null;
-            DebugUIManager.Instance.AddFinish();
-        
+            
             SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
         }
 
