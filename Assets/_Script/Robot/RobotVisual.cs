@@ -43,7 +43,7 @@ public class RobotVisual : MonoBehaviour
         int itr = 1;
         foreach (var cell in _robot.MovingPath)
         {
-            _lineRenderer.SetPosition(itr, _robot.CurrentGrid.GetWorldPositionOfNearestCell(cell.XIndex,cell.ZIndex));
+            _lineRenderer.SetPosition(itr, _robot.CurrentGrid.GetWorldPositionOfNearestCell(cell.XIndex,cell.YIndex));
             itr++;
         }
     }

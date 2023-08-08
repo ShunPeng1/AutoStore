@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using _Script.Managers;
 using _Script.Robot;
+using Shun_Grid_System;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityUtilities;
@@ -36,8 +37,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     [SerializeField] private List<CrateSpawnInfo> _crateSpawnInfos;
     
     
-    private GridXZ<GridXZCell<StackStorage>> _storageGrid;
-    private int _width, _height;
+    private GridXZ<CellItem> _storageGrid;
 
     private float _currentTime = 0f;
     private Queue<Crate> _pendingCrates = new();
@@ -46,7 +46,6 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     void Start()
     {
         _storageGrid = MapManager.Instance.WorldGrid;
-        (_width, _height) = _storageGrid.GetWidthHeight();
 
         _robots = FindObjectsOfType<Robot>();
         _crateSpawnInfos.Sort((x, y) =>
@@ -120,10 +119,10 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// </summary>
     private int CalculateDistance(Robot robot, Crate crate)
     {
-        (int x, int z) = GridXZCell<StackStorage>.GetIndexDifferenceAbsolute(
+        Vector2Int index = _storageGrid.GetIndexDifferenceAbsolute(
             _storageGrid.GetCell(crate.PickUpIndexX, crate.PickUpIndexZ),
             _storageGrid.GetCell(robot.LastCellPosition));
-        return 10 * x + 10 * z;
+        return 10 * index.x + 10 * index.y;
     }
 
     /// <summary>
@@ -131,8 +130,9 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// </summary>
     private void CreateCrateRandomly()
     {
-        int currentX = Random.Range(0, _width), currentZ = Random.Range(0, _height);
-        int storingX = Random.Range(0, _width), storingZ = Random.Range(0, _height);
+        
+        int currentX = Random.Range(0, _storageGrid.Width), currentZ = Random.Range(0, _storageGrid.Height);
+        int storingX = Random.Range(0, _storageGrid.Width), storingZ = Random.Range(0, _storageGrid.Height);
         float pullUpTime = Random.Range(_pullUpRandomRange.x, _pullUpRandomRange.y);
         float dropDownTime = Random.Range(_dropDownRandomRange.x, _dropDownRandomRange.y);
         

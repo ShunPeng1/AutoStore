@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityUtilities;
 
-public class ResourceManager : PersistentSingletonMonoBehaviour<ResourceManager>
+public class ResourceManager : SingletonMonoBehaviour<ResourceManager>
 {
     [Header("Storage")] public StackStorage StackStorage;
 

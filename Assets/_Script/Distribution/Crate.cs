@@ -1,12 +1,11 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
+
+using Shun_Grid_System;
 using UnityEngine;
 using UnityEngine.Serialization;
 
 public class Crate : MonoBehaviour
 {
-    private GridXZ<GridXZCell<StackStorage>> _storageGrid;
+    private GridXZ<CellItem> _storageGrid;
 
     public int PickUpIndexX;
     public int PickUpIndexZ;
@@ -20,7 +19,7 @@ public class Crate : MonoBehaviour
         
     }
 
-    public void Init(GridXZ<GridXZCell<StackStorage>> storageGrid,int pickUpIndexX, int pickUpIndexZ , int dropDownIndexX, int dropDownIndexZ, float pickUpTime, float dropDownTime)
+    public void Init(GridXZ<CellItem> storageGrid,int pickUpIndexX, int pickUpIndexZ , int dropDownIndexX, int dropDownIndexZ, float pickUpTime, float dropDownTime)
     {
         _storageGrid = storageGrid;
         PickUpIndexX = pickUpIndexX;

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using _Script.Robot;
+using Shun_Grid_System;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -22,7 +23,7 @@ public class B1Robot : Robot
     }
     protected override bool DecideFromRobotDetection()
     {
-        List<GridXZCell<StackStorage>> dynamicObstacle = new();
+        List<GridXZCell<CellItem>> dynamicObstacle = new();
         DetectDecision finalDecision = DetectDecision.Ignore; 
         
         foreach (var detectedRobot in NearbyRobots)
@@ -159,7 +160,7 @@ public class B1Robot : Robot
 
     }
     
-    protected override bool UpdateInitialPath(List<GridXZCell<StackStorage>> dynamicObstacle)
+    protected override bool UpdateInitialPath(List<GridXZCell<CellItem>> dynamicObstacle)
     {
         Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
         var currentStartCell = CurrentGrid.GetCell(nearestCellPosition);
@@ -200,7 +201,7 @@ public class B1Robot : Robot
         Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
             
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
-        SetToState(RobotStateEnum.Redirecting,
+        RobotStateMachine.SetToState(RobotStateEnum.Redirecting,
             new object[] { CurrentTask },
             new object[] { robotTask });
     }
@@ -274,9 +275,9 @@ public class B1Robot : Robot
             StopCoroutine(JamCoroutine);
         }
         
-        Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetXZ(transform.position) + " to " + CurrentGrid.GetXZ(redirectGoalCellPosition));
+        Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(redirectGoalCellPosition));
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
-        SetToState(RobotStateEnum.Redirecting,
+        RobotStateMachine.SetToState(RobotStateEnum.Redirecting,
             new object[] { CurrentTask },
             new object[] { robotTask });
         return true;
@@ -284,8 +285,8 @@ public class B1Robot : Robot
 
     private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isBlockAhead)
     {
-        var (redirectX, redirectZ) = CurrentGrid.GetXZ(transform.position + direction * 1);
-        redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectX, redirectZ) + Vector3.up * transform.position.y;
+        var redirectIndex = CurrentGrid.GetIndex(transform.position + direction * 1);
+        redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectIndex.x, redirectIndex.y) + Vector3.up * transform.position.y;
         isBlockAhead = false;
         
         foreach (var nearbyRobot in NearbyRobots)
@@ -312,7 +313,7 @@ public class B1Robot : Robot
             }
         }
         
-        return CurrentGrid.IsValidCell(redirectX, redirectZ) && exceptDirection != direction && detectedRobotGoalPosition != redirectGoalCellPosition;
+        return CurrentGrid.CheckValidCell(redirectIndex.x, redirectIndex.y) && exceptDirection != direction && detectedRobotGoalPosition != redirectGoalCellPosition;
     }
 
     public override void ApproachCrate(Crate crate)
@@ -322,7 +323,7 @@ public class B1Robot : Robot
         Vector3 goalCellPosition = crate.transform.position + Vector3.up * transform.position.y;
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateSource, 0);
         
-        SetToState(RobotStateEnum.Approaching, 
+        RobotStateMachine.SetToState(RobotStateEnum.Approaching, 
             new object[]{CurrentTask}, 
             new object[]{robotTask});
     }

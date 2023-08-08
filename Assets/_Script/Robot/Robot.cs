@@ -1,7 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using _Script.StateMachine;
+using Shun_Grid_System;
+using Shun_State_Machine;
 using UnityEngine;
 
 namespace _Script.Robot
@@ -16,20 +17,25 @@ namespace _Script.Robot
         Redirecting
     }
     
-    public abstract class Robot : BaseStateMachine<RobotStateEnum>
+    public abstract class Robot : MonoBehaviour
     {
         [Header("Stat")] 
         private static int _idCount = 0;
         public int Id;
-        public RobotStateEnum CurrentRobotState => CurrentBaseState.MyStateEnum;
+        
+        [Header("Robot State Machine")]
 
+        protected BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
+        public RobotStateEnum CurrentRobotState => RobotStateMachine.CurrentBaseState.MyStateEnum;
+        protected IStateHistoryStrategy<RobotStateEnum> StateHistoryStrategy;
+        
         [Header("Grid")]
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
         public bool IsBetween2Cells = true;
-        protected internal GridXZ<GridXZCell<StackStorage>> CurrentGrid;
-        protected int XIndex, ZIndex;
-        protected internal LinkedList<GridXZCell<StackStorage>> MovingPath;
+        protected internal GridXZ<CellItem> CurrentGrid;
+        
+        protected internal LinkedList<GridXZCell<CellItem>> MovingPath;
         
         [Header("Movement")] 
         public float MaxMovementSpeed = 1f;
@@ -38,7 +44,7 @@ namespace _Script.Robot
         protected Coroutine JamCoroutine;
         
         [Header("Pathfinding and obstacle")]
-        protected IPathfindingAlgorithm<GridXZCell<StackStorage>,StackStorage> PathfindingAlgorithm;
+        protected IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> PathfindingAlgorithm;
         protected List<Robot> NearbyRobots = new();
         
         [Header("Task ")]
@@ -56,9 +62,8 @@ namespace _Script.Robot
 
         #region INITIALIZE
 
-        protected override void Awake()
+        protected void Awake()
         {
-            base.Awake();
             Id = _idCount;
             _idCount++;
         }
@@ -73,14 +78,14 @@ namespace _Script.Robot
 
         private void FixedUpdate()
         {
-            CurrentBaseState.ExecuteState();
+            RobotStateMachine.ExecuteState();
         }
 
         private void InitializeGrid()
         {
             CurrentGrid = MapManager.Instance.WorldGrid;
-            (XIndex, ZIndex) = CurrentGrid.GetXZ(transform.position);
-            LastCellPosition = NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) + Vector3.up * transform.position.y;
+            
+            LastCellPosition = NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
         }
 
         private void InitializeStrategy()
@@ -120,14 +125,15 @@ namespace _Script.Robot
             BaseState<RobotStateEnum> redirectingState = new(RobotStateEnum.Redirecting,
                 MovingStateExecute, null, AssignTask);
             
-            AddState(idleState);
-            AddState(approachingState);
-            AddState(retrievingState);
-            AddState(deliveringState);
-            AddState(jammingState);
-            AddState(redirectingState);
-
-            CurrentBaseState = idleState;
+            RobotStateMachine.AddState(idleState);
+            RobotStateMachine.AddState(approachingState);
+            RobotStateMachine.AddState(retrievingState);
+            RobotStateMachine.AddState(deliveringState);
+            RobotStateMachine.AddState(jammingState);
+            RobotStateMachine.AddState(redirectingState);
+            
+            RobotStateMachine.CurrentBaseState = idleState;
+            RobotStateMachine.StateHistoryStrategy = StateHistoryStrategy;
         }
 
         #endregion
@@ -192,9 +198,9 @@ namespace _Script.Robot
             var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore();
             if (enterState != null)
             {
-                SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
+                RobotStateMachine.SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
             }
-            else SetToState(RobotStateEnum.Idle);
+            else RobotStateMachine.SetToState(RobotStateEnum.Idle);
             
         }
 
@@ -232,7 +238,7 @@ namespace _Script.Robot
         
         protected IEnumerator Jamming()
         {
-            SetToState(RobotStateEnum.Jamming);
+            RobotStateMachine.SetToState(RobotStateEnum.Jamming);
 
             yield return new WaitForSeconds(JamWaitTime);
             
@@ -247,7 +253,7 @@ namespace _Script.Robot
         
         protected IEnumerator PullingUp()
         {
-            SetToState(RobotStateEnum.Handling);
+            RobotStateMachine.SetToState(RobotStateEnum.Handling);
 
             yield return new WaitForSeconds(HoldingCrate.PickUpTime);
             
@@ -260,7 +266,7 @@ namespace _Script.Robot
         
             RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateDestination, 0);
         
-            SetToState(RobotStateEnum.Delivering, 
+            RobotStateMachine.SetToState(RobotStateEnum.Delivering, 
                 new object[]{CurrentTask}, 
                 new object[]{robotTask});
             
@@ -275,7 +281,7 @@ namespace _Script.Robot
 
         protected IEnumerator DroppingDown()
         {
-            SetToState(RobotStateEnum.Handling);
+            RobotStateMachine.SetToState(RobotStateEnum.Handling);
 
             yield return new WaitForSeconds(HoldingCrate.DropDownTime);
             
@@ -283,7 +289,7 @@ namespace _Script.Robot
             Destroy(HoldingCrate.gameObject);
             HoldingCrate = null;
             
-            SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
+            RobotStateMachine.SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
         }
 
         #endregion
@@ -307,7 +313,7 @@ namespace _Script.Robot
             
             IsBetween2Cells = false;
             if (CurrentTask != null &&
-                CurrentGrid.GetXZ(transform.position) == CurrentGrid.GetXZ(CurrentTask.GoalCellPosition))
+                CurrentGrid.GetIndex(transform.position) == CurrentGrid.GetIndex(CurrentTask.GoalCellPosition))
             {
                 CurrentTask.GoalArrivalAction?.Invoke();
                 ExtractNextCellInPath();
@@ -318,33 +324,6 @@ namespace _Script.Robot
             return true;
         }
 
-        protected void PlayerControl()
-        {
-            float horizontal = Input.GetAxisRaw("Horizontal"), vertical = Input.GetAxisRaw("Vertical");
-            if (Mathf.Abs(horizontal) == 1f)
-            {
-                var item = CurrentGrid.GetCell(XIndex + (int)horizontal, ZIndex);
-                // If walkable
-                if (item != default(GridXZCell<StackStorage>))
-                {
-                    XIndex += (int)horizontal;
-                    NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) +
-                                       Vector3.up * transform.position.y;
-                }
-            }
-            else if (Mathf.Abs(vertical) == 1f)
-            {
-                var item = CurrentGrid.GetCell(XIndex, ZIndex + (int)vertical);
-                // If walkable
-                if (item != default(GridXZCell<StackStorage>))
-                {
-                    ZIndex += (int)vertical;
-                    NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) +
-                                       Vector3.up * transform.position.y;
-                }
-            }
-        }
-        
         #endregion
         
         #region PATHS_AND_CELLS
@@ -365,19 +344,16 @@ namespace _Script.Robot
             }
             var nextNextCell = MovingPath.First.Value;
             MovingPath.RemoveFirst(); // the next standing node
-            
-            XIndex = nextNextCell.XIndex;
-            ZIndex = nextNextCell.ZIndex;
 
-            Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(XIndex, ZIndex) +
-                                   Vector3.up * transform.position.y;
+            Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.YIndex) +
+                                           Vector3.up * transform.position.y;
 
             LastCellPosition = NextCellPosition;
             NextCellPosition = nextNextCellPosition;
             //Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
         }
 
-        protected abstract bool UpdateInitialPath(List<GridXZCell<StackStorage>> dynamicObstacle);
+        protected abstract bool UpdateInitialPath(List<GridXZCell<CellItem>> dynamicObstacle);
         protected abstract bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition);
 
         
