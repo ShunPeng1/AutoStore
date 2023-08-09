@@ -780,7 +780,6 @@ GameObject:
   - component: {fileID: 6291633208248654895}
   - component: {fileID: 6291633208248654896}
   - component: {fileID: 6118560559227604877}
-  - component: {fileID: 8312243882458420952}
   m_Layer: 8
   m_Name: B1 Robot
   m_TagString: Untagged
@@ -818,11 +817,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d4e1cd235daef624ebb8667239554db1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CurrentBaseState:
-    MyStateEnum: 0
   Id: 0
   NextCellPosition: {x: 0, y: 0, z: 0}
   LastCellPosition: {x: 0, y: 0, z: 0}
+  IsBetween2Cells: 1
   MaxMovementSpeed: 4
   PreemptiveDistance: 0
   JamWaitTime: 0.25
@@ -875,19 +873,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _robotBodyRenderer: {fileID: 6291633209195861032}
   _lineRenderer: {fileID: 3908041089777982755}
---- !u!135 &8312243882458420952
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6291633208248654893}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 1
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 1.5
-  m_Center: {x: 0, y: 0, z: 0}
 --- !u!1 &6291633208865511136
 GameObject:
   m_ObjectHideFlags: 0

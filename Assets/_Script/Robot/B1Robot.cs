@@ -21,6 +21,25 @@ public class B1Robot : Robot
         Dodge = 2,
         Deflected = 3
     }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.DrawWireSphere(transform.position, CastRadius);
+    }
+
+    protected override void DetectNearByRobot()
+    {
+        NearbyRobots = new List<Robot>();
+
+        var colliders = Physics.OverlapSphere(transform.position, CastRadius, RobotLayerMask);
+        foreach (var colliderHit in colliders)
+        {
+            Robot detectedRobot = colliderHit.gameObject.GetComponent<Robot>();
+            if (detectedRobot == null || detectedRobot == this) continue;
+            NearbyRobots.Add(detectedRobot);
+        }
+    }
+    
     protected override bool DecideFromRobotDetection()
     {
         List<GridXZCell<CellItem>> dynamicObstacle = new();

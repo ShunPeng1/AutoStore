@@ -54,12 +54,13 @@ namespace _Script.Robot
         [Header("Components")] 
         protected Rigidbody Rigidbody;
         protected BoxCollider BoxCollider;
-        protected SphereCollider SphereCollider;
+
         
+        [Header("Robot Detection")]
         [SerializeField] protected float BoxColliderSize = 0.9f;
         [SerializeField] protected float CastRadius = 1.5f;
         [SerializeField] protected LayerMask RobotLayerMask;
-
+        
         #region INITIALIZE
 
         protected void Awake()
@@ -98,9 +99,8 @@ namespace _Script.Robot
         {
             Rigidbody = GetComponent<Rigidbody>();
             BoxCollider = GetComponent<BoxCollider>();
-            SphereCollider = GetComponent<SphereCollider>();
+            
             BoxCollider.size = BoxColliderSize * Vector3.one;
-            SphereCollider.radius = CastRadius;
         }
         
         private void InitializeState()
@@ -143,6 +143,8 @@ namespace _Script.Robot
         private void MovingStateExecute(RobotStateEnum currentState, object [] enterParameters)
         {
             if (!CheckArriveCell()) return; // change state during executing this function
+            
+            DetectNearByRobot();
             if (!DecideFromRobotDetection()) return; // change state during executing this function
 
             MoveAlongGrid();
@@ -360,6 +362,7 @@ namespace _Script.Robot
         #endregion
 
         #region COLLIDERS
+        protected abstract void DetectNearByRobot();
         
         private void OnCollisionEnter(Collision other)
         {
@@ -369,31 +372,6 @@ namespace _Script.Robot
             UnityEditor.EditorApplication.isPaused = true;
             #endif
         }
-
-        /// <summary>
-        /// Add nearby robot to list
-        /// </summary>
-        private void OnTriggerEnter(Collider other)
-        {
-            if (((1 << other.gameObject.layer) & RobotLayerMask) != 0)
-            {
-                Robot nearbyRobot = other.GetComponent<Robot>();
-                if (!NearbyRobots.Contains(nearbyRobot)) NearbyRobots.Add(nearbyRobot);
-            }
-        }
-
-        /// <summary>
-        /// Remove nearby robot in the list 
-        /// </summary>
-        private void OnTriggerExit(Collider other)
-        {
-            if (((1 << other.gameObject.layer) & RobotLayerMask) != 0)
-            {
-                Robot nearbyRobot = other.GetComponent<Robot>();
-                if (NearbyRobots.Contains(nearbyRobot)) NearbyRobots.Remove(nearbyRobot);
-            }
-        }
-
         
         #endregion
 
