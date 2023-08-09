@@ -26,7 +26,7 @@ namespace _Script.Robot
         [Header("Robot State Machine")]
 
         protected BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
-        public RobotStateEnum CurrentRobotState => RobotStateMachine.CurrentBaseState.MyStateEnum;
+        public RobotStateEnum CurrentRobotState => RobotStateMachine.GetState();
         protected IStateHistoryStrategy<RobotStateEnum> StateHistoryStrategy;
         
         [Header("Grid")]
@@ -132,7 +132,7 @@ namespace _Script.Robot
             RobotStateMachine.AddState(jammingState);
             RobotStateMachine.AddState(redirectingState);
             
-            RobotStateMachine.CurrentBaseState = idleState;
+            //RobotStateMachine.CurrentBaseState = idleState;
             RobotStateMachine.StateHistoryStrategy = StateHistoryStrategy;
         }
 
@@ -364,7 +364,7 @@ namespace _Script.Robot
         private void OnCollisionEnter(Collision other)
         {
             DebugUIManager.Instance.AddCollision();
-            Debug.Log($"{gameObject.name} Collide with {other.gameObject.name}");
+            //Debug.Log($"{gameObject.name} Collide with {other.gameObject.name}");
             #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPaused = true;
             #endif

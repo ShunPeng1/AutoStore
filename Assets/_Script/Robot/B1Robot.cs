@@ -42,12 +42,12 @@ public class B1Robot : Robot
                 return true;
             
             case DetectDecision.Wait: // We set the robot to jam state
-                Debug.Log(gameObject.name +" Jam! ");
+                //Debug.Log(gameObject.name +" Jam! ");
                 SetToJam();
                 return false;
             
             case DetectDecision.Dodge: // We add the detected robot cell as obstacle
-                Debug.Log(gameObject.name +" Dodge ");
+                //Debug.Log(gameObject.name +" Dodge ");
                 return UpdateInitialPath(dynamicObstacle); // Update Path base on dynamic obstacle
              
             case DetectDecision.Deflected:
@@ -120,7 +120,7 @@ public class B1Robot : Robot
                 if (Math.Abs(dotProductOf2RobotDirection - 1) < 0.01f && isBlockAHead && isUnsafeDistanceOf2Robot) 
                     // 2 robot moving same direction and smaller than safe distance
                 {
-                    Debug.Log(gameObject.name + " Keep safe distance ahead with "+detectedRobot.gameObject.name);
+                    //Debug.Log(gameObject.name + " Keep safe distance ahead with "+detectedRobot.gameObject.name);
                     return DetectDecision.Wait;
                 }
                 
@@ -185,7 +185,7 @@ public class B1Robot : Robot
             return true;
         }
 
-        Debug.LogError( gameObject.name+" THE NEAREST CELL IS NOT LAST OR NEXT CELL "+ nearestCellPosition);
+        //Debug.LogError( gameObject.name+" THE NEAREST CELL IS NOT LAST OR NEXT CELL "+ nearestCellPosition);
 
         return false;
     }
@@ -198,7 +198,7 @@ public class B1Robot : Robot
     {
         Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
         
-        Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
+        //Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
             
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
         RobotStateMachine.SetToState(RobotStateEnum.Redirecting,
@@ -275,7 +275,7 @@ public class B1Robot : Robot
             StopCoroutine(JamCoroutine);
         }
         
-        Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(redirectGoalCellPosition));
+        //Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(redirectGoalCellPosition));
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
         RobotStateMachine.SetToState(RobotStateEnum.Redirecting,
             new object[] { CurrentTask },

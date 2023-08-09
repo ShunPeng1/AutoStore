@@ -172,8 +172,8 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     public void ArriveDestination(Robot robot, Crate crate)
     {
         DebugUIManager.Instance.AddFinish();
-        
-        FileRecorderManager.Instance.ResultRecords.Add(new FileRecorderManager.ResultRecord(Time.time - crate.RequestedTime, GetTimeFinishAssumption(robot, crate), crate.PickUpIndexX, crate.PickUpIndexZ, crate.DropDownIndexX, crate.DropDownIndexZ ));
+
+        if (FileRecorderManager.InstanceOptional != null ) FileRecorderManager.Instance.ResultRecords.Add(new FileRecorderManager.ResultRecord(Time.time - crate.RequestedTime, GetTimeFinishAssumption(robot, crate), crate.PickUpIndexX, crate.PickUpIndexZ, crate.DropDownIndexX, crate.DropDownIndexZ ));
     }
 
     public float GetTimeFinishAssumption(Robot robot, Crate crate)
