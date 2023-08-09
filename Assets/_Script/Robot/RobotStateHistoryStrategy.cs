@@ -5,10 +5,10 @@ namespace _Script.Robot
     public class RobotStateHistoryStrategy : IStateHistoryStrategy<RobotStateEnum>
     {
         private BaseState<RobotStateEnum> _oldStateEnum;
-        private object[] _exitOldStateParameters = null;
-        private object[] _enterNewStateParameters = null;
+        private IStateParameter _exitOldStateParameters = null;
+        private IStateParameter _enterNewStateParameters = null;
             
-        public void Save(BaseState<RobotStateEnum> stateEnum, object[] exitOldStateParameters = null, object[] enterNewStateParameters = null)
+        public void Save(BaseState<RobotStateEnum> stateEnum, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
         {
             if (stateEnum.MyStateEnum is RobotStateEnum.Jamming or RobotStateEnum.Redirecting) return;
             
@@ -18,7 +18,7 @@ namespace _Script.Robot
 
         }
 
-        public (BaseState<RobotStateEnum> enterStateEnum, object[] exitOldStateParameters, object[] enterNewStateParameters) Restore(
+        public (BaseState<RobotStateEnum> enterStateEnum, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) Restore(
             bool isRemoveRestore = true)
         {
             return (_oldStateEnum, _exitOldStateParameters, _enterNewStateParameters);

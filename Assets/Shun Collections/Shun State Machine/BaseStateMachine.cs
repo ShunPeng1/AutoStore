@@ -20,7 +20,7 @@ namespace Shun_State_Machine
             StateHistoryStrategy = historyStrategy;
         }
 
-        public void ExecuteState(object[] parameters = null)
+        public void ExecuteState(IStateParameter parameters = null)
         {
             CurrentBaseState.ExecuteState(parameters);
         }
@@ -34,7 +34,7 @@ namespace Shun_State_Machine
             _states.Remove(stateEnum);
         }
 
-        public void SetToState(TStateEnum stateEnum, object[] exitOldStateParameters = null, object[] enterNewStateParameters = null)
+        public void SetToState(TStateEnum stateEnum, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
         {
             if (_states.TryGetValue(stateEnum, out BaseState<TStateEnum> nextState))
             {
@@ -52,7 +52,7 @@ namespace Shun_State_Machine
             return CurrentBaseState.MyStateEnum;
         }
 
-        private void SwitchState(BaseState<TStateEnum> nextState , object[] exitOldStateParameters = null, object[] enterNewStateParameters = null)
+        private void SwitchState(BaseState<TStateEnum> nextState , IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
         {
             CurrentBaseState.OnExitState(nextState.MyStateEnum,exitOldStateParameters);
             TStateEnum lastStateEnum = CurrentBaseState.MyStateEnum;

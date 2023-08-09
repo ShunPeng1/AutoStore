@@ -11,14 +11,14 @@ namespace Shun_State_Machine
     public class StackStateHistoryStrategy<TStateEnum> : IStateHistoryStrategy<TStateEnum> where TStateEnum : Enum
     {
         private int _maxSize = 0;
-        private LinkedList<(BaseState<TStateEnum>, object[], object[])> _historyStates = new(); // act as a stack
+        private LinkedList<(BaseState<TStateEnum>, IStateParameter, IStateParameter)> _historyStates = new(); // act as a stack
 
         public StackStateHistoryStrategy(int maxSize = 100)
         {
             _maxSize = maxSize;
         }
         
-        public void Save(BaseState<TStateEnum> baseState, object[] exitOldStateParameters = null, object[] enterNewStateParameters = null)
+        public void Save(BaseState<TStateEnum> baseState, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
         {
             if (_historyStates.Count >= _maxSize)
             {
@@ -28,12 +28,12 @@ namespace Shun_State_Machine
             _historyStates.AddFirst((baseState, exitOldStateParameters, enterNewStateParameters));
         }
 
-        public void Save(TStateEnum stateEnum, object[] exitOldStateParameters = null, object[] enterNewStateParameters = null)
+        public void Save(TStateEnum stateEnum, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
         {
             throw new NotImplementedException();
         }
 
-        public (BaseState<TStateEnum> enterStateEnum, object[] exitOldStateParameters, object[] enterNewStateParameters) Restore(bool isRemoveRestore = true)
+        public (BaseState<TStateEnum> enterStateEnum, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) Restore(bool isRemoveRestore = true)
         {
             if (_historyStates.Count != 0)
             {

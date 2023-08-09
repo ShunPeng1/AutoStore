@@ -140,7 +140,7 @@ namespace _Script.Robot
 
         #region StateEvents
 
-        private void MovingStateExecute(RobotStateEnum currentState, object [] enterParameters)
+        private void MovingStateExecute(RobotStateEnum currentState, IStateParameter enterParameters)
         {
             if (!CheckArriveCell()) return; // change state during executing this function
             
@@ -150,11 +150,11 @@ namespace _Script.Robot
             MoveAlongGrid();
         }
 
-        private void AssignTask(RobotStateEnum lastRobotState, object [] enterParameters)
+        private void AssignTask(RobotStateEnum lastRobotState, IStateParameter enterParameters)
         {
             if (enterParameters == null) return;
             
-            CurrentTask = enterParameters[0] as RobotTask;
+            CurrentTask = enterParameters as RobotTask;
             if (CurrentTask == null) return;
             
             switch (CurrentTask.StartCellPosition)
@@ -268,9 +268,7 @@ namespace _Script.Robot
         
             RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateDestination, 0);
         
-            RobotStateMachine.SetToState(RobotStateEnum.Delivering, 
-                new object[]{CurrentTask}, 
-                new object[]{robotTask});
+            RobotStateMachine.SetToState(RobotStateEnum.Delivering, CurrentTask, robotTask);
             
         }
         
@@ -291,7 +289,7 @@ namespace _Script.Robot
             Destroy(HoldingCrate.gameObject);
             HoldingCrate = null;
             
-            RobotStateMachine.SetToState(RobotStateEnum.Idle, new object[]{CurrentTask});
+            RobotStateMachine.SetToState(RobotStateEnum.Idle, CurrentTask);
         }
 
         #endregion

@@ -3,11 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using _Script.Robot;
 using Priority_Queue;
+using Shun_State_Machine;
 using UnityEngine;
 
 
 [RequireComponent(typeof(Robot))]
-public class RobotTask
+public class RobotTask : IStateParameter
 {
     public StartPosition StartCellPosition;
     public Vector3 GoalCellPosition;

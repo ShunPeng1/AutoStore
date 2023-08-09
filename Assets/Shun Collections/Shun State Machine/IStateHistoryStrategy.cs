@@ -8,7 +8,7 @@ namespace Shun_State_Machine
     /// <typeparam name="TStateEnum"></typeparam>
     public interface IStateHistoryStrategy<TStateEnum> where TStateEnum : Enum
     {
-        void Save(BaseState<TStateEnum> stateEnum, object[] exitOldStateParameters = null, object[] enterNewStateParameters = null);
-        (BaseState<TStateEnum> enterStateEnum, object[] exitOldStateParameters, object[] enterNewStateParameters) Restore(bool isRemoveRestore = true);
+        void Save(BaseState<TStateEnum> stateEnum, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null);
+        (BaseState<TStateEnum> enterStateEnum, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) Restore(bool isRemoveRestore = true);
     }
 }
