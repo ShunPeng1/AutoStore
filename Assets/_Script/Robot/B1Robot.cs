@@ -181,7 +181,7 @@ public class B1Robot : Robot
     
     protected override bool UpdateInitialPath(List<GridXZCell<CellItem>> dynamicObstacle)
     {
-        Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
+        Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
         var currentStartCell = CurrentGrid.GetCell(nearestCellPosition);
 
         MovingPath = PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
@@ -215,7 +215,7 @@ public class B1Robot : Robot
 
     protected override void RedirectToNearestCell()
     {
-        Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
+        Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
         
         //Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
             
@@ -301,7 +301,7 @@ public class B1Robot : Robot
     private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isBlockAhead)
     {
         var redirectIndex = CurrentGrid.GetIndex(transform.position + direction * 1);
-        redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectIndex.x, redirectIndex.y) + Vector3.up * transform.position.y;
+        redirectGoalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(redirectIndex.x, redirectIndex.y);
         isBlockAhead = false;
         
         foreach (var nearbyRobot in NearbyRobots)
@@ -335,7 +335,7 @@ public class B1Robot : Robot
     {
         HoldingCrate = crate;
 
-        Vector3 goalCellPosition = crate.transform.position + Vector3.up * transform.position.y;
+        Vector3 goalCellPosition = crate.transform.position;
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateSource, 0);
         
         RobotStateMachine.SetToState(RobotStateEnum.Approaching, CurrentTask, robotTask);

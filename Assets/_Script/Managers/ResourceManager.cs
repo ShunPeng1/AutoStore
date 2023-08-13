@@ -5,8 +5,6 @@ using UnityUtilities;
 
 public class ResourceManager : SingletonMonoBehaviour<ResourceManager>
 {
-    [Header("Storage")] public StackStorage StackStorage;
-
     [Header("Bundle")] public List<Crate> Crates;
 
     public Crate GetRandomCrate()

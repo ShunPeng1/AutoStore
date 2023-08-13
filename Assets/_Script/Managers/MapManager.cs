@@ -7,10 +7,16 @@ using UnityUtilities;
 
 public class MapManager : SingletonMonoBehaviour<MapManager>
 {
-    [SerializeField] private int _width = 20, _height = 20;
-    [SerializeField] private float _cellWidthSize = 1f, _cellHeightSize = 1f;
+    
+    [SerializeField] private Transform _mapParent;
+    
+    [Header("Grid")]
+    [SerializeField] private int _width = 20, _length = 20, _stackSize = 10;
+    [SerializeField] private float _cellWidthSize = 1f, _cellLengthSize = 1f, _stackDepthSize = 1f;
+
     public GridXZ<CellItem> WorldGrid;
 
+    [SerializeField, HideInInspector] private List<StackFrame> _stackStorages = new List<StackFrame>();
     private Vector2Int[] _adjacencyDirections = new[] // Clockwise Direction
     {
         new Vector2Int(1, 0),   // Right
@@ -18,6 +24,10 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
         new Vector2Int(-1, 0),  // Left
         new Vector2Int(0, 1),   // Up
     };
+    
+    [Header("Map Prefabs")]
+    [SerializeField] private StackFrame _stackFramePrefab;
+
     
     /// <summary>
     /// Using the Strategy Pattern for the robot to receive 
@@ -53,20 +63,18 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
 
     private void InitializeGrid()
     {
-        WorldGrid = new GridXZ<CellItem>(_width, _height, _cellWidthSize, _cellHeightSize, transform.position);
+        WorldGrid = new GridXZ<CellItem>(_width, _length, _cellWidthSize, _cellLengthSize, _mapParent.position);
         
         for (int x = 0; x < _width; x++)
         {
-            for (int z = 0; z < _height; z++)
+            for (int z = 0; z < _length; z++)
             {
                 GridXZCell<CellItem> storageGridXZCell = new (WorldGrid, x, z);
                 WorldGrid.SetCell(storageGridXZCell, x,z);
 
-                storageGridXZCell.Item = new CellItem();
+                var cellItem = new CellItem(_stackSize);
 
-                var stackStorage = Instantiate(ResourceManager.Instance.StackStorage, WorldGrid.GetWorldPositionOfNearestCell(x,z),Quaternion.identity ,transform);
-                stackStorage.Initialize(WorldGrid, x,z, storageGridXZCell.Item);
-                                
+                storageGridXZCell.Item = cellItem;
             }
         }
     }
@@ -75,7 +83,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     {
         for (int x = 0; x < _width; x++)
         {
-            for (int z = 0; z < _height; z++)
+            for (int z = 0; z < _length; z++)
             {
                 var cell = WorldGrid.GetCell(x, z);
                 foreach (var direction in _adjacencyDirections)
@@ -88,8 +96,47 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
         }
     }
 
-    private void Start()
+    public void SpawnStackStorage()
     {
-        
+        // Delete any existing spawned objects.
+        DeleteStackStorage();
+
+        for (int x = 0; x < _width; x++)
+        {
+            for (int y = 0; y < _stackSize; y++)
+            {
+                for (int z = 0; z < _length; z++)
+                {
+                    Vector3 spawnPosition = GetStackWorldPosition(x, z, y);
+                    StackFrame stackFrame = Instantiate(_stackFramePrefab, spawnPosition, Quaternion.identity, _mapParent).GetComponent<StackFrame>();
+                    _stackStorages.Add(stackFrame);
+                }
+            }
+        }
     }
+
+    public void DeleteStackStorage()
+    {
+        if (_stackStorages == null)
+            return;
+
+        foreach (StackFrame stackFrame in _stackStorages)
+        {
+            if (stackFrame != null)
+            {
+                DestroyImmediate(stackFrame.gameObject); // Use DestroyImmediate in the editor.
+            }
+        }
+        
+        _stackStorages.Clear();
+    }
+
+
+    private Vector3 GetStackWorldPosition(int x, int z, int index)
+    {
+        return new Vector3(x * _cellWidthSize, 0,z * _cellLengthSize) + _mapParent.position + Vector3.down * ((index + 1) * _stackDepthSize);
+    }
+    
+    
+    
 }

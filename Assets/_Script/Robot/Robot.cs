@@ -86,7 +86,7 @@ namespace _Script.Robot
         {
             CurrentGrid = MapManager.Instance.WorldGrid;
             
-            LastCellPosition = NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
+            LastCellPosition = NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
         }
 
         private void InitializeStrategy()
@@ -170,7 +170,7 @@ namespace _Script.Robot
                     break;
                 
                 case RobotTask.StartPosition.NearestCell:
-                    Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position) + Vector3.up * transform.position.y;
+                    Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
 
                     if (nearestCellPosition == LastCellPosition)
                     {
@@ -264,7 +264,7 @@ namespace _Script.Robot
             HoldingCrate.PickUp();
             
             
-            var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingCrate.DropDownIndexX, HoldingCrate.DropDownIndexZ) + Vector3.up * transform.position.y;
+            var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingCrate.DropDownIndexX, HoldingCrate.DropDownIndexZ);
         
             RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateDestination, 0);
         
@@ -345,8 +345,7 @@ namespace _Script.Robot
             var nextNextCell = MovingPath.First.Value;
             MovingPath.RemoveFirst(); // the next standing node
 
-            Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.YIndex) +
-                                           Vector3.up * transform.position.y;
+            Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.YIndex);
 
             LastCellPosition = NextCellPosition;
             NextCellPosition = nextNextCellPosition;
