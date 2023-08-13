@@ -195,16 +195,6 @@ namespace _Script.Robot
             CheckArriveCell();
         }
         
-        protected void RestoreState()
-        {
-            var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore();
-            if (enterState != null)
-            {
-                RobotStateMachine.SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
-            }
-            else RobotStateMachine.SetToState(RobotStateEnum.Idle);
-            
-        }
 
         #endregion
         
@@ -243,8 +233,8 @@ namespace _Script.Robot
             RobotStateMachine.SetToState(RobotStateEnum.Jamming);
 
             yield return new WaitForSeconds(JamWaitTime);
-            
-            RestoreState();
+                
+            RobotStateMachine.RestoreState();
             
         }
         

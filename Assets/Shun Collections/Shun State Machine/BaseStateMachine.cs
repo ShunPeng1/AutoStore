@@ -60,5 +60,16 @@ namespace Shun_State_Machine
             nextState.OnEnterState(lastStateEnum,enterNewStateParameters);
         }
         
+        public void RestoreState()
+        {
+            var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore();
+            if (enterState != null)
+            {
+                SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
+            }
+            else SetToState(default);
+            
+        }
+        
     }
 }
