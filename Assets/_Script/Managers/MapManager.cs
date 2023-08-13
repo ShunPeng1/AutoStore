@@ -72,7 +72,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
                 GridXZCell<CellItem> storageGridXZCell = new (WorldGrid, x, z);
                 WorldGrid.SetCell(storageGridXZCell, x,z);
 
-                var cellItem = new CellItem(_stackSize);
+                var cellItem = new CellItem(WorldGrid, storageGridXZCell, _stackSize, _stackDepthSize);
 
                 storageGridXZCell.Item = cellItem;
             }

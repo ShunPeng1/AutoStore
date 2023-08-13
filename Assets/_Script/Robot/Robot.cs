@@ -54,7 +54,7 @@ namespace _Script.Robot
         [Header("Components")] 
         protected Rigidbody Rigidbody;
         protected BoxCollider BoxCollider;
-
+        
         
         [Header("Robot Detection")]
         [SerializeField] protected float BoxColliderSize = 0.9f;

@@ -131,23 +131,34 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     private void CreateCrateRandomly()
     {
         
-        int currentX = Random.Range(0, _storageGrid.Width), currentZ = Random.Range(0, _storageGrid.Height);
-        int storingX = Random.Range(0, _storageGrid.Width), storingZ = Random.Range(0, _storageGrid.Height);
+        int spawnSourceX = Random.Range(0, _storageGrid.Width), spawnSourceZ = Random.Range(0, _storageGrid.Height);
+        int storeDestinationX = Random.Range(0, _storageGrid.Width), storeDestinationZ = Random.Range(0, _storageGrid.Height);
         float pullUpTime = Random.Range(_pullUpRandomRange.x, _pullUpRandomRange.y);
         float dropDownTime = Random.Range(_dropDownRandomRange.x, _dropDownRandomRange.y);
         
-        var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(),
-            _storageGrid.GetWorldPositionOfNearestCell(currentX, currentZ), Quaternion.identity);
+        CellItem cellItem = _storageGrid.GetCell(spawnSourceX,spawnSourceZ).Item;
+        
+        var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(), cellItem.GetTopStackWorldPosition(), Quaternion.identity);
 
-        freshCrate.Init(_storageGrid, currentX, currentZ, storingX, storingZ, pullUpTime, dropDownTime);
+        freshCrate.Init(
+            _storageGrid, 
+            spawnSourceX, 
+            spawnSourceZ, 
+            storeDestinationX,
+            storeDestinationZ,
+            pullUpTime, 
+            dropDownTime);
+        
         _pendingCrates.Enqueue(freshCrate);
+        cellItem.AddToStack(freshCrate);
     }
 
     private void CreateCrateFixed(CrateSpawnInfo crateSpawnInfo)
     {
-        var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(),
-            _storageGrid.GetWorldPositionOfNearestCell(crateSpawnInfo.SourceGridIndex.x, crateSpawnInfo.SourceGridIndex.y), Quaternion.identity);
-
+        CellItem cellItem = _storageGrid.GetCell(crateSpawnInfo.SourceGridIndex.x, crateSpawnInfo.SourceGridIndex.y).Item;
+        
+        var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(), cellItem.GetTopStackWorldPosition(), Quaternion.identity);
+        
         freshCrate.Init(
             _storageGrid, 
             crateSpawnInfo.SourceGridIndex.x, 
@@ -158,6 +169,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             crateSpawnInfo.DropDownTime);
         
         _pendingCrates.Enqueue(freshCrate);
+        cellItem.AddToStack(freshCrate);
     }
     
     public void RequestMission(Robot robot)
