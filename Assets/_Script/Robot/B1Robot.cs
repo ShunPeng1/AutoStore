@@ -220,7 +220,7 @@ public class B1Robot : Robot
         //Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
             
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
-        RobotStateMachine.SetToState(RobotStateEnum.Redirecting, CurrentTask , robotTask );
+        RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null , robotTask );
     }
 
     
@@ -294,7 +294,7 @@ public class B1Robot : Robot
         
         //Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(redirectGoalCellPosition));
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
-        RobotStateMachine.SetToState(RobotStateEnum.Redirecting, CurrentTask, robotTask );
+        RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotTask );
         return true;
     }
 
@@ -338,7 +338,7 @@ public class B1Robot : Robot
         Vector3 goalCellPosition = crate.transform.position;
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateSource, 0);
         
-        RobotStateMachine.SetToState(RobotStateEnum.Approaching, CurrentTask, robotTask);
+        RobotStateMachine.SetToState(RobotStateEnum.Approaching, null, robotTask);
     }
 
     #endregion

@@ -7,7 +7,6 @@ using Shun_State_Machine;
 using UnityEngine;
 
 
-[RequireComponent(typeof(Robot))]
 public class RobotTask : IStateParameter
 {
     public StartPosition StartCellPosition;

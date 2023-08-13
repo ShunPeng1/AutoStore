@@ -7,17 +7,8 @@ using UnityEngine;
 
 namespace _Script.Robot
 {
-    public enum RobotStateEnum
-    {
-        Idle,
-        Delivering,
-        Handling,
-        Approaching,
-        Jamming,
-        Redirecting
-    }
-    
-    public abstract class Robot : MonoBehaviour
+
+    public abstract partial class Robot : MonoBehaviour
     {
         [Header("Stat")] 
         private static int _idCount = 0;
@@ -115,7 +106,7 @@ namespace _Script.Robot
             BaseState<RobotStateEnum> approachingState = new(RobotStateEnum.Approaching,
                 MovingStateExecute, null, AssignTask);
             
-            BaseState<RobotStateEnum> retrievingState = new(RobotStateEnum.Handling, null, null, AssignTask);
+            BaseState<RobotStateEnum> handlingState = new(RobotStateEnum.Handling, null, null, AssignTask);
             
             BaseState<RobotStateEnum> deliveringState = new(RobotStateEnum.Delivering,
                 MovingStateExecute, null, AssignTask);
@@ -127,7 +118,7 @@ namespace _Script.Robot
             
             RobotStateMachine.AddState(idleState);
             RobotStateMachine.AddState(approachingState);
-            RobotStateMachine.AddState(retrievingState);
+            RobotStateMachine.AddState(handlingState);
             RobotStateMachine.AddState(deliveringState);
             RobotStateMachine.AddState(jammingState);
             RobotStateMachine.AddState(redirectingState);
@@ -154,7 +145,7 @@ namespace _Script.Robot
         {
             if (enterParameters == null) return;
             
-            CurrentTask = enterParameters as RobotTask;
+            CurrentTask = enterParameters.Get<RobotTask>();
             if (CurrentTask == null) return;
             
             switch (CurrentTask.StartCellPosition)
@@ -258,7 +249,7 @@ namespace _Script.Robot
         
             RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateDestination, 0);
         
-            RobotStateMachine.SetToState(RobotStateEnum.Delivering, CurrentTask, robotTask);
+            RobotStateMachine.SetToState(RobotStateEnum.Delivering, null, robotTask);
             
         }
         
@@ -288,7 +279,8 @@ namespace _Script.Robot
         
         protected abstract bool DecideFromRobotDetection();
         
-        protected void MoveAlongGrid()
+        
+        protected virtual void MoveAlongGrid()
         {
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
@@ -296,6 +288,9 @@ namespace _Script.Robot
 
             IsBetween2Cells = true;
         }
+
+        
+            
 
         bool CheckArriveCell()
         {
@@ -313,7 +308,7 @@ namespace _Script.Robot
             ExtractNextCellInPath();
             return true;
         }
-
+        
         #endregion
         
         #region PATHS_AND_CELLS

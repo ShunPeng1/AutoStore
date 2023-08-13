@@ -14,8 +14,7 @@ namespace Shun_State_Machine
         [Header("History")] 
         public IStateHistoryStrategy<TStateEnum> StateHistoryStrategy;
 
-        
-        public void SetHistoryStrategy(IStateHistoryStrategy<TStateEnum> historyStrategy)
+        public void SetHistoryStrategy(IStateHistoryStrategy<TStateEnum> historyStrategy = null)
         {
             StateHistoryStrategy = historyStrategy;
         }
@@ -62,6 +61,7 @@ namespace Shun_State_Machine
         
         public void RestoreState()
         {
+            if (StateHistoryStrategy == null) return;
             var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore();
             if (enterState != null)
             {
