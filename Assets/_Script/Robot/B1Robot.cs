@@ -39,7 +39,12 @@ public class B1Robot : Robot
             NearbyRobots.Add(detectedRobot);
         }
     }
-    
+
+    protected override bool CheckRobotSafeDistance(Robot checkRobot)
+    {
+        return Vector3.Distance(transform.position, checkRobot.transform.position) <= CastRadius ;
+    }
+
     protected override bool DecideFromRobotDetection()
     {
         List<GridXZCell<CellItem>> dynamicObstacle = new();
@@ -52,7 +57,7 @@ public class B1Robot : Robot
             finalDecision = (DetectDecision) Mathf.Max((int)decision, (int)finalDecision);
 
             dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
-            if(detectedRobot.IsBetween2Cells) dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
+            if(detectedRobot.IsMidwayMove) dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
         }
         
         switch (finalDecision)
@@ -155,7 +160,7 @@ public class B1Robot : Robot
 
     private bool IsBlockAHead(Robot detectedRobot, Vector3 checkPosition)
     {
-        return (checkPosition == detectedRobot.NextCellPosition && detectedRobot.IsBetween2Cells) ||
+        return (checkPosition == detectedRobot.NextCellPosition && detectedRobot.IsMidwayMove) ||
                checkPosition == detectedRobot.LastCellPosition; // definitely being block by detected robot's last cell or next cell
     }
     

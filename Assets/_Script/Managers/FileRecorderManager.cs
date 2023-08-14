@@ -80,7 +80,7 @@ namespace _Script.Managers
                         Time.time,
                         robot.LastCellPosition,
                         robot.CurrentTask?.GoalCellPosition ?? robot.LastCellPosition,
-                        robot.CurrentRobotState, robot.IsBetween2Cells);
+                        robot.CurrentRobotState, robot.IsMidwayMove);
                     _robotRecordsDictionary[robot].Add(record);
                 }
 

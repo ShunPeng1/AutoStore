@@ -23,7 +23,7 @@ namespace _Script.Robot
         [Header("Grid")]
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
-        public bool IsBetween2Cells = true;
+        public bool IsMidwayMove = true;
         protected internal GridXZ<CellItem> CurrentGrid;
         
         protected internal LinkedList<GridXZCell<CellItem>> MovingPath;
@@ -207,13 +207,13 @@ namespace _Script.Robot
             if (LastCellPosition == transform.position)
             {
                 NextCellPosition = LastCellPosition;
-                IsBetween2Cells = false;
+                IsMidwayMove = false;
             }
 
             if (NextCellPosition == transform.position)
             {
                 LastCellPosition = NextCellPosition;
-                IsBetween2Cells = false;
+                IsMidwayMove = false;
             }
             
             JamCoroutine = StartCoroutine(nameof(Jamming));
@@ -286,7 +286,7 @@ namespace _Script.Robot
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
             Rigidbody.velocity = Vector3.zero;
 
-            IsBetween2Cells = true;
+            IsMidwayMove = true;
         }
 
         
@@ -296,12 +296,12 @@ namespace _Script.Robot
         {
             if (Vector3.Distance(transform.position, NextCellPosition) != 0) return true;
             
-            IsBetween2Cells = false;
+            IsMidwayMove = false;
             if (CurrentTask != null &&
                 CurrentGrid.GetIndex(transform.position) == CurrentGrid.GetIndex(CurrentTask.GoalCellPosition))
             {
-                CurrentTask.GoalArrivalAction?.Invoke();
                 ExtractNextCellInPath();
+                CurrentTask.GoalArrivalAction?.Invoke();
                 return false;
             }
                 
@@ -345,6 +345,8 @@ namespace _Script.Robot
 
         #region COLLIDERS
         protected abstract void DetectNearByRobot();
+
+        protected abstract bool CheckRobotSafeDistance(Robot checkRobot);
         
         private void OnCollisionEnter(Collision other)
         {
