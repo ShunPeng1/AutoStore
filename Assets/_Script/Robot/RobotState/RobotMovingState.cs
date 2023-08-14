@@ -245,7 +245,7 @@ namespace _Script.Robot
                 var startCell = Grid.GetCell(startPosition);
                 var endCell = Grid.GetCell(endPosition);
         
-                Robot.MovingPath = Robot.PathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
+                Robot.MovingPath = Robot._pathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
 
                 if (Robot.MovingPath != null) return true; 
         
@@ -261,7 +261,7 @@ namespace _Script.Robot
                 Vector3 nearestCellPosition = Grid.GetWorldPositionOfNearestCell(RobotTransform.position);
                 var currentStartCell = Grid.GetCell(nearestCellPosition);
 
-                Robot.MovingPath = Robot.PathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
+                Robot.MovingPath = Robot._pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
 
                 if (Robot.MovingPath == null) // The path to goal is block
                 {

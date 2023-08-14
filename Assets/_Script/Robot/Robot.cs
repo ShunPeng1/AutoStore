@@ -15,33 +15,30 @@ namespace _Script.Robot
         public int Id;
         
         [Header("Robot State Machine")]
-
-        protected BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
-
         public RobotStateEnum CurrentRobotState;
-        protected IStateHistoryStrategy<RobotStateEnum> StateHistoryStrategy;
+        protected readonly BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
+        private IStateHistoryStrategy<RobotStateEnum> _stateHistoryStrategy;
         
         [Header("Grid")]
+        protected internal GridXZ<CellItem> CurrentGrid;
+
         public Vector3 NextCellPosition;
         public Vector3 LastCellPosition;
         public bool IsMidwayMove = true;
-        protected internal GridXZ<CellItem> CurrentGrid;
-        
         protected internal LinkedList<GridXZCell<CellItem>> MovingPath;
         
         [Header("Movement")] 
         public float MaxMovementSpeed = 1f;
-        [SerializeField] protected float PreemptiveDistance = 0.05f;
         [SerializeField] protected float JamWaitTime = 5f;
         protected Coroutine JamCoroutine;
         
-        [Header("Pathfinding and obstacle")]
-        protected IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> PathfindingAlgorithm;
+        [Header("Pathfinding and obstacle")] 
+        private IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> _pathfindingAlgorithm;
         protected List<Robot> NearbyRobots = new();
         
         [Header("Task ")]
         [SerializeField] protected Crate HoldingCrate;
-        [SerializeField] public RobotTask CurrentTask;
+        
         
         [Header("Components")] 
         protected Rigidbody Rigidbody;
@@ -84,8 +81,8 @@ namespace _Script.Robot
 
         private void InitializeStrategy()
         {
-            PathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
-            StateHistoryStrategy = new RobotStateHistoryStrategy();
+            _pathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
+            _stateHistoryStrategy = new RobotStateHistoryStrategy();
         }
 
         private void InitializeComponents()
@@ -123,7 +120,7 @@ namespace _Script.Robot
             RobotStateMachine.AddState(redirectingState);
             
             //RobotStateMachine.CurrentBaseState = idleState;
-            RobotStateMachine.StateHistoryStrategy = StateHistoryStrategy;
+            RobotStateMachine.StateHistoryStrategy = _stateHistoryStrategy;
         }
 
         #endregion
@@ -209,7 +206,7 @@ namespace _Script.Robot
             Destroy(HoldingCrate.gameObject);
             HoldingCrate = null;
             
-            RobotStateMachine.SetToState(RobotStateEnum.Idle, CurrentTask);
+            RobotStateMachine.SetToState(RobotStateEnum.Idle);
         }
 
         #endregion

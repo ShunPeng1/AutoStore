@@ -79,7 +79,7 @@ namespace _Script.Managers
                     var record = new RobotRecord(
                         Time.time,
                         robot.LastCellPosition,
-                        robot.CurrentTask?.GoalCellPosition ?? robot.LastCellPosition,
+                        Vector3.zero, // Have changed
                         robot.CurrentRobotState, robot.IsMidwayMove);
                     _robotRecordsDictionary[robot].Add(record);
                 }
