@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using Shun_Grid_System;
+using UnityEngine;
 
 namespace _Script.Robot
 {
@@ -16,12 +17,14 @@ namespace _Script.Robot
                    (robot.NextCellPosition == robotTask.GoalCellPosition || robot.LastCellPosition == robotTask.GoalCellPosition);
         }
         
-        
-        public static bool CheckRobotOnGoal(Robot robot, RobotTask robotTask)
+        public static bool CheckArriveOnNextCell(Robot robot)
         {
-            return robotTask != null && 
-                   robot.NextCellPosition == robotTask.GoalCellPosition &&
-                   robot.LastCellPosition == robotTask.GoalCellPosition;
+            return Vector3.Distance(robot.transform.position, robot.NextCellPosition) == 0;
+        }
+        
+        public static bool CheckRobotOnGoal(GridXZ<CellItem> grid,Robot robot, RobotTask robotTask)
+        {
+            return robotTask != null && grid.GetIndex(robot.transform.position) == grid.GetIndex(robotTask.GoalCellPosition);
         }
         
         public static float DotOf2RobotMovingDirection(Robot robot1, Robot robot2)

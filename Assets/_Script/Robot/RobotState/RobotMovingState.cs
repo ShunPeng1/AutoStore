@@ -9,15 +9,23 @@ namespace _Script.Robot
 
     public abstract partial class Robot
     {
+        
         public class RobotMovingState : RobotState
         {
             protected RobotTask CurrentTask;
-            
+        
+            protected enum DetectDecision
+            {
+                Ignore = 0,
+                Wait = 1,
+                Dodge = 2,
+                Deflected = 3
+            }
             
             public RobotMovingState(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(robot, myStateEnum, executeEvents, exitEvents, enterEvents)
             {
-                enterEvents += AssignTask;
-                executeEvents += MovingStateExecute;
+                EnterEvents += AssignTask;
+                ExecuteEvents += MovingStateExecute;
             }
 
             private void AssignTask(RobotStateEnum lastRobotState, IStateParameter enterParameters)
@@ -66,17 +74,16 @@ namespace _Script.Robot
                 CheckArriveGoalCell();
             }
             
-            
             private void MovingStateExecute(RobotStateEnum currentState, IStateParameter enterParameters)
             {
-                if (!CheckArriveNextCell())
+                if (RobotUtility.CheckArriveOnNextCell(Robot))
                 {
                     Robot.IsMidwayMove = false;
                     ExtractNextCellInPath();
-                } 
-                
-                if (!CheckArriveGoalCell()) return; // change state during executing this function
-            
+                    
+                    if (!CheckArriveGoalCell()) return; // change state during executing this function
+                }
+
                 Robot.DetectNearByRobot();
                 if (!DecideFromRobotDetection()) return; // change state during executing this function
                 
@@ -84,14 +91,9 @@ namespace _Script.Robot
                 Robot.MoveAlongGrid();
             }
 
-            bool CheckArriveNextCell()
+            protected virtual bool CheckArriveGoalCell()
             {
-                return Vector3.Distance(RobotTransform.position, Robot.NextCellPosition) != 0;
-            }
-            
-            bool CheckArriveGoalCell()
-            {
-                if (! RobotUtility.CheckRobotOnGoal(Robot, CurrentTask)) return true;
+                if (! RobotUtility.CheckRobotOnGoal(Grid, Robot, CurrentTask)) return true;
                 
                 CurrentTask.GoalArrivalAction?.Invoke();
                 return false;
@@ -99,15 +101,9 @@ namespace _Script.Robot
             }
 
             #region DETECTION_DECISION
-            private enum DetectDecision
-            {
-                Ignore = 0,
-                Wait = 1,
-                Dodge = 2,
-                Deflected = 3
-            }
+            
 
-            protected bool DecideFromRobotDetection()
+            protected virtual bool DecideFromRobotDetection()
             {
                 List<GridXZCell<CellItem>> dynamicObstacle = new();
                 DetectDecision finalDecision = DetectDecision.Ignore; 
@@ -144,7 +140,7 @@ namespace _Script.Robot
                 }
             }
 
-            private DetectDecision DecideOnDetectedRobot(Robot detectedRobot)
+            protected virtual DetectDecision DecideOnDetectedRobot(Robot detectedRobot)
             {
                 float dotProductOf2RobotDirection = RobotUtility.DotOf2RobotMovingDirection(Robot, detectedRobot);
                 bool isUnsafeDistanceOf2Robot = Robot.CheckRobotSafeDistance(detectedRobot);
@@ -225,9 +221,9 @@ namespace _Script.Robot
             
             #endregion
 
-            #region PATH
-            
-            protected void ExtractNextCellInPath()
+            #region PATHFINDING
+
+            private void ExtractNextCellInPath()
             {
                 if (Robot.MovingPath == null || Robot.MovingPath.Count == 0)
                 {
@@ -243,8 +239,8 @@ namespace _Script.Robot
                 Robot.NextCellPosition = nextNextCellPosition;
             
             }
-            
-            protected bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition)
+
+            private bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition)
             {
                 var startCell = Grid.GetCell(startPosition);
                 var endCell = Grid.GetCell(endPosition);
@@ -259,8 +255,8 @@ namespace _Script.Robot
                 return false;
 
             }
-            
-            protected bool UpdateInitialPath(List<GridXZCell<CellItem>> dynamicObstacle)
+
+            private bool UpdateInitialPath(List<GridXZCell<CellItem>> dynamicObstacle)
             {
                 Vector3 nearestCellPosition = Grid.GetWorldPositionOfNearestCell(RobotTransform.position);
                 var currentStartCell = Grid.GetCell(nearestCellPosition);

@@ -17,7 +17,8 @@ namespace _Script.Robot
         [Header("Robot State Machine")]
 
         protected BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
-        public RobotStateEnum CurrentRobotState => RobotStateMachine.GetState();
+
+        public RobotStateEnum CurrentRobotState;
         protected IStateHistoryStrategy<RobotStateEnum> StateHistoryStrategy;
         
         [Header("Grid")]
@@ -70,6 +71,7 @@ namespace _Script.Robot
 
         private void FixedUpdate()
         {
+            CurrentRobotState = RobotStateMachine.GetState();
             RobotStateMachine.ExecuteState();
         }
 
@@ -96,25 +98,22 @@ namespace _Script.Robot
         
         private void InitializeState()
         {
-            BaseState<RobotStateEnum> idleState = new(RobotStateEnum.Idle, null, null,
+            RobotState idleState = new(this, RobotStateEnum.Idle, null, null,
                 (_, _) =>
                 {
                     if (transform.position != LastCellPosition) 
                         RedirectToNearestCell();
                 });
             
-            BaseState<RobotStateEnum> approachingState = new(RobotStateEnum.Approaching,
-                MovingStateExecute, null, AssignTask);
+            RobotMovingState approachingState = new(this, RobotStateEnum.Approaching);
             
-            BaseState<RobotStateEnum> handlingState = new(RobotStateEnum.Handling, null, null, AssignTask);
+            RobotState handlingState = new(this,RobotStateEnum.Handling );
             
-            BaseState<RobotStateEnum> deliveringState = new(RobotStateEnum.Delivering,
-                MovingStateExecute, null, AssignTask);
+            RobotMovingState deliveringState = new(this,RobotStateEnum.Delivering);
             
-            BaseState<RobotStateEnum> jammingState = new(RobotStateEnum.Jamming, null, null, AssignTask);
+            RobotState jammingState = new(this,RobotStateEnum.Jamming);
             
-            BaseState<RobotStateEnum> redirectingState = new(RobotStateEnum.Redirecting,
-                MovingStateExecute, null, AssignTask);
+            RobotMovingState redirectingState = new(this,RobotStateEnum.Redirecting);
             
             RobotStateMachine.AddState(idleState);
             RobotStateMachine.AddState(approachingState);
@@ -129,66 +128,6 @@ namespace _Script.Robot
 
         #endregion
 
-        #region StateEvents
-
-        private void MovingStateExecute(RobotStateEnum currentState, IStateParameter enterParameters)
-        {
-            if (!CheckArriveCell()) return; // change state during executing this function
-            
-            DetectNearByRobot();
-            if (!DecideFromRobotDetection()) return; // change state during executing this function
-
-            MoveAlongGrid();
-        }
-
-        private void AssignTask(RobotStateEnum lastRobotState, IStateParameter enterParameters)
-        {
-            if (enterParameters == null) return;
-            
-            CurrentTask = enterParameters.Get<RobotTask>();
-            if (CurrentTask == null) return;
-            
-            switch (CurrentTask.StartCellPosition)
-            {
-                case RobotTask.StartPosition.LastCell:
-                    CreateInitialPath(LastCellPosition, CurrentTask.GoalCellPosition);
-                    ExtractNextCellInPath();
-                    break;
-                
-                case RobotTask.StartPosition.NextCell:
-                    CreateInitialPath(NextCellPosition, CurrentTask.GoalCellPosition);
-                    MovingPath.RemoveFirst();
-                    break;
-                
-                case RobotTask.StartPosition.NearestCell:
-                    Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
-
-                    if (nearestCellPosition == LastCellPosition)
-                    {
-                        CreateInitialPath(nearestCellPosition, CurrentTask.GoalCellPosition);
-                        ExtractNextCellInPath();
-                    }
-                    else if (nearestCellPosition == NextCellPosition)
-                    {
-                        if(CreateInitialPath(NextCellPosition, CurrentTask.GoalCellPosition))
-                            MovingPath.RemoveFirst();
-                    }
-                    else
-                    {
-                        Debug.LogError( gameObject.name+" THE NEAREST CELL IS NOT LAST OR NEXT CELL "+ nearestCellPosition);
-                    }
-                    
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-            
-            CheckArriveCell();
-        }
-        
-
-        #endregion
-        
         /// <summary>
         /// Using the Template Method Pattern to store the function that the different type of robot can override for its own implementation
         /// </summary>
@@ -276,10 +215,6 @@ namespace _Script.Robot
         #endregion
 
         #region MOVEMENT
-        
-        protected abstract bool DecideFromRobotDetection();
-        
-        
         protected virtual void MoveAlongGrid()
         {
             // Move
@@ -288,62 +223,12 @@ namespace _Script.Robot
 
             IsMidwayMove = true;
         }
-
         
-            
-
-        bool CheckArriveCell()
-        {
-            if (Vector3.Distance(transform.position, NextCellPosition) != 0) return true;
-            
-            IsMidwayMove = false;
-            if (CurrentTask != null &&
-                CurrentGrid.GetIndex(transform.position) == CurrentGrid.GetIndex(CurrentTask.GoalCellPosition))
-            {
-                ExtractNextCellInPath();
-                CurrentTask.GoalArrivalAction?.Invoke();
-                return false;
-            }
-                
-            ExtractNextCellInPath();
-            return true;
-        }
         
         #endregion
         
-        #region PATHS_AND_CELLS
-        
-        /// <summary>
-        /// Using Iteration Pattern for getting the cell that the robot travelling when getting form the PathFinding Algorithm
-        /// NextCellPosition : the next cell the robot going to travel to
-        /// LastCellPosition : the cell that the robot is leaving
-        /// This guarantee the robot is between the LastCellPosition and NextCellPosition, which is next to each other
-        /// </summary>
-        /// <returns></returns>
-        protected void ExtractNextCellInPath()
-        {
-            if (MovingPath == null || MovingPath.Count == 0)
-            {
-                LastCellPosition = NextCellPosition;
-                return;
-            }
-            var nextNextCell = MovingPath.First.Value;
-            MovingPath.RemoveFirst(); // the next standing node
 
-            Vector3 nextNextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.YIndex);
-
-            LastCellPosition = NextCellPosition;
-            NextCellPosition = nextNextCellPosition;
-            //Debug.Log(gameObject.name + " Get Next Cell " + NextCellPosition);
-        }
-
-        protected abstract bool UpdateInitialPath(List<GridXZCell<CellItem>> dynamicObstacle);
-        protected abstract bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition);
-
-        
-        #endregion
-
-        #region COLLIDERS
+        #region DETECTION_AND_COLLIDERS
         protected abstract void DetectNearByRobot();
 
         protected abstract bool CheckRobotSafeDistance(Robot checkRobot);
