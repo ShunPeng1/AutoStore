@@ -22,13 +22,13 @@ namespace _Script.Robot
                 
                 if (Robot.LastCellPosition == RobotTransform.position)
                 {
-                    Robot.NextCellPosition = Robot.LastCellPosition;
+                    Robot.NextCell = Robot.LastCell;
                     Robot.IsMidwayMove = false;
                 }
 
                 if (Robot.NextCellPosition == Robot.transform.position)
                 {
-                    Robot.LastCellPosition = Robot.NextCellPosition;
+                    Robot.LastCell = Robot.NextCell;
                     Robot.IsMidwayMove = false;
                 }
             

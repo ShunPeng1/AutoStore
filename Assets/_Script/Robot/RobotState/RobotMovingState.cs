@@ -227,16 +227,14 @@ namespace _Script.Robot
             {
                 if (Robot.MovingPath == null || Robot.MovingPath.Count == 0)
                 {
-                    Robot.LastCellPosition = Robot.NextCellPosition;
+                    Robot.LastCell = Robot.NextCell;
                     return;
                 }
                 var nextNextCell = Robot.MovingPath.First.Value;
                 Robot.MovingPath.RemoveFirst(); // the next standing node
-
-                Vector3 nextNextCellPosition = Grid.GetWorldPositionOfNearestCell(nextNextCell.XIndex, nextNextCell.YIndex);
-
-                Robot.LastCellPosition = Robot.NextCellPosition;
-                Robot.NextCellPosition = nextNextCellPosition;
+                
+                Robot.LastCell = Robot.NextCell;
+                Robot.NextCell = nextNextCell;
             
             }
 

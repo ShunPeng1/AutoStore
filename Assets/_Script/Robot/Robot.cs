@@ -22,8 +22,11 @@ namespace _Script.Robot
         [Header("Grid")]
         protected internal GridXZ<CellItem> CurrentGrid;
 
-        public Vector3 NextCellPosition;
-        public Vector3 LastCellPosition;
+        
+        public GridXZCell<CellItem> NextCell;
+        public GridXZCell<CellItem> LastCell;
+        public Vector3 NextCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(NextCell);
+        public Vector3 LastCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(LastCell);
         public bool IsMidwayMove = true;
         protected internal LinkedList<GridXZCell<CellItem>> MovingPath;
         
@@ -75,7 +78,7 @@ namespace _Script.Robot
         {
             CurrentGrid = MapManager.Instance.WorldGrid;
             
-            LastCellPosition = NextCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
+            LastCell = NextCell = CurrentGrid.GetCell(transform.position);
         }
 
         private void InitializeStrategy()
