@@ -139,7 +139,7 @@ public class B1Robot : Robot
             {
                 switch (nearbyRobot.CurrentRobotState)
                 {
-                    case RobotStateEnum.Idle:
+                    case RobotStateEnum.Idling:
                         isBlockAhead = false;
                         break;
                     case RobotStateEnum.Handling:

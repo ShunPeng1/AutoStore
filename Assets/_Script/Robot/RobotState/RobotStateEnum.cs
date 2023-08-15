@@ -2,7 +2,7 @@
 {
     public enum RobotStateEnum
     {
-        Idle,
+        Idling,
         Delivering,
         Handling,
         Approaching,

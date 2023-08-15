@@ -150,10 +150,10 @@ namespace _Script.Robot
                 switch (detectedRobot.CurrentRobotState)
                 {
                     /* Idle state cases */
-                    case RobotStateEnum.Idle when isBlockingGoal || isBlockAHead: // If they are standing on this robot goal or blocking ahead of this robot
+                    case RobotStateEnum.Idling when isBlockingGoal || isBlockAHead: // If they are standing on this robot goal or blocking ahead of this robot
                         return TryRedirectRobot(detectedRobot);
 
-                    case RobotStateEnum.Idle: // Not blocking at all
+                    case RobotStateEnum.Idling: // Not blocking at all
                         return DetectDecision.Ignore;
                     
                     

@@ -95,12 +95,7 @@ namespace _Script.Robot
         
         private void InitializeState()
         {
-            RobotState idleState = new(this, RobotStateEnum.Idle, null, null,
-                (_, _) =>
-                {
-                    if (transform.position != LastCellPosition) 
-                        RedirectToNearestCell();
-                });
+            RobotIdlingState idlingState = new(this, RobotStateEnum.Idling);
             
             RobotMovingState approachingState = new(this, RobotStateEnum.Approaching);
             
@@ -112,7 +107,7 @@ namespace _Script.Robot
             
             RobotMovingState redirectingState = new(this,RobotStateEnum.Redirecting);
             
-            RobotStateMachine.AddState(idleState);
+            RobotStateMachine.AddState(idlingState);
             RobotStateMachine.AddState(approachingState);
             RobotStateMachine.AddState(handlingState);
             RobotStateMachine.AddState(deliveringState);
@@ -206,7 +201,7 @@ namespace _Script.Robot
             Destroy(HoldingCrate.gameObject);
             HoldingCrate = null;
             
-            RobotStateMachine.SetToState(RobotStateEnum.Idle);
+            RobotStateMachine.SetToState(RobotStateEnum.Idling);
         }
 
         #endregion
