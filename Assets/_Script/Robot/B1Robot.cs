@@ -115,11 +115,6 @@ public class B1Robot : Robot
             redirectGoalCellPosition = potentialRedirectGoalCells[Random.Range(0, potentialRedirectGoalCells.Count)];
         }
 
-        if (CurrentRobotState == RobotStateEnum.Jamming)
-        {
-            StopCoroutine(JamCoroutine);
-        }
-        
         //Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(redirectGoalCellPosition));
         RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
         RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotTask );

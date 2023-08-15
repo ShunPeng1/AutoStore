@@ -30,7 +30,6 @@ namespace _Script.Robot
         [Header("Movement")] 
         public float MaxMovementSpeed = 1f;
         [SerializeField] protected float JamWaitTime = 5f;
-        protected Coroutine JamCoroutine;
         
         [Header("Pathfinding and obstacle")] 
         private IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> _pathfindingAlgorithm;
@@ -103,7 +102,7 @@ namespace _Script.Robot
             
             RobotMovingState deliveringState = new(this,RobotStateEnum.Delivering);
             
-            RobotState jammingState = new(this,RobotStateEnum.Jamming);
+            RobotJammingState jammingState = new(this,RobotStateEnum.Jamming);
             
             RobotMovingState redirectingState = new(this,RobotStateEnum.Redirecting);
             
@@ -133,32 +132,9 @@ namespace _Script.Robot
 
         protected void SetToJam()
         {
-            if (JamCoroutine != null) StopCoroutine(JamCoroutine);
-
-            if (LastCellPosition == transform.position)
-            {
-                NextCellPosition = LastCellPosition;
-                IsMidwayMove = false;
-            }
-
-            if (NextCellPosition == transform.position)
-            {
-                LastCellPosition = NextCellPosition;
-                IsMidwayMove = false;
-            }
-            
-            JamCoroutine = StartCoroutine(nameof(Jamming));
+            RobotStateMachine.SetToState(RobotStateEnum.Jamming);
         }
         
-        protected IEnumerator Jamming()
-        {
-            RobotStateMachine.SetToState(RobotStateEnum.Jamming);
-
-            yield return new WaitForSeconds(JamWaitTime);
-                
-            RobotStateMachine.RestoreState();
-            
-        }
         
         protected void ArriveCrateSource()
         {
