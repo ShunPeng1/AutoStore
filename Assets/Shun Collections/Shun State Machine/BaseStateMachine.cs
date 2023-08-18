@@ -1,18 +1,20 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Shun_Unity_Editor;
 using UnityEngine;
 using UnityUtilities;
 
 namespace Shun_State_Machine
 {
+    [Serializable]
     public class BaseStateMachine<TStateEnum> where TStateEnum : Enum 
     {
-        protected BaseState<TStateEnum> CurrentBaseState = new (default);
+        [ShowImmutable, SerializeField] protected BaseState<TStateEnum> CurrentBaseState = new (default);
         private Dictionary<TStateEnum, BaseState<TStateEnum>> _states = new ();
 
         [Header("History")] 
-        public IStateHistoryStrategy<TStateEnum> StateHistoryStrategy;
+        protected IStateHistoryStrategy<TStateEnum> StateHistoryStrategy;
 
         public void SetHistoryStrategy(IStateHistoryStrategy<TStateEnum> historyStrategy = null)
         {

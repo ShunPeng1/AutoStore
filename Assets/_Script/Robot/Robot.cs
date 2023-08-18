@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Shun_Grid_System;
 using Shun_State_Machine;
+using Shun_Unity_Editor;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -14,10 +15,10 @@ namespace _Script.Robot
         [Header("Stat")] 
         private static int _idCount = 0;
         public int Id;
-        
-        [Header("Robot State Machine")]
-        public RobotStateEnum CurrentRobotState;
-        protected readonly BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
+
+        [Header("Robot State Machine")] 
+        [ShowImmutable, SerializeField] private BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
+        public RobotStateEnum CurrentRobotState => RobotStateMachine.GetState();
         private IStateHistoryStrategy<RobotStateEnum> _stateHistoryStrategy;
         
         [Header("Grid")]
@@ -65,7 +66,6 @@ namespace _Script.Robot
 
         private void FixedUpdate()
         {
-            CurrentRobotState = RobotStateMachine.GetState();
             RobotStateMachine.ExecuteState();
         }
 
@@ -111,7 +111,7 @@ namespace _Script.Robot
             RobotStateMachine.AddState(redirectingState);
             
             //RobotStateMachine.CurrentBaseState = idleState;
-            RobotStateMachine.StateHistoryStrategy = _stateHistoryStrategy;
+            RobotStateMachine.SetHistoryStrategy(_stateHistoryStrategy);
         }
 
         #endregion
