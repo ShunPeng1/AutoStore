@@ -43,9 +43,6 @@ namespace _Script.Robot
         [SerializeField] protected Crate HoldingCrate;
         
         
-        [Header("Components")] 
-        protected Rigidbody Rigidbody;
-        protected Collider BoxCollider;
 
 
         #region INITIALIZE
@@ -82,12 +79,7 @@ namespace _Script.Robot
             _stateHistoryStrategy = new RobotStateHistoryStrategy();
         }
 
-        private void InitializeComponents()
-        {
-            Rigidbody = GetComponent<Rigidbody>();
-            BoxCollider = GetComponent<Collider>();
-            
-        }
+        protected abstract void InitializeComponents();
         
         private void InitializeState()
         {
@@ -308,8 +300,7 @@ namespace _Script.Robot
         {
             // Move
             transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
-            Rigidbody.velocity = Vector3.zero;
-
+            
             IsMidwayMove = true;
         }
         
