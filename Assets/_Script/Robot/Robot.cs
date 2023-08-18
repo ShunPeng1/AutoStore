@@ -22,10 +22,9 @@ namespace _Script.Robot
         
         [Header("Grid")]
         protected internal GridXZ<CellItem> CurrentGrid;
-
-        
         public GridXZCell<CellItem> NextCell;
         public GridXZCell<CellItem> LastCell;
+        
         public Vector3 NextCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(NextCell);
         public Vector3 LastCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(LastCell);
         public bool IsMidwayMove = true;

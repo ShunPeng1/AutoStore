@@ -1,8 +1,10 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Shun_Grid_System
 {
+    [Serializable]
     public class GridXYCell<TItem> : BaseGridCell2D<TItem>
     {
         [Header("Base")] private GridXY<TItem> _gridXY;

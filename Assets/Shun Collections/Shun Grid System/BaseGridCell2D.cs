@@ -1,23 +1,25 @@
 using System;
 using System.Collections.Generic;
+using Shun_Unity_Editor;
 using UnityEngine;
 
 namespace Shun_Grid_System
 {
+    [Serializable]
     public abstract class BaseGridCell2D<TItem>
     {
         [Header("Base")]
         public readonly List<BaseGridCell2D<TItem>> AdjacentCells = new();
         private readonly Dictionary<BaseGridCell2D<TItem> ,double> _adjacentCellCosts = new();
-        public readonly int XIndex, YIndex;
-        public TItem Item;
-        public bool IsObstacle = false;
+        [ShowImmutable] public int XIndex, YIndex;
+        [ShowImmutable] public TItem Item;
+        [ShowImmutable] public bool IsObstacle = false;
 
         [Header("Pathfinding Debug")] 
-        public BaseGridCell2D<TItem> ParentXZCell2D = null; 
-        public double FCost;
-        public double HCost;
-        public double GCost;
+        [ShowImmutable] public BaseGridCell2D<TItem> ParentXZCell2D = null; 
+        [ShowImmutable] public double FCost;
+        [ShowImmutable] public double HCost;
+        [ShowImmutable] public double GCost;
 
 
         protected BaseGridCell2D(int xIndex, int yIndex, TItem item = default)
