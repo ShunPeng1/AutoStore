@@ -17,7 +17,7 @@ namespace _Script.Robot
         public int Id;
 
         [Header("Robot State Machine")] 
-        [ShowImmutable, SerializeField] private BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
+        [ShowImmutable, SerializeField] protected BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
         public RobotStateEnum CurrentRobotState => RobotStateMachine.GetState();
         private IStateHistoryStrategy<RobotStateEnum> _stateHistoryStrategy;
         
@@ -38,9 +38,10 @@ namespace _Script.Robot
         [Header("Pathfinding and obstacle")] 
         private IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> _pathfindingAlgorithm;
         protected List<Robot> NearbyRobots = new();
-        
-        [Header("Task ")]
-        [SerializeField] protected Bin HoldingBin;
+
+        [Header("Task ")] 
+        [ShowImmutable, SerializeField] protected Bin FindingBin; 
+        [ShowImmutable, SerializeField] protected Bin HoldingBin;
         
         
 
@@ -120,8 +121,8 @@ namespace _Script.Robot
         
             //Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
             
-            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
-            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null , robotTask );
+            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
+            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null , robotMovingTask );
         }     
             
             
@@ -189,8 +190,8 @@ namespace _Script.Robot
             }
 
             //Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(redirectGoalCellPosition));
-            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
-            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotTask );
+            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
+            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
             return true;
         }
 
@@ -231,7 +232,11 @@ namespace _Script.Robot
 
         #region HANDLE_FUNCTIONS
 
+        protected abstract void ExtendCable();
+
+        protected abstract void ContractCable();
         
+        public abstract void SetCablePosition(float unused);
 
         #endregion
         
@@ -243,9 +248,9 @@ namespace _Script.Robot
             HoldingBin = bin;
 
             Vector3 goalCellPosition = bin.transform.position;
-            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveBinSource, 0);
+            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinSource, 0);
         
-            RobotStateMachine.SetToState(RobotStateEnum.Approaching, null, robotTask);
+            RobotStateMachine.SetToState(RobotStateEnum.Approaching, null, robotMovingTask);
         }
 
 
@@ -273,9 +278,9 @@ namespace _Script.Robot
             
             var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingBin.DropDownIndexX, HoldingBin.DropDownIndexZ);
         
-            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveBinDestination, 0);
+            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinDestination, 0);
         
-            RobotStateMachine.SetToState(RobotStateEnum.Delivering, null, robotTask);
+            RobotStateMachine.SetToState(RobotStateEnum.Delivering, null, robotMovingTask);
             
         }
         

@@ -95,7 +95,7 @@ GameObject:
   - component: {fileID: 5541494813769293027}
   - component: {fileID: 6801124088540831184}
   m_Layer: 0
-  m_Name: String
+  m_Name: Cable
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -808,18 +808,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Id: 0
-  NextCellPosition: {x: 0, y: 0, z: 0}
-  LastCellPosition: {x: 0, y: 0, z: 0}
-  IsBetween2Cells: 1
+  RobotStateMachine:
+    CurrentBaseState:
+      MyStateEnum: 0
+  NextCell:
+    XIndex: 0
+    YIndex: 0
+    IsObstacle: 0
+    FCost: 0
+    HCost: 0
+    GCost: 0
+  LastCell:
+    XIndex: 0
+    YIndex: 0
+    IsObstacle: 0
+    FCost: 0
+    HCost: 0
+    GCost: 0
+  IsMidwayMove: 1
   MaxMovementSpeed: 4
-  PreemptiveDistance: 0
   JamWaitTime: 0.25
-  HoldingCrate: {fileID: 0}
+  FindingBin: {fileID: 0}
+  HoldingBin: {fileID: 0}
   BoxColliderSize: 0.9
   CastRadius: 1.5
   RobotLayerMask:
     serializedVersion: 2
     m_Bits: 256
+  CableTransform: {fileID: 7768651563161112137}
+  HookTransform: {fileID: 4196268981215322238}
+  TopHookCeilingTransform: {fileID: 1744688609652427514}
+  BinHookPlaceTransform: {fileID: 2379798995017419950}
+  HookMoveSpeed: 2
+  HookMoveEase: 10
 --- !u!54 &6291633208248654895
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -863,6 +884,37 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _robotBodyRenderer: {fileID: 5739721277341501080}
   _lineRenderer: {fileID: 3908041089777982755}
+--- !u!1 &6381403863837777251
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2379798995017419950}
+  m_Layer: 0
+  m_Name: Crate Hold Position
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2379798995017419950
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6381403863837777251}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5837880202576990094}
+  m_RootOrder: 6
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6403555258193536715
 GameObject:
   m_ObjectHideFlags: 0
@@ -1374,6 +1426,37 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_renderer: {fileID: 2125278018721276656}
   m_maskType: 0
+--- !u!1 &8600415929485079446
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1744688609652427514}
+  m_Layer: 0
+  m_Name: Ceiling
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1744688609652427514
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8600415929485079446}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.803, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5837880202576990094}
+  m_RootOrder: 5
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &9174901997039225061
 GameObject:
   m_ObjectHideFlags: 0
@@ -1407,6 +1490,8 @@ Transform:
   - {fileID: 7768651563161112137}
   - {fileID: 8101079328272181754}
   - {fileID: 7283638090451011589}
+  - {fileID: 1744688609652427514}
+  - {fileID: 2379798995017419950}
   m_Father: {fileID: 6291633208248654894}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

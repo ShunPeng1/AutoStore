@@ -12,7 +12,7 @@ namespace _Script.Robot
         
         public class RobotMovingState : RobotState
         {
-            protected RobotTask CurrentTask;
+            protected RobotMovingTask CurrentMovingTask;
         
             protected enum DetectDecision
             {
@@ -25,39 +25,39 @@ namespace _Script.Robot
             public RobotMovingState(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(robot, myStateEnum, executeEvents, exitEvents, enterEvents)
             {
                 EnterEvents += AssignTask;
-                ExecuteEvents += MovingStateExecute;
+                ExecuteEvents += Execute;
             }
 
             private void AssignTask(RobotStateEnum lastRobotState, IStateParameter enterParameters)
             {
                 if (enterParameters == null) return;
 
-                CurrentTask = enterParameters.Get<RobotTask>();
-                if (CurrentTask == null) return;
+                CurrentMovingTask = enterParameters.Get<RobotMovingTask>();
+                if (CurrentMovingTask == null) return;
 
-                switch (CurrentTask.StartCellPosition)
+                switch (CurrentMovingTask.StartCellPosition)
                 {
-                    case RobotTask.StartPosition.LastCell:
-                        CreateInitialPath(Robot.LastCellPosition, CurrentTask.GoalCellPosition);
+                    case RobotMovingTask.StartPosition.LastCell:
+                        CreateInitialPath(Robot.LastCellPosition, CurrentMovingTask.GoalCellPosition);
                         ExtractNextCellInPath();
                         break;
 
-                    case RobotTask.StartPosition.NextCell:
-                        CreateInitialPath(Robot.NextCellPosition, CurrentTask.GoalCellPosition);
+                    case RobotMovingTask.StartPosition.NextCell:
+                        CreateInitialPath(Robot.NextCellPosition, CurrentMovingTask.GoalCellPosition);
                         Robot.MovingPath.RemoveFirst();
                         break;
 
-                    case RobotTask.StartPosition.NearestCell:
+                    case RobotMovingTask.StartPosition.NearestCell:
                         Vector3 nearestCellPosition = Grid.GetWorldPositionOfNearestCell(RobotTransform.position);
 
                         if (nearestCellPosition == Robot.LastCellPosition)
                         {
-                            CreateInitialPath(nearestCellPosition, CurrentTask.GoalCellPosition);
+                            CreateInitialPath(nearestCellPosition, CurrentMovingTask.GoalCellPosition);
                             ExtractNextCellInPath();
                         }
                         else if (nearestCellPosition == Robot.NextCellPosition)
                         {
-                            if (CreateInitialPath(Robot.NextCellPosition, CurrentTask.GoalCellPosition))
+                            if (CreateInitialPath(Robot.NextCellPosition, CurrentMovingTask.GoalCellPosition))
                                 Robot.MovingPath.RemoveFirst();
                         }
                         else
@@ -74,7 +74,7 @@ namespace _Script.Robot
                 CheckArriveGoalCell();
             }
             
-            private void MovingStateExecute(RobotStateEnum currentState, IStateParameter enterParameters)
+            private void Execute(RobotStateEnum currentState, IStateParameter enterParameters)
             {
                 if (RobotUtility.CheckArriveOnNextCell(Robot))
                 {
@@ -93,9 +93,9 @@ namespace _Script.Robot
 
             protected virtual bool CheckArriveGoalCell()
             {
-                if (! RobotUtility.CheckRobotOnGoal(Grid, Robot, CurrentTask)) return true;
+                if (! RobotUtility.CheckRobotOnGoal(Grid, Robot, CurrentMovingTask)) return true;
                 
-                CurrentTask.GoalArrivalAction?.Invoke();
+                CurrentMovingTask.GoalArrivalAction?.Invoke();
                 return false;
 
             }
@@ -145,7 +145,7 @@ namespace _Script.Robot
                 float dotProductOf2RobotDirection = RobotUtility.DotOf2RobotMovingDirection(Robot, detectedRobot);
                 bool isUnsafeDistanceOf2Robot = Robot.CheckRobotSafeDistance(detectedRobot);
                 bool isBlockAHead = RobotUtility.CheckRobotBlockAHead(detectedRobot, Robot.NextCellPosition);
-                bool isBlockingGoal = RobotUtility.CheckRobotBlockGoal(detectedRobot, CurrentTask);
+                bool isBlockingGoal = RobotUtility.CheckRobotBlockGoal(detectedRobot, CurrentMovingTask);
                 
                 switch (detectedRobot.CurrentRobotState)
                 {
