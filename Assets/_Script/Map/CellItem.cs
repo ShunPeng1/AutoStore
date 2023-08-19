@@ -5,41 +5,41 @@ using UnityEngine;
 
 public class CellItem
 {
-    private GridXZ<CellItem> _grid;
-    private GridXZCell<CellItem> _cell;
+    private readonly GridXZ<CellItem> _grid;
+    private readonly GridXZCell<CellItem> _cell;
 
-    public readonly Crate[] CratesStack;
-    public int CurrentCrateCount = 0;
+    public readonly Bin[] BinsStack;
+    public int CurrentBinCount = 0;
     private float _stackDepthSize;
     public CellItem(GridXZ<CellItem> grid, GridXZCell<CellItem> cell, int stackSize, float stackDepthSize)
     {
-        CratesStack = new Crate[stackSize];
+        BinsStack = new Bin[stackSize];
         _grid = grid;
         _cell = cell;
         _stackDepthSize = stackDepthSize;
     }
 
-    public void AddToStack(Crate crate)
+    public void AddToStack(Bin bin)
     {
-        CratesStack[CurrentCrateCount] = crate;
-        CurrentCrateCount++;
+        BinsStack[CurrentBinCount] = bin;
+        CurrentBinCount++;
         
     }
 
-    public void RemoveFromStack(Crate crate)
+    public void RemoveFromStack(Bin bin)
     {
-        CratesStack[CurrentCrateCount] = null;
-        CurrentCrateCount--;
+        BinsStack[CurrentBinCount] = null;
+        CurrentBinCount--;
     }
     
     public Vector3 GetTopStackWorldPosition()
     {
-        return _grid.GetWorldPositionOfNearestCell(_cell.XIndex, _cell.YIndex) + (CratesStack.Length - CurrentCrateCount) * Vector3.down;
+        return _grid.GetWorldPositionOfNearestCell(_cell.XIndex, _cell.YIndex) + (BinsStack.Length - CurrentBinCount) * Vector3.down;
     }
     
     public Vector3 GetStackWorldPosition(int index)
     {
-        return _grid.GetWorldPositionOfNearestCell(_cell.XIndex, _cell.YIndex) + (CratesStack.Length - index) * Vector3.down;
+        return _grid.GetWorldPositionOfNearestCell(_cell.XIndex, _cell.YIndex) + (BinsStack.Length - index) * Vector3.down;
     }
     
     

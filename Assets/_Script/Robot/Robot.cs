@@ -40,7 +40,7 @@ namespace _Script.Robot
         protected List<Robot> NearbyRobots = new();
         
         [Header("Task ")]
-        [SerializeField] protected Crate HoldingCrate;
+        [SerializeField] protected Bin HoldingBin;
         
         
 
@@ -229,15 +229,21 @@ namespace _Script.Robot
 
         #endregion
 
+        #region HANDLE_FUNCTIONS
+
+        
+
+        #endregion
+        
         #region TASK_FUNCTIONS
 
         
-        public void ApproachCrate(Crate crate)
+        public void ApproachBin(Bin bin)
         {
-            HoldingCrate = crate;
+            HoldingBin = bin;
 
-            Vector3 goalCellPosition = crate.transform.position;
-            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateSource, 0);
+            Vector3 goalCellPosition = bin.transform.position;
+            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveBinSource, 0);
         
             RobotStateMachine.SetToState(RobotStateEnum.Approaching, null, robotTask);
         }
@@ -249,7 +255,7 @@ namespace _Script.Robot
         }
         
         
-        protected void ArriveCrateSource()
+        protected void ArriveBinSource()
         {
             StartCoroutine(nameof(PullingUp));
         }
@@ -258,24 +264,24 @@ namespace _Script.Robot
         {
             RobotStateMachine.SetToState(RobotStateEnum.Handling);
 
-            yield return new WaitForSeconds(HoldingCrate.PickUpTime);
+            yield return new WaitForSeconds(HoldingBin.PickUpTime);
             
             
-            HoldingCrate.transform.SetParent(transform);
-            HoldingCrate.PickUp();
+            HoldingBin.transform.SetParent(transform);
+            HoldingBin.PickUp();
             
             
-            var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingCrate.DropDownIndexX, HoldingCrate.DropDownIndexZ);
+            var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingBin.DropDownIndexX, HoldingBin.DropDownIndexZ);
         
-            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveCrateDestination, 0);
+            RobotTask robotTask = new RobotTask(RobotTask.StartPosition.NextCell, goalCellPosition, ArriveBinDestination, 0);
         
             RobotStateMachine.SetToState(RobotStateEnum.Delivering, null, robotTask);
             
         }
         
-        protected void ArriveCrateDestination()
+        protected void ArriveBinDestination()
         {
-            DistributionManager.Instance.ArriveDestination(this, HoldingCrate);
+            DistributionManager.Instance.ArriveDestination(this, HoldingBin);
             
             StartCoroutine(nameof(DroppingDown));
         }
@@ -284,11 +290,11 @@ namespace _Script.Robot
         {
             RobotStateMachine.SetToState(RobotStateEnum.Handling);
 
-            yield return new WaitForSeconds(HoldingCrate.DropDownTime);
+            yield return new WaitForSeconds(HoldingBin.DropDownTime);
             
             
-            Destroy(HoldingCrate.gameObject);
-            HoldingCrate = null;
+            Destroy(HoldingBin.gameObject);
+            HoldingBin = null;
             
             RobotStateMachine.SetToState(RobotStateEnum.Idling);
         }

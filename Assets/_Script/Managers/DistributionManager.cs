@@ -12,7 +12,7 @@ using Random = UnityEngine.Random;
 public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 {
     [Serializable]
-    class CrateSpawnInfo
+    class BinSpawnInfo
     {
         public float ArriveTime;
         public Vector2Int SourceGridIndex;
@@ -29,18 +29,19 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
     [Header("Random Spawn")] 
     [SerializeField, Range(0.001f, 100f)] private float _spawnRate = 5f;
-    [SerializeField, Range(1, 100)] private int _maxPendingCrate = 100;
+    [SerializeField, Range(1, 100)] private int _maxPendingBin = 100;
     [SerializeField] private Vector2 _pullUpRandomRange = Vector2.up;
     [SerializeField] private Vector2 _dropDownRandomRange = Vector2.up;
     
+    [FormerlySerializedAs("_crateSpawnInfos")]
     [Header("Fixed Spawn")]
-    [SerializeField] private List<CrateSpawnInfo> _crateSpawnInfos;
+    [SerializeField] private List<BinSpawnInfo> _binSpawnInfos;
     
     
     private GridXZ<CellItem> _storageGrid;
 
     private float _currentTime = 0f;
-    private Queue<Crate> _pendingCrates = new();
+    private Queue<Bin> _pendingBins = new();
     private Robot[] _robots;
     
     void Start()
@@ -48,7 +49,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         _storageGrid = MapManager.Instance.WorldGrid;
 
         _robots = FindObjectsOfType<Robot>();
-        _crateSpawnInfos.Sort((x, y) =>
+        _binSpawnInfos.Sort((x, y) =>
         {
             var ret = x.ArriveTime.CompareTo(y.ArriveTime);
             return ret;
@@ -64,15 +65,15 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             case SpawnStyle.Random:
                 if (_currentTime >= _spawnRate) 
                 {
-                    CreateCrateRandomly();
+                    CreateBinRandomly();
                     _currentTime = 0;
                 }
                 break;
             case SpawnStyle.Fixed:
-                if (_crateSpawnInfos.Count > 0 && _currentTime >= _crateSpawnInfos[0].ArriveTime)
+                if (_binSpawnInfos.Count > 0 && _currentTime >= _binSpawnInfos[0].ArriveTime)
                 {
-                    CreateCrateFixed(_crateSpawnInfos[0]);
-                    _crateSpawnInfos.RemoveAt(0);
+                    CreateBinFixed(_binSpawnInfos[0]);
+                    _binSpawnInfos.RemoveAt(0);
                 }
                 break;
             default:
@@ -87,9 +88,9 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// </summary>
     private void AssignMission()
     {
-        while (_pendingCrates.Count > 0)
+        while (_pendingBins.Count > 0)
         {
-            var crate = _pendingCrates.Peek();
+            var crate = _pendingBins.Peek();
             Robot shortestReachRobot = null;
             int shortestReach = int.MaxValue;
 
@@ -108,8 +109,8 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
             if (shortestReachRobot == null) break;
 
-            _pendingCrates.Dequeue();
-            shortestReachRobot.ApproachCrate(crate);
+            _pendingBins.Dequeue();
+            shortestReachRobot.ApproachBin(crate);
             
         }
     }
@@ -117,10 +118,10 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// <summary>
     /// the distance between robot and crate
     /// </summary>
-    private int CalculateDistance(Robot robot, Crate crate)
+    private int CalculateDistance(Robot robot, Bin bin)
     {
         Vector2Int index = _storageGrid.GetIndexDifferenceAbsolute(
-            _storageGrid.GetCell(crate.PickUpIndexX, crate.PickUpIndexZ),
+            _storageGrid.GetCell(bin.PickUpIndexX, bin.PickUpIndexZ),
             _storageGrid.GetCell(robot.LastCellPosition));
         return 10 * index.x + 10 * index.y;
     }
@@ -128,7 +129,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     /// <summary>
     /// This function create the crate in the game world space
     /// </summary>
-    private void CreateCrateRandomly()
+    private void CreateBinRandomly()
     {
         
         int spawnSourceX = Random.Range(0, _storageGrid.Width), spawnSourceZ = Random.Range(0, _storageGrid.Height);
@@ -138,9 +139,9 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         
         CellItem cellItem = _storageGrid.GetCell(spawnSourceX,spawnSourceZ).Item;
         
-        var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(), cellItem.GetTopStackWorldPosition(), Quaternion.identity);
+        var freshBin = Instantiate(ResourceManager.Instance.GetRandomBin(), cellItem.GetTopStackWorldPosition(), Quaternion.identity);
 
-        freshCrate.Init(
+        freshBin.Init(
             _storageGrid, 
             spawnSourceX, 
             spawnSourceZ, 
@@ -149,49 +150,49 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             pullUpTime, 
             dropDownTime);
         
-        _pendingCrates.Enqueue(freshCrate);
-        cellItem.AddToStack(freshCrate);
+        _pendingBins.Enqueue(freshBin);
+        cellItem.AddToStack(freshBin);
     }
 
-    private void CreateCrateFixed(CrateSpawnInfo crateSpawnInfo)
+    private void CreateBinFixed(BinSpawnInfo binSpawnInfo)
     {
-        CellItem cellItem = _storageGrid.GetCell(crateSpawnInfo.SourceGridIndex.x, crateSpawnInfo.SourceGridIndex.y).Item;
+        CellItem cellItem = _storageGrid.GetCell(binSpawnInfo.SourceGridIndex.x, binSpawnInfo.SourceGridIndex.y).Item;
         
-        var freshCrate = Instantiate(ResourceManager.Instance.GetRandomCrate(), cellItem.GetTopStackWorldPosition(), Quaternion.identity);
+        var freshBin = Instantiate(ResourceManager.Instance.GetRandomBin(), cellItem.GetTopStackWorldPosition(), Quaternion.identity);
         
-        freshCrate.Init(
+        freshBin.Init(
             _storageGrid, 
-            crateSpawnInfo.SourceGridIndex.x, 
-            crateSpawnInfo.SourceGridIndex.y, 
-            crateSpawnInfo.DestinationGridIndex.x, 
-            crateSpawnInfo.DestinationGridIndex.y, 
-            crateSpawnInfo.PullUpTime,
-            crateSpawnInfo.DropDownTime);
+            binSpawnInfo.SourceGridIndex.x, 
+            binSpawnInfo.SourceGridIndex.y, 
+            binSpawnInfo.DestinationGridIndex.x, 
+            binSpawnInfo.DestinationGridIndex.y, 
+            binSpawnInfo.PullUpTime,
+            binSpawnInfo.DropDownTime);
         
-        _pendingCrates.Enqueue(freshCrate);
-        cellItem.AddToStack(freshCrate);
+        _pendingBins.Enqueue(freshBin);
+        cellItem.AddToStack(freshBin);
     }
     
     public void RequestMission(Robot robot)
     {
-        if (_pendingCrates.Count > 0)
+        if (_pendingBins.Count > 0)
         {
-            var crate = _pendingCrates.Dequeue();
-            robot.ApproachCrate(crate);
+            var crate = _pendingBins.Dequeue();
+            robot.ApproachBin(crate);
         }
     }
 
-    public void ArriveDestination(Robot robot, Crate crate)
+    public void ArriveDestination(Robot robot, Bin bin)
     {
         DebugUIManager.Instance.AddFinish();
 
-        if (FileRecorderManager.InstanceOptional != null ) FileRecorderManager.Instance.ResultRecords.Add(new FileRecorderManager.ResultRecord(Time.time - crate.RequestedTime, GetTimeFinishAssumption(robot, crate), crate.PickUpIndexX, crate.PickUpIndexZ, crate.DropDownIndexX, crate.DropDownIndexZ ));
+        if (FileRecorderManager.InstanceOptional != null ) FileRecorderManager.Instance.ResultRecords.Add(new FileRecorderManager.ResultRecord(Time.time - bin.RequestedTime, GetTimeFinishAssumption(robot, bin), bin.PickUpIndexX, bin.PickUpIndexZ, bin.DropDownIndexX, bin.DropDownIndexZ ));
     }
 
-    public float GetTimeFinishAssumption(Robot robot, Crate crate)
+    public float GetTimeFinishAssumption(Robot robot, Bin bin)
     {
-        float time = (( Mathf.Abs(crate.DropDownIndexX - crate.PickUpIndexX) +  Mathf.Abs(crate.DropDownIndexZ - crate.PickUpIndexZ) ) * (robot.MaxMovementSpeed / Time.fixedDeltaTime ) / 1000f );
-        Debug.Log(time + " - " + crate.RequestedTime);
+        float time = (( Mathf.Abs(bin.DropDownIndexX - bin.PickUpIndexX) +  Mathf.Abs(bin.DropDownIndexZ - bin.PickUpIndexZ) ) * (robot.MaxMovementSpeed / Time.fixedDeltaTime ) / 1000f );
+        Debug.Log(time + " - " + bin.RequestedTime);
         return time;
     }
     

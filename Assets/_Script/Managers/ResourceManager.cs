@@ -1,15 +1,16 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityUtilities;
 
 public class ResourceManager : SingletonMonoBehaviour<ResourceManager>
 {
-    [Header("Bundle")] public List<Crate> Crates;
+    [FormerlySerializedAs("Crates")] [Header("Bundle")] public List<Bin> Bins;
 
-    public Crate GetRandomCrate()
+    public Bin GetRandomBin()
     {
-        var index = Random.Range(0, Crates.Count);
-        return Crates[index];
+        var index = Random.Range(0, Bins.Count);
+        return Bins[index];
     }
 }
