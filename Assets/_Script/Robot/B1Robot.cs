@@ -30,8 +30,8 @@ public class B1Robot : Robot
     [SerializeField] protected Transform BinHookPlaceTransform;
     [SerializeField] protected float HookMoveSpeed = 2f;
     [SerializeField] protected Ease HookMoveEase = Ease.InOutCubic;
+    [SerializeField] private float _cableLengthMultiply = 3.8f; 
     private Vector3 _cableInitialScale;
-    
     
     protected override void InitializeComponents()
     {
@@ -76,30 +76,37 @@ public class B1Robot : Robot
     protected override void ExtendCable()
     {
         var item = CurrentGrid.GetCell(transform.position).Item;
-        var topStackPosition = item.GetTopStackWorldPosition();
-        var hookMoveDuration = HookMoveSpeed / Mathf.Abs(topStackPosition.magnitude - TopHookCeilingTransform.position.magnitude);
         
         Sequence sequence = DOTween.Sequence();
-        sequence.Join( HookTransform.DOMove(topStackPosition, hookMoveDuration).SetEase(HookMoveEase)) ;
         
-        sequence.Join(DOTween.To(SetCablePosition, 0,1,hookMoveDuration));
-
         if (HoldingBin == null)
         {
-            sequence.OnComplete(HookBin);
+            var topStackPosition = item.GetTopBinWorldPosition() + (HookTransform.position - BinHookPlaceTransform.position);
+            var hookMoveDuration = Mathf.Abs(topStackPosition.magnitude - TopHookCeilingTransform.position.magnitude) / HookMoveSpeed;
+
+            sequence.Join( HookTransform.DOMove(topStackPosition, hookMoveDuration).SetEase(HookMoveEase)) ;
+            sequence.Join(DOTween.To(SetCablePosition, 0,1,hookMoveDuration));
+            
+            sequence.AppendCallback(HookBin);
         }
         else
         {
-            sequence.OnComplete(UnhookBin);
+            var topStackPosition = item.GetTopStackWorldPosition() + (HookTransform.position - BinHookPlaceTransform.position);
+            var hookMoveDuration = Mathf.Abs(topStackPosition.magnitude - TopHookCeilingTransform.position.magnitude) / HookMoveSpeed;
+
+            sequence.Join( HookTransform.DOMove(topStackPosition, hookMoveDuration).SetEase(HookMoveEase)) ;
+            sequence.Join(DOTween.To(SetCablePosition, 0,1,hookMoveDuration));
+            
+            sequence.AppendCallback(UnhookBin);
         }
 
-        sequence.OnComplete(ContractCable);
+        sequence.AppendCallback(ContractCable);
     }
 
     protected override void ContractCable()
     {
         var item = CurrentGrid.GetCell(transform.position).Item;
-        var hookMoveDuration = HookMoveSpeed / Mathf.Abs(HookTransform.position.magnitude - TopHookCeilingTransform.position.magnitude);
+        var hookMoveDuration =  Mathf.Abs(HookTransform.position.magnitude - TopHookCeilingTransform.position.magnitude) / HookMoveSpeed;
         
         Sequence sequence = DOTween.Sequence();
         sequence.Join( HookTransform.DOMove(TopHookCeilingTransform.position, hookMoveDuration).SetEase(HookMoveEase)) ;
@@ -108,65 +115,64 @@ public class B1Robot : Robot
         
         if (HoldingBin == null)
         {
-            sequence.OnComplete(() =>
-            {
-                Destroy(HoldingBin.gameObject);
-                HoldingBin = null;
-                RobotStateMachine.SetToState(RobotStateEnum.Idling);
-            });
+            sequence.AppendCallback(SetHandlingToIdlingState);
         }
         else
         {
-            sequence.OnComplete(() =>
-            {
-                HoldingBin.transform.SetParent(transform);
-                HoldingBin.PickUp();
-            
-            
-                var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingBin.DropDownIndexX, HoldingBin.DropDownIndexZ);
-        
-                RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinDestination, 0);
-        
-                RobotStateMachine.SetToState(RobotStateEnum.Delivering, null, robotMovingTask);
-
-            });
+            sequence.AppendCallback(SetHandlingToDeliveringState);
         }
 
-        sequence.OnComplete(() =>
-        {
-        });
+        
     }
 
-    public void HookBin()
+    private void HookBin()
     {
         var item = CurrentGrid.GetCell(transform.position).Item;
         HoldingBin = item.RemoveTopBinFromStack();
         
-        HoldingBin.transform.SetParent(transform);
-        HoldingBin.PickUp();
-        HoldingBin.transform.position = Vector3.zero;
+        HoldingBin.transform.SetParent(BinHookPlaceTransform);
+        HoldingBin.transform.localPosition = Vector3.zero;
         
         var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingBin.DropDownIndexX, HoldingBin.DropDownIndexZ);
         
         RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinDestination, 0);
 
     }
-    
-    
-    public void UnhookBin()
+
+
+    private void UnhookBin()
     {
         var item = CurrentGrid.GetCell(transform.position).Item;
-        item.AddToStack(HoldingBin);
+        //item.AddToStack(HoldingBin);
         HoldingBin.transform.parent = null;
+        HoldingBin = null;
+    }
+
+    private void SetHandlingToIdlingState()
+    {
+        Destroy(FindingBin.gameObject);
+        FindingBin = null;
+        RobotStateMachine.SetToState(RobotStateEnum.Idling);
+    }
+
+    private void SetHandlingToDeliveringState()
+    {
+        HoldingBin.PickUp();
+
+        var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingBin.DropDownIndexX, HoldingBin.DropDownIndexZ);
         
+        RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinDestination, 0);
+        
+        RobotStateMachine.SetToState(RobotStateEnum.Delivering, null, robotMovingTask);
+
     }
 
     public override void SetCablePosition(float unused)
     {
         float distance = Vector3.Distance(TopHookCeilingTransform.position, HookTransform.position);
 
-        CableTransform.localScale = new Vector3(_cableInitialScale.x, distance / 2 + _cableInitialScale.z);
-        CableTransform.position = (TopHookCeilingTransform.position + HookTransform.position )/2f;
+        CableTransform.localScale = new Vector3(_cableInitialScale.x, _cableInitialScale.y, distance * _cableLengthMultiply);
+        //CableTransform.position = (TopHookCeilingTransform.position + HookTransform.position )/2f;
     }
     
     #endregion

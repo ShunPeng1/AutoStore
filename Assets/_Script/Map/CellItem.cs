@@ -27,15 +27,21 @@ public class CellItem
 
     public Bin RemoveTopBinFromStack()
     {
+        CurrentBinCount--;
         var bin = BinsStack[CurrentBinCount];
         BinsStack[CurrentBinCount] = null;
-        CurrentBinCount--;
+        
         return bin;
     }
     
     public Vector3 GetTopStackWorldPosition()
     {
         return _grid.GetWorldPositionOfNearestCell(_cell.XIndex, _cell.YIndex) + (BinsStack.Length - CurrentBinCount) * Vector3.down;
+    }
+    
+    public Vector3 GetTopBinWorldPosition()
+    {
+        return _grid.GetWorldPositionOfNearestCell(_cell.XIndex, _cell.YIndex) + (BinsStack.Length - CurrentBinCount + 1) * Vector3.down;
     }
     
     public Vector3 GetStackWorldPosition(int index)

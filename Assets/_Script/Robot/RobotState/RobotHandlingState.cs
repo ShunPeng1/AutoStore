@@ -16,22 +16,8 @@ namespace _Script.Robot
 
             private void BeginHandling(RobotStateEnum arg1, IStateParameter arg2)
             {
-                var item = Grid.GetCell(RobotTransform.position).Item;
-                var topStackPosition = item.GetTopStackWorldPosition();
-
-                if (Robot.HoldingBin == null) // Pull up Bin
-                {
-                    
-                }
-                else // Drop down Bin
-                {
-                    
-                }
-                
+                Robot.ExtendCable();
             }
-            
-            
-            
             
         }
     }

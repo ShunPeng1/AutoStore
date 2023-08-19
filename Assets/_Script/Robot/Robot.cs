@@ -88,7 +88,7 @@ namespace _Script.Robot
             
             RobotMovingState approachingState = new(this, RobotStateEnum.Approaching);
             
-            RobotState handlingState = new(this,RobotStateEnum.Handling );
+            RobotHandlingState handlingState = new(this,RobotStateEnum.Handling);
             
             RobotMovingState deliveringState = new(this,RobotStateEnum.Delivering);
             
@@ -245,7 +245,7 @@ namespace _Script.Robot
         
         public void ApproachBin(Bin bin)
         {
-            HoldingBin = bin;
+            FindingBin = bin;
 
             Vector3 goalCellPosition = bin.transform.position;
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinSource, 0);
@@ -262,47 +262,17 @@ namespace _Script.Robot
         
         protected void ArriveBinSource()
         {
-            StartCoroutine(nameof(PullingUp));
-        }
-        
-        protected IEnumerator PullingUp()
-        {
             RobotStateMachine.SetToState(RobotStateEnum.Handling);
-
-            yield return new WaitForSeconds(HoldingBin.PickUpTime);
-            
-            
-            HoldingBin.transform.SetParent(transform);
-            HoldingBin.PickUp();
-            
-            
-            var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingBin.DropDownIndexX, HoldingBin.DropDownIndexZ);
-        
-            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinDestination, 0);
-        
-            RobotStateMachine.SetToState(RobotStateEnum.Delivering, null, robotMovingTask);
-            
         }
+        
         
         protected void ArriveBinDestination()
         {
             DistributionManager.Instance.ArriveDestination(this, HoldingBin);
             
-            StartCoroutine(nameof(DroppingDown));
-        }
-
-        protected IEnumerator DroppingDown()
-        {
             RobotStateMachine.SetToState(RobotStateEnum.Handling);
-
-            yield return new WaitForSeconds(HoldingBin.DropDownTime);
-            
-            
-            Destroy(HoldingBin.gameObject);
-            HoldingBin = null;
-            
-            RobotStateMachine.SetToState(RobotStateEnum.Idling);
         }
+        
 
         #endregion
 
