@@ -11,10 +11,10 @@ namespace _Script.Robot
                    checkPosition == detectedRobot.LastCellPosition; // definitely being block by detected robot's last cell or next cell
         }
         
-        public static bool CheckRobotBlockGoal(Robot robot, RobotTask robotTask)
+        public static bool CheckRobotBlockGoal(Robot robot, RobotMovingTask robotMovingTask)
         {
-            return robotTask != null && 
-                   (robot.NextCellPosition == robotTask.GoalCellPosition || robot.LastCellPosition == robotTask.GoalCellPosition);
+            return robotMovingTask != null && 
+                   (robot.NextCellPosition == robotMovingTask.GoalCellPosition || robot.LastCellPosition == robotMovingTask.GoalCellPosition);
         }
         
         public static bool CheckArriveOnNextCell(Robot robot)
@@ -22,9 +22,9 @@ namespace _Script.Robot
             return Vector3.Distance(robot.transform.position, robot.NextCellPosition) == 0;
         }
         
-        public static bool CheckRobotOnGoal(GridXZ<CellItem> grid,Robot robot, RobotTask robotTask)
+        public static bool CheckRobotOnGoal(GridXZ<CellItem> grid,Robot robot, RobotMovingTask robotMovingTask)
         {
-            return robotTask != null && grid.GetIndex(robot.transform.position) == grid.GetIndex(robotTask.GoalCellPosition);
+            return robotMovingTask != null && grid.GetIndex(robot.transform.position) == grid.GetIndex(robotMovingTask.GoalCellPosition);
         }
         
         public static float DotOf2RobotMovingDirection(Robot robot1, Robot robot2)

@@ -23,13 +23,14 @@ public class CellItem
     {
         BinsStack[CurrentBinCount] = bin;
         CurrentBinCount++;
-        
     }
 
-    public void RemoveFromStack(Bin bin)
+    public Bin RemoveTopBinFromStack()
     {
+        var bin = BinsStack[CurrentBinCount];
         BinsStack[CurrentBinCount] = null;
         CurrentBinCount--;
+        return bin;
     }
     
     public Vector3 GetTopStackWorldPosition()

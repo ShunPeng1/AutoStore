@@ -7,7 +7,7 @@ using Shun_State_Machine;
 using UnityEngine;
 
 
-public class RobotTask : IStateParameter
+public class RobotMovingTask : IStateParameter
 {
     public StartPosition StartCellPosition;
     public Vector3 GoalCellPosition;
@@ -21,7 +21,7 @@ public class RobotTask : IStateParameter
         NearestCell
     }
 
-    public RobotTask(StartPosition startCellPosition,Vector3 goalCellPosition, Action goalArrivalAction = null, int priority = 0)
+    public RobotMovingTask(StartPosition startCellPosition,Vector3 goalCellPosition, Action goalArrivalAction = null, int priority = 0)
     {
         StartCellPosition = startCellPosition;
         GoalCellPosition = goalCellPosition;
