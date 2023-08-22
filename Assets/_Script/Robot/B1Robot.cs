@@ -132,11 +132,6 @@ public class B1Robot : Robot
         
         HoldingBin.transform.SetParent(BinHookPlaceTransform);
         HoldingBin.transform.localPosition = Vector3.zero;
-        
-        var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingBin.DropDownIndexX, HoldingBin.DropDownIndexZ);
-        
-        RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinDestination, 0);
-
     }
 
 
@@ -150,16 +145,15 @@ public class B1Robot : Robot
 
     private void SetHandlingToIdlingState()
     {
-        Destroy(FindingBin.gameObject);
-        FindingBin = null;
+        CurrentBinTransportTask = null;
         RobotStateMachine.SetToState(RobotStateEnum.Idling);
     }
 
     private void SetHandlingToDeliveringState()
     {
-        HoldingBin.PickUp();
+        CurrentBinTransportTask.PickUpBin(HoldingBin);
 
-        var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(HoldingBin.DropDownIndexX, HoldingBin.DropDownIndexZ);
+        var goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(CurrentBinTransportTask.TargetBinDestination);
         
         RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinDestination, 0);
         

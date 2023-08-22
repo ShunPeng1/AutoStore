@@ -40,7 +40,7 @@ namespace _Script.Robot
         protected List<Robot> NearbyRobots = new();
 
         [Header("Task ")] 
-        [ShowImmutable, SerializeField] protected Bin FindingBin; 
+        [ShowImmutable, SerializeField] protected BinTransportTask CurrentBinTransportTask; 
         [ShowImmutable, SerializeField] protected Bin HoldingBin;
         
         
@@ -243,11 +243,11 @@ namespace _Script.Robot
         #region TASK_FUNCTIONS
 
         
-        public void ApproachBin(Bin bin)
+        public void ApproachBin(BinTransportTask binTransportTask)
         {
-            FindingBin = bin;
+            CurrentBinTransportTask = binTransportTask;
 
-            Vector3 goalCellPosition = bin.transform.position;
+            Vector3 goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell( CurrentBinTransportTask.TargetBinSource );
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinSource, 0);
         
             RobotStateMachine.SetToState(RobotStateEnum.Approaching, null, robotMovingTask);
@@ -268,7 +268,7 @@ namespace _Script.Robot
         
         protected void ArriveBinDestination()
         {
-            DistributionManager.Instance.ArriveDestination(this, HoldingBin);
+            DistributionManager.Instance.ArriveDestination(this, CurrentBinTransportTask);
             
             RobotStateMachine.SetToState(RobotStateEnum.Handling);
         }

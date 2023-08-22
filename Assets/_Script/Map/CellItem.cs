@@ -49,8 +49,24 @@ public class CellItem
         return _grid.GetWorldPositionOfNearestCell(_cell.XIndex, _cell.YIndex) + (BinsStack.Length - index) * Vector3.down;
     }
     
+    public Bin GetRandomBinInStack()
+    {
+        int index = Random.Range(0, CurrentBinCount);
+
+        return BinsStack[index];
+    }
+    
+    public Bin GetBinFromBottomStack(int index = 0)
+    {
+        index = Mathf.Clamp(index, 0, CurrentBinCount - 1);
+        return BinsStack[index];
+    }
     
     
-    
-    
+    public Bin GetBinFromTopStack(int index = 0)
+    {
+        index = Mathf.Clamp( CurrentBinCount - index - 1, 0, CurrentBinCount - 1);
+        return BinsStack[index];
+    }
+
 }
