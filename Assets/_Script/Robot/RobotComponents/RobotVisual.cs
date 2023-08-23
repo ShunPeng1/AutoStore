@@ -6,9 +6,8 @@ using UnityEngine;
 using Random = UnityEngine.Random;
 
 [RequireComponent(typeof(Robot))]
-public class RobotVisual : MonoBehaviour
+public class RobotVisual : RobotComponentDependence
 {
-    private Robot _robot;
     [SerializeField] private Renderer _robotBodyRenderer;
     [SerializeField] private LineRenderer _lineRenderer;
 
@@ -17,11 +16,7 @@ public class RobotVisual : MonoBehaviour
 
     private void Start()
     {
-        _robot = GetComponent<Robot>();
-     
-        //SetBodyColorNoPattern();
-        SetBodyColorUsingFlyWeightPattern();   
-        
+        SetBodyColorUsingFlyWeightPattern();
     }
 
     private void Update()
@@ -31,19 +26,19 @@ public class RobotVisual : MonoBehaviour
 
     void ShowPath()
     {
-        if (_robot.CurrentRobotState == RobotStateEnum.Idling || _robot.MovingPath == null)
+        if (Robot.CurrentRobotState == RobotStateEnum.Idling || Robot.MovingPath == null)
         {
             _lineRenderer.positionCount = 0;
             return;
         }
         
-        _lineRenderer.positionCount = _robot.MovingPath.Count + 1;
+        _lineRenderer.positionCount = Robot.MovingPath.Count + 1;
         _lineRenderer.SetPosition(0, transform.position);
 
         int itr = 1;
-        foreach (var cell in _robot.MovingPath)
+        foreach (var cell in Robot.MovingPath)
         {
-            _lineRenderer.SetPosition(itr, _robot.CurrentGrid.GetWorldPositionOfNearestCell(cell.XIndex,cell.YIndex));
+            _lineRenderer.SetPosition(itr, Robot.CurrentGrid.GetWorldPositionOfNearestCell(cell.XIndex,cell.YIndex));
             itr++;
         }
     }

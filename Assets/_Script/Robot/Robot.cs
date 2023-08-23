@@ -44,6 +44,10 @@ namespace _Script.Robot
         [ShowImmutable, SerializeField] protected Bin HoldingBin;
         
         
+        [SerializeField] protected Transform CableTransform;
+        [SerializeField] protected Transform HookTransform;    
+        [SerializeField] protected Transform TopHookCeilingTransform;
+        [SerializeField] protected Transform BinHookPlaceTransform;
 
 
         #region INITIALIZE
@@ -232,11 +236,12 @@ namespace _Script.Robot
 
         #region HANDLE_FUNCTIONS
 
-        protected abstract void ExtendCable();
+        protected abstract void ExtendCable(Action finishCallback);
 
-        protected abstract void ContractCable();
+        protected abstract void ContractCable(Action finishCallback);
+
+        protected abstract void MoveCable();
         
-        public abstract void SetCablePosition(float unused);
 
         #endregion
         
