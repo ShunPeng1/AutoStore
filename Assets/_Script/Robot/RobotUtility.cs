@@ -32,7 +32,20 @@ namespace _Script.Robot
             return Vector3.Dot(robot1.NextCellPosition - robot1.LastCellPosition,robot2.NextCellPosition - robot2.LastCellPosition);
         }
 
-
         
+        public static float GetIdealTimeDeliveryBin(Robot robot, BinTransportTask binTransportTask)
+        {
+            float time = (Mathf.Abs(binTransportTask.TargetBinDestination.XIndex - binTransportTask.TargetBinSource.XIndex) 
+                          +  Mathf.Abs(binTransportTask.TargetBinDestination.YIndex - binTransportTask.TargetBinSource.YIndex))
+                * (robot.MaxMovementSpeed / Time.fixedDeltaTime ) / 1000f ;
+            
+            return time;
+        }
+        
+        public static int GetDistanceFromRobotToBinSource(GridXZ<CellItem> grid, Robot robot, BinTransportTask binTransportTask)
+        {
+            Vector2Int index = grid.GetIndexDifferenceAbsolute(binTransportTask.TargetBinSource, grid.GetCell(robot.LastCellPosition));
+            return 10 * index.x + 10 * index.y;
+        }
     }
 }

@@ -11,7 +11,7 @@ public class BinTransportTask
     public GridXZCell<CellItem> TargetBinDestination;
     public GridXZCell<CellItem> TargetBinSource;
     
-    public List<Robot> MobilizedRobots = new();
+    public Robot [] MobilizedRobots;
     public Robot HoldingRobot;
 
     public List<Bin> MigratedBins = new ();
@@ -28,23 +28,32 @@ public class BinTransportTask
         CreateTaskTime = Time.time;
     }
 
-    public void PickUpBin(Bin bin)
+    public void PickUpBin(Robot robot, Bin bin)
     {
-        if (bin == TargetBin) PickUpTargetBin();
+        if (bin == TargetBin) PickUpTargetBin(robot);
         else
         {
             MigratedBins.Add(bin);
         }
     }
 
-    private void PickUpTargetBin()
+    private void PickUpTargetBin(Robot robot)
     {
+        HoldingRobot = robot;
+        
         PickUpTime = Time.time;
+        
     }
 
     public void DropDownBin(Bin bin)
     {
         
     }
-    
+
+    public void SetMobilizedRobot(Robot [] robots)
+    {
+        MobilizedRobots = robots;
+    }
+
+
 }

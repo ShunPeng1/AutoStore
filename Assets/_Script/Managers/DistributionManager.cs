@@ -45,10 +45,10 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     private GridXZ<CellItem> _grid;
 
     private float _currentTime = 0f;
-    private Queue<BinTransportTask> _pendingBins = new();
-    
     private Robot[] _robots;
-    private HashSet<Bin> _bins = new ();
+
+    private Dictionary<Bin, BinTransportTask> _deliveringBinsByBinTransportTasks = new ();
+    private Queue<BinTransportTask> _pendingBinTransportTasks = new();
 
     
     void Start()
@@ -78,7 +78,6 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
                     var bin = Instantiate(ResourceManager.Instance.GetRandomBin(), cellItem.GetTopStackWorldPosition(), Quaternion.identity);
                     
                     cellItem.AddToStack(bin);
-                    _bins.Add(bin);
                 }
             }
         }
@@ -112,13 +111,13 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     }
 
     /// <summary>
-    /// 
+    /// Find robots to get bin
     /// </summary>
     private void AssignMission()
     {
-        while (_pendingBins.Count > 0)
+        while (_pendingBinTransportTasks.Count > 0)
         {
-            var bin = _pendingBins.Peek();
+            var binTransportTask = _pendingBinTransportTasks.Peek();
             Robot shortestReachRobot = null;
             int shortestReach = int.MaxValue;
 
@@ -126,7 +125,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             {
                 if (robot.CurrentRobotState != RobotStateEnum.Idling) continue;
                 
-                int reach = CalculateDistance(robot, bin);
+                int reach = RobotUtility.GetDistanceFromRobotToBinSource(_grid, robot, binTransportTask);
                 
                 if (reach >= shortestReach) continue;
                 shortestReachRobot = robot;
@@ -135,9 +134,11 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
             if (shortestReachRobot == null) break;
 
-            _pendingBins.Dequeue();
-            shortestReachRobot.ApproachBin(bin);
-            
+            _pendingBinTransportTasks.Dequeue();
+            binTransportTask.SetMobilizedRobot(new []{shortestReachRobot});
+                        
+            shortestReachRobot.ApproachBin(binTransportTask);
+
         }
     }
     
@@ -159,7 +160,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         
         BinTransportTask task = new BinTransportTask(transportBin, sourceCell, destinationCell);
         
-        _pendingBins.Enqueue(task);
+        _pendingBinTransportTasks.Enqueue(task);
     }
 
     private void CreateBinFixed(BinSpawnInfo binSpawnInfo)
@@ -176,18 +177,10 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         
         BinTransportTask task = new BinTransportTask(transportBin, sourceCell, destinationCell);
         
-        _pendingBins.Enqueue(task);
+        _pendingBinTransportTasks.Enqueue(task);
     }
     
-    public void RequestMission(Robot robot)
-    {
-        if (_pendingBins.Count > 0)
-        {
-            var crate = _pendingBins.Dequeue();
-            robot.ApproachBin(crate);
-        }
-    }
-
+    
     public void ArriveDestination(Robot robot, BinTransportTask binTransportTask)
     {
         DebugUIManager.Instance.AddFinish();
@@ -196,30 +189,12 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             FileRecorderManager.Instance.ResultRecords.Add(
                 new FileRecorderManager.ResultRecord(
                     Time.time - binTransportTask.PickUpTime, 
-                    GetTimeFinishAssumption(robot, binTransportTask), 
+                    RobotUtility.GetIdealTimeDeliveryBin(robot, binTransportTask), 
                     binTransportTask.TargetBinSource.XIndex, 
                     binTransportTask.TargetBinSource.YIndex, 
                     binTransportTask.TargetBinDestination.XIndex, 
                     binTransportTask.TargetBinDestination.YIndex ));
     }
 
-    public float GetTimeFinishAssumption(Robot robot, BinTransportTask binTransportTask)
-    {
-        float time = (Mathf.Abs(binTransportTask.TargetBinDestination.XIndex - binTransportTask.TargetBinSource.XIndex) 
-                      +  Mathf.Abs(binTransportTask.TargetBinDestination.YIndex - binTransportTask.TargetBinSource.YIndex))
-            * (robot.MaxMovementSpeed / Time.fixedDeltaTime ) / 1000f ;
-        Debug.Log(time + " - " + binTransportTask.PickUpTime);
-        return time;
-    }
-    
-    
-    /// <summary>
-    /// the distance between robot and crate
-    /// </summary>
-    private int CalculateDistance(Robot robot, BinTransportTask binTransportTask)
-    {
-        Vector2Int index = _grid.GetIndexDifferenceAbsolute(binTransportTask.TargetBinSource, _grid.GetCell(robot.LastCellPosition));
-        return 10 * index.x + 10 * index.y;
-    }
     
 }

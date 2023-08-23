@@ -62,7 +62,7 @@ namespace _Script.Robot
 
             private void SetToDeliveringState()
             {
-                Robot.CurrentBinTransportTask.PickUpBin(Robot.HoldingBin);
+                Robot.CurrentBinTransportTask.PickUpBin(Robot, Robot.HoldingBin);
 
                 var goalCellPosition = Robot.CurrentGrid.GetWorldPositionOfNearestCell(Robot.CurrentBinTransportTask.TargetBinDestination);
                 
