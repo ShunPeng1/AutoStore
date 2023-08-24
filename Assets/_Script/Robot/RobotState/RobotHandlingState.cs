@@ -47,7 +47,7 @@ namespace _Script.Robot
             private void UnhookBin()
             {
                 var item = Grid.GetCell(RobotTransform.position).Item;
-                
+                item.AddToStack(Robot.HoldingBin);
                 Robot.HoldingBin.transform.parent = null;
                 Robot.HoldingBin = null;
                 

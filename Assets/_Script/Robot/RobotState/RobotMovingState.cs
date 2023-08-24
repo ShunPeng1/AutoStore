@@ -71,7 +71,13 @@ namespace _Script.Robot
                         throw new ArgumentOutOfRangeException();
                 }
 
-                CheckArriveGoalCell();
+                if (RobotUtility.CheckArriveOnNextCell(Robot))
+                {
+                    Robot.IsMidwayMove = false;
+                    ExtractNextCellInPath();
+                    
+                    if (!CheckArriveGoalCell()) return; // change state during executing this function
+                }
             }
             
             private void Execute(RobotStateEnum currentState, IStateParameter enterParameters)

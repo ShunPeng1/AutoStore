@@ -18,7 +18,6 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         public Vector2Int SourceGridIndex;
         public int SourceDepth; // 0 is the top bin of the stack
         public Vector2Int DestinationGridIndex;
-        public float PullUpTime, DropDownTime;
     }
 
     enum SpawnStyle
@@ -30,9 +29,6 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
     [Header("Random Spawn")] 
     [SerializeField, Range(0.001f, 100f)] private float _spawnRate = 5f;
-    [SerializeField, Range(1, 100)] private int _maxPendingBin = 100;
-    [SerializeField] private Vector2 _pullUpRandomRange = Vector2.up;
-    [SerializeField] private Vector2 _dropDownRandomRange = Vector2.up;
     
     [FormerlySerializedAs("_crateSpawnInfos")]
     [Header("Fixed Spawn")]
@@ -165,9 +161,6 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
     private void CreateBinFixed(BinSpawnInfo binSpawnInfo)
     {
-        
-        int destinationX = Random.Range(0, _grid.Width), destinationZ = Random.Range(0, _grid.Height);
-        
         GridXZCell<CellItem> sourceCell = _grid.GetCell(binSpawnInfo.SourceGridIndex.x,binSpawnInfo.SourceGridIndex.y);
         GridXZCell<CellItem> destinationCell = _grid.GetCell(binSpawnInfo.DestinationGridIndex.x,binSpawnInfo.DestinationGridIndex.y);
 
