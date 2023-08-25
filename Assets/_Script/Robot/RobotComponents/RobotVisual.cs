@@ -32,10 +32,10 @@ public class RobotVisual : RobotComponentDependence
             return;
         }
         
-        _lineRenderer.positionCount = Robot.MovingPath.Count + 1;
-        _lineRenderer.SetPosition(0, transform.position);
-
-        int itr = 1;
+        _lineRenderer.positionCount = Robot.MovingPath.Count + 2;
+        _lineRenderer.SetPosition(0, Robot.transform.position);
+        _lineRenderer.SetPosition(1, Robot.NextCellPosition);
+        int itr = 2;
         foreach (var cell in Robot.MovingPath)
         {
             _lineRenderer.SetPosition(itr, Robot.CurrentGrid.GetWorldPositionOfNearestCell(cell.XIndex,cell.YIndex));
