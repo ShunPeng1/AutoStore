@@ -49,20 +49,21 @@ public class RobotVisual : RobotComponentDependence
     private void SetBodyColorUsingFlyWeightPattern()
     {
         _materialPropertyBlock = new MaterialPropertyBlock();
+        Color color = GetRandomColor();
+        
         _robotBodyRenderer.GetPropertyBlock(_materialPropertyBlock); // Get the current material to _materialPropertyBlock
-        _materialPropertyBlock.SetColor(BaseMapProperty, GetRandomBrightColor()); // Assign a random color
+        _materialPropertyBlock.SetColor(BaseMapProperty, color); // Assign a random color
         _robotBodyRenderer.SetPropertyBlock(_materialPropertyBlock); // Apply the edit material to renderer
         
-    }
-    
-    private void SetBodyColorNoPattern()
-    {
-        _robotBodyRenderer.material.color = GetRandomBrightColor(); // Assign a random color
+        _lineRenderer.GetPropertyBlock(_materialPropertyBlock);
+        _materialPropertyBlock.SetColor(BaseMapProperty, color); // Assign a random color
+        _lineRenderer.SetPropertyBlock(_materialPropertyBlock);
     }
 
-    private Color GetRandomBrightColor()
+    private Color GetRandomColor()
     {
-        return Color.HSVToRGB(Random.Range(0f,1f), 1f,1f);
+        float isSaturation = Random.Range(0, 2);
+        return Color.HSVToRGB(Random.Range(0f,1f), Random.Range(0f,1f),Mathf.Pow( Random.Range(0.875f,1f), 3));
     }
     
 }
