@@ -33,9 +33,7 @@ namespace _Script.Robot
         
         [Header("Movement")] 
         public float MaxMovementSpeed = 1f;
-        [SerializeField] protected float JamWaitTime = 5f;
         
-        [Header("Pathfinding and obstacle")] 
         private IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> _pathfindingAlgorithm;
         protected List<Robot> NearbyRobots = new();
 
@@ -43,7 +41,7 @@ namespace _Script.Robot
         [ShowImmutable, SerializeField] protected BinTransportTask CurrentBinTransportTask; 
         [ShowImmutable, SerializeField] protected Bin HoldingBin;
         
-        
+        [Header("Cable and Hook Transform")]
         [SerializeField] protected Transform CableTransform;
         [SerializeField] protected Transform HookTransform;    
         [SerializeField] protected Transform TopHookCeilingTransform;

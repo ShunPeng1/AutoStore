@@ -42,6 +42,12 @@ namespace _Script.Robot
             return time;
         }
         
+        public static float GetTimeMoveTo1Cell(Robot robot)
+        {
+            float time = (robot.MaxMovementSpeed / Time.fixedDeltaTime ) / 1000f ;
+            return time;
+        }
+        
         public static int GetDistanceFromRobotToBinSource(GridXZ<CellItem> grid, Robot robot, BinTransportTask binTransportTask)
         {
             Vector2Int index = grid.GetIndexDifferenceAbsolute(binTransportTask.TargetBinSource, grid.GetCell(robot.LastCellPosition));
