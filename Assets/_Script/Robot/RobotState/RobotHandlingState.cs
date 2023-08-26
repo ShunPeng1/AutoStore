@@ -37,21 +37,41 @@ namespace _Script.Robot
             {
                 var item = Grid.GetCell(RobotTransform.position).Item;
                 Robot.HoldingBin = item.RemoveTopBinFromStack();
+
+                if (Robot.HoldingBin != null)
+                {
+                    Robot.HoldingBin.transform.SetParent(Robot.BinHookPlaceTransform);
+                    Robot.HoldingBin.transform.localPosition = Vector3.zero;
                 
-                Robot.HoldingBin.transform.SetParent(Robot.BinHookPlaceTransform);
-                Robot.HoldingBin.transform.localPosition = Vector3.zero;
-                
-                Robot.ContractCable(SetToDeliveringState);
+                    Robot.ContractCable(SetToDeliveringState);
+
+                }
+                else
+                {
+                    Robot.ContractCable(SetToIdlingState);
+                }
             }
             
             private void UnhookBin()
             {
                 var item = Grid.GetCell(RobotTransform.position).Item;
-                item.AddToStack(Robot.HoldingBin);
-                Robot.HoldingBin.transform.parent = null;
-                Robot.HoldingBin = null;
-                
-                Robot.ContractCable(SetToIdlingState);
+                if (item.AddToStack(Robot.HoldingBin))
+                {
+                    Robot.HoldingBin.transform.parent = null;
+                    Robot.HoldingBin = null;
+
+                    Robot.ContractCable(SetToIdlingState);
+                }
+                else
+                {
+                    Robot.HoldingBin.transform.parent = null;
+                    DistributionManager.Instance.ReAddInvalidBin(Robot.HoldingBin);
+                    Robot.HoldingBin = null;
+
+                    Robot.ContractCable(SetToIdlingState);
+                    
+                    
+                }
             }
 
             private void SetToIdlingState()

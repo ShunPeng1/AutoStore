@@ -37,14 +37,14 @@ namespace _Script.Robot
         {
             float time = (Mathf.Abs(binTransportTask.TargetBinDestination.XIndex - binTransportTask.TargetBinSource.XIndex) 
                           +  Mathf.Abs(binTransportTask.TargetBinDestination.YIndex - binTransportTask.TargetBinSource.YIndex))
-                * (robot.MaxMovementSpeed / Time.fixedDeltaTime ) / 1000f ;
+                * (1f / robot.MaxMovementSpeed) ;
             
             return time;
         }
         
         public static float GetTimeMoveTo1Cell(Robot robot)
         {
-            float time = (robot.MaxMovementSpeed / Time.fixedDeltaTime ) / 1000f ;
+            float time = (1f / robot.MaxMovementSpeed) ;
             return time;
         }
         

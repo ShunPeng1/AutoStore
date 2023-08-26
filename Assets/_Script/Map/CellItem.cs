@@ -19,15 +19,17 @@ public class CellItem
         _stackDepthSize = stackDepthSize;
     }
 
-    public void AddToStack(Bin bin)
+    public bool AddToStack(Bin bin)
     {
+        if (CurrentBinCount >= BinsStack.Length) return false;
         BinsStack[CurrentBinCount] = bin;
         CurrentBinCount++;
+        return true;
     }
 
     public Bin RemoveTopBinFromStack()
     {
-        CurrentBinCount--;
+        CurrentBinCount = Mathf.Max(0, CurrentBinCount - 1);
         var bin = BinsStack[CurrentBinCount];
         BinsStack[CurrentBinCount] = null;
         

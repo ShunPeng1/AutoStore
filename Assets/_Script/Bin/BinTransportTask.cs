@@ -30,6 +30,8 @@ public class BinTransportTask
 
     public void PickUpBin(Robot robot, Bin bin)
     {
+        
+        PickUpTime = Time.fixedTime;
         if (bin == TargetBin) PickUpTargetBin(robot);
         else
         {
@@ -41,7 +43,7 @@ public class BinTransportTask
     {
         HoldingRobot = robot;
         
-        PickUpTime = Time.time;
+        //PickUpTime = Time.fixedTime;
         
     }
 

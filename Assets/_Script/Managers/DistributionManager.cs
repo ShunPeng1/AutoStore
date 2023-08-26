@@ -181,7 +181,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         if (FileRecorderManager.InstanceOptional != null ) 
             FileRecorderManager.Instance.ResultRecords.Add(
                 new FileRecorderManager.ResultRecord(
-                    Time.time - binTransportTask.PickUpTime, 
+                    Time.fixedTime - binTransportTask.PickUpTime, 
                     RobotUtility.GetIdealTimeDeliveryBin(robot, binTransportTask), 
                     binTransportTask.TargetBinSource.XIndex, 
                     binTransportTask.TargetBinSource.YIndex, 
@@ -189,5 +189,16 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
                     binTransportTask.TargetBinDestination.YIndex ));
     }
 
-    
+    public void ReAddInvalidBin(Bin bin)
+    {
+        int sourceX = Random.Range(0, _grid.Width), sourceZ = Random.Range(0, _grid.Height);
+
+        GridXZCell<CellItem> sourceCell = _grid.GetCell(sourceX,sourceZ);
+        bin.transform.position = sourceCell.Item.GetTopStackWorldPosition();
+
+        if (! sourceCell.Item.AddToStack(bin))
+        {
+            ReAddInvalidBin(bin);
+        }
+    }
 }
