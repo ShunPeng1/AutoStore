@@ -132,7 +132,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 50481040}
-  - component: {fileID: 50481041}
   m_Layer: 0
   m_Name: Map
   m_TagString: Untagged
@@ -165,23 +164,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &50481041
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 50481039}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 96c693941ae84804bbbb861ec876952a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _width: 20
-  _height: 20
-  _cellWidthSize: 1
-  _cellHeightSize: 1
-  _pathFindingAlgorithmType: 0
 --- !u!1 &56008789
 GameObject:
   m_ObjectHideFlags: 0
@@ -458,6 +440,7 @@ Transform:
   - {fileID: 599093499}
   - {fileID: 1108140249}
   - {fileID: 158536308}
+  - {fileID: 1231968862}
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -602,8 +585,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c21886003be68214fa607312d30ba390, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  StackStorage: {fileID: -2770273418346727713, guid: 2c26dccba7622554ba6b7e0883699230, type: 3}
-  Crates:
+  Bins:
   - {fileID: -6092981407681897407, guid: 24717045b4a4f9d44be5e460121b5899, type: 3}
   - {fileID: -503301519325198052, guid: e0d7326e4dea8b9409df40e14c01d976, type: 3}
   - {fileID: -8146062942008891456, guid: cb7455e31017dda4b8e8e0fafffd5c2f, type: 3}
@@ -830,10 +812,62 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _spawnStyle: 0
   _spawnRate: 1
-  _maxPendingCrate: 100
-  _pullUpRandomRange: {x: 0, y: 1}
-  _dropDownRandomRange: {x: 0, y: 1}
-  _crateSpawnInfos: []
+  _binSpawnInfos: []
+  _spawnBinLayerHeight: 10
+--- !u!1 &1231968861
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1231968862}
+  - component: {fileID: 1231968863}
+  m_Layer: 0
+  m_Name: Map Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1231968862
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1231968861}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 539441122}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1231968863
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1231968861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96c693941ae84804bbbb861ec876952a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _mapParent: {fileID: 50481040}
+  _width: 20
+  _length: 20
+  _stackSize: 20
+  _cellWidthSize: 1
+  _cellLengthSize: 1
+  _stackDepthSize: 1
+  _stackStorages: []
+  _stackFramePrefab: {fileID: -2770273418346727713, guid: 2c26dccba7622554ba6b7e0883699230, type: 3}
+  _pathFindingAlgorithmType: 0
 --- !u!1 &1261637375
 GameObject:
   m_ObjectHideFlags: 0
@@ -1055,7 +1089,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1304031272}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -4.4513426, y: -3.9999523, z: -4.833893}
+  m_LocalPosition: {x: -4.4513426, y: -20.37, z: -4.833893}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
