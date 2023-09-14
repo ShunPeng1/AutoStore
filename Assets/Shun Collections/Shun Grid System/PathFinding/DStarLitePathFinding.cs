@@ -26,7 +26,7 @@ namespace Shun_Grid_System
         private IPathFindingDistanceCost _distanceCostFunction;
         private IPathFindingAdjacentCellSelection<TCell, TItem> _adjacentCellSelectionFunction;
         private Priority_Queue.SimplePriorityQueue<TCell, QueueKey > _openCells = new ( new CompareFCostHCost()); // priority queue of open cells
-        private int _km = 0; // km = heuristic for estimating cost of travel along the last path
+        private double _km = 0; // km = heuristic for estimating cost of travel along the last path
         private Dictionary<TCell, double> _rhsValues = new (); // rhsValues[x] = the current best estimate of the cost from x to the goal
         private Dictionary<TCell, double> _gValues = new (); // gValues[x] = the cost of the cheapest path from the start to x
         private Dictionary<TCell, TCell> _predecessors = new (); // predecessors[x] = the cell that comes before x on the best path from the start to x
@@ -79,20 +79,19 @@ namespace Shun_Grid_System
         {
             ResetPathFinding(startCell, endCell);
         
-            return FindPath(startCell, endCell);
+            return FindPath();
         }
 
-        public LinkedList<TCell> FindPath(TCell startCell, TCell endCell, double maxCost = Double.PositiveInfinity)
+        public LinkedList<TCell> FindPath(double maxCost = Double.PositiveInfinity)
         {
             while (_openCells.Count > 0 &&
-                   (GetRhsValue(startCell) > CalculateKey(startCell, startCell) ||
-                    _gValues[startCell] == double.PositiveInfinity))
+                   (CalculateKey(TryDequeue(out TCell currentCell)) < CalculateKey(_startCell) ||
+                    GetRhsValue(_startCell) != GetGValue(_startCell)))
             {
-                if (!_openCells.TryDequeue(out TCell currentCell)) return null; // there are no way to get to end
-            
+                
                 //Debug.Log("DStar current Cell" + currentCell.XIndex + " " + currentCell.ZIndex);
 
-                if (GetGValue(currentCell) > _rhsValues[currentCell])
+                if (GetGValue(currentCell) > GetRhsValue(currentCell))
                 {
                     _gValues[currentCell] = _rhsValues[currentCell];
 
@@ -124,9 +123,10 @@ namespace Shun_Grid_System
                 }
             }
 
-            return RetracePath(startCell, endCell);
+            return RetracePath(_startCell, _endCell);
         }
     
+        /*
         public override LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartCell, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity)
         {
             ResetPathFinding(currentStartCell, _endCell);
@@ -137,7 +137,26 @@ namespace Shun_Grid_System
                 _dynamicObstacles[obstacleCell] = Time.time;
             }
         
-            return FindPath(_startCell, _endCell);
+            return FindPath(maxCost);
+        }
+        */
+        public override LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartCell, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity)
+        {
+            _km += GetDistanceCost(_startCell,currentStartCell);
+            _startCell = currentStartCell;
+            
+            foreach (var obstacleCell in foundDynamicObstacles)
+            {
+                if (_dynamicObstacles.ContainsKey(obstacleCell)) continue;
+                _dynamicObstacles[obstacleCell] = Time.time;
+
+                foreach (TCell adjacentToObstacleCell in obstacleCell.AdjacentCells)
+                {
+                    UpdateCell(adjacentToObstacleCell);
+                }
+            }
+        
+            return FindPath(maxCost);
         }
 
         public override Dictionary<TCell, double> FindAllCellsSmallerThanCost(TCell currentStartNode, double maxCost = Double.PositiveInfinity)
@@ -198,6 +217,7 @@ namespace Shun_Grid_System
             }
         }
 
+        /*
         private LinkedList<TCell> RetracePath(TCell startXZCell, TCell endXZCell)
         {
             LinkedList<TCell> path = new LinkedList<TCell>();
@@ -233,6 +253,48 @@ namespace Shun_Grid_System
 
             return path;
         }
+        */
+        
+        
+        private LinkedList<TCell> RetracePath(TCell startCell, TCell endCell)
+        {
+            if (_endCell.IsObstacle|| _dynamicObstacles.ContainsKey(_endCell)) return null;
+            
+            LinkedList<TCell> path = new LinkedList<TCell>();
+            TCell currentCell = startCell;
+            
+        
+            while (currentCell != endCell)
+            {
+                path.AddLast(currentCell);
+                
+                TCell nextCell = null;
+                double minGCost = Double.PositiveInfinity;
+                foreach (TCell successor in currentCell.AdjacentCells)
+                {
+                    if (successor.IsObstacle
+                        || !_adjacentCellSelectionFunction.CheckMovableCell(currentCell, successor) 
+                        || _dynamicObstacles.ContainsKey(successor)) continue;
+                    
+                    double successorGCost = GetGValue(successor);
+                    
+                    if ( successorGCost < minGCost || (nextCell != null && successorGCost == minGCost && CalculateKey(successor) < CalculateKey(nextCell)))
+                    {
+                        nextCell = successor;
+                        minGCost = successorGCost;
+                    }
+                    
+                }
+
+                if (nextCell != null) 
+                    currentCell = nextCell;
+                else return null;
+            }
+
+            path.AddLast(endCell);
+
+            return path;
+        }
 
         private void ResetPathFinding(TCell startCell, TCell endCell)
         {
@@ -253,14 +315,20 @@ namespace Shun_Grid_System
             _rhsValues[startCell] = double.PositiveInfinity;
             _predecessors[startCell] = null;
 
-            _openCells.Enqueue(endCell, new QueueKey((int) CalculateKey(endCell, startCell) , 0));
+            _openCells.Enqueue(endCell, new QueueKey((int) CalculateKey(endCell) , 0));
 
         
         }
 
-        private double CalculateKey(TCell currCell, TCell startCell)
+        private TCell TryDequeue(out TCell topCell)
         {
-            return Math.Min(GetRhsValue(currCell), GetGValue(currCell)) + GetDistanceCost(currCell, startCell) + _km;
+            topCell = _openCells.Dequeue();
+            return topCell;
+        }
+
+        private double CalculateKey(TCell currCell)
+        {
+            return Math.Min(GetRhsValue(currCell), GetGValue(currCell)) + GetDistanceCost(currCell, _startCell) + _km;
         }
 
         private double GetRhsValue(TCell cell)
