@@ -73,7 +73,7 @@ namespace Shun_Grid_System
                 visitedSet.Add(currentCell);
                 reachableCells[currentCell] = GetGValue(currentCell);
                 
-                foreach (TCell adjacentCell in currentCell.AdjacentCells)
+                foreach (TCell adjacentCell in currentCell.InDegreeCells)
                 {
                     //if (visitedSet.Contains(adjacentCell))
                     //    continue;
@@ -131,7 +131,7 @@ namespace Shun_Grid_System
                     return RetracePath(_startCell, _endCell);
                 }
 
-                foreach (TCell adjacentCell in currentMinFCostCell.AdjacentCells)
+                foreach (TCell adjacentCell in currentMinFCostCell.OutDegreeCells)
                 {
                     //if (visitedSet.Contains(adjacentCell)) 
                     //    continue;  // skip for travelled cell
@@ -189,7 +189,7 @@ namespace Shun_Grid_System
         {
             var indexDifferenceAbsolute = Grid.GetIndexDifferenceAbsolute(start,end);
 
-            return _distanceCostFunction.GetDistanceCost(indexDifferenceAbsolute.x, indexDifferenceAbsolute.y) + start.GetAdditionalAdjacentCellCost(end);
+            return _distanceCostFunction.GetDistanceCost(indexDifferenceAbsolute.x, indexDifferenceAbsolute.y) + start.GetAdditionalOutDegreeAdjacentCellCost(end);
         }
         
         private double GetGValue(TCell cell)

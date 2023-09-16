@@ -95,7 +95,7 @@ namespace Shun_Grid_System
                 {
                     _gValues[currentCell] = _rhsValues[currentCell];
 
-                    foreach (TCell neighbor in currentCell.AdjacentCells)
+                    foreach (TCell neighbor in currentCell.InDegreeCells)
                     {
                         if (neighbor != null && !neighbor.IsObstacle 
                                              && _adjacentCellSelectionFunction.CheckMovableCell(currentCell, neighbor) 
@@ -110,7 +110,7 @@ namespace Shun_Grid_System
                     _gValues[currentCell] = double.PositiveInfinity;
                     UpdateCell(currentCell);
 
-                    foreach (TCell neighbor in currentCell.AdjacentCells)
+                    foreach (TCell neighbor in currentCell.InDegreeCells)
                     {
                         if (neighbor != null && !neighbor.IsObstacle 
                                              && _adjacentCellSelectionFunction.CheckMovableCell(currentCell, neighbor) 
@@ -150,7 +150,7 @@ namespace Shun_Grid_System
                 if (_dynamicObstacles.ContainsKey(obstacleCell)) continue;
                 _dynamicObstacles[obstacleCell] = Time.time;
 
-                foreach (TCell adjacentToObstacleCell in obstacleCell.AdjacentCells)
+                foreach (TCell adjacentToObstacleCell in obstacleCell.InDegreeCells)
                 {
                     UpdateCell(adjacentToObstacleCell);
                 }
@@ -176,7 +176,7 @@ namespace Shun_Grid_System
                 double minRhs = double.PositiveInfinity;
                 TCell minSucc = null;
 
-                foreach (TCell successor in updateCell.AdjacentCells)
+                foreach (TCell successor in updateCell.OutDegreeCells)
                 {
                     double rhs = _gValues.ContainsKey(successor)
                         ? GetGValue(successor) + GetDistanceCost(updateCell, successor)
@@ -270,7 +270,7 @@ namespace Shun_Grid_System
                 
                 TCell nextCell = null;
                 double minGCost = Double.PositiveInfinity;
-                foreach (TCell successor in currentCell.AdjacentCells)
+                foreach (TCell successor in currentCell.OutDegreeCells)
                 {
                     if (successor.IsObstacle
                         || !_adjacentCellSelectionFunction.CheckMovableCell(currentCell, successor) 
@@ -345,7 +345,7 @@ namespace Shun_Grid_System
         {
             var indexDifferenceAbsolute = Grid.GetIndexDifferenceAbsolute(start,end);
 
-            return _distanceCostFunction.GetDistanceCost(indexDifferenceAbsolute.x, indexDifferenceAbsolute.y) + start.GetAdditionalAdjacentCellCost(end);
+            return _distanceCostFunction.GetDistanceCost(indexDifferenceAbsolute.x, indexDifferenceAbsolute.y) + start.GetAdditionalOutDegreeAdjacentCellCost(end);
         }
     
     }

@@ -86,11 +86,23 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
             for (int z = 0; z < _length; z++)
             {
                 var cell = WorldGrid.GetCell(x, z);
+                
+                /*
                 foreach (var direction in _adjacencyDirections)
                 {
                     var adjacentCell = WorldGrid.GetCell(cell.XIndex + direction.x, cell.YIndex + direction.y);
                     cell.SetAdjacencyCell(adjacentCell);
                 }
+                */
+                
+                // A 2 lane traffic like in real life where you cannot go in reverse direction in a forward lane
+                int xMultiplier = z%2 == 0 ? 1 : -1;
+                var xAdjacentCell = WorldGrid.GetCell(cell.XIndex + xMultiplier, cell.YIndex);
+                if(xAdjacentCell != null) cell.SetDirectionalAdjacencyCell(xAdjacentCell);
+                
+                int zMultiplier = x% 2 == 0 ? 1 : -1;
+                var zAdjacentCell = WorldGrid.GetCell(cell.XIndex , cell.YIndex + zMultiplier);
+                if(zAdjacentCell != null) cell.SetDirectionalAdjacencyCell(zAdjacentCell);
                 
             }
         }
