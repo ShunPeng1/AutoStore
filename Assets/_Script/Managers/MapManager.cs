@@ -100,7 +100,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
                 var xAdjacentCell = WorldGrid.GetCell(cell.XIndex + xMultiplier, cell.YIndex);
                 if(xAdjacentCell != null) cell.SetDirectionalAdjacencyCell(xAdjacentCell);
                 
-                int zMultiplier = x% 2 == 0 ? 1 : -1;
+                int zMultiplier = x% 2 == 0 ? -1 : 1;
                 var zAdjacentCell = WorldGrid.GetCell(cell.XIndex , cell.YIndex + zMultiplier);
                 if(zAdjacentCell != null) cell.SetDirectionalAdjacencyCell(zAdjacentCell);
                 

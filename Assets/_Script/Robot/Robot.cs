@@ -15,7 +15,7 @@ namespace _Script.Robot
         [Header("Stat")] 
         private static int _idCount = 0;
         public int Id;
-
+        
         [Header("Robot State Machine")] 
         [ShowImmutable, SerializeField] protected BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
         public RobotStateEnum CurrentRobotState => RobotStateMachine.GetState();

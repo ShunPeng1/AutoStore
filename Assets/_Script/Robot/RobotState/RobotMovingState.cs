@@ -251,7 +251,7 @@ namespace _Script.Robot
         
                 Robot.MovingPath = Robot._pathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
 
-                if (Robot.MovingPath != null) return true; 
+                if (Robot.MovingPath != null && Robot.MovingPath.Count != 0) return true; 
         
                 // No destination was found
                 Robot.RedirectToNearestCell();
@@ -267,7 +267,7 @@ namespace _Script.Robot
 
                 Robot.MovingPath = Robot._pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
 
-                if (Robot.MovingPath == null) // The path to goal is block
+                if (Robot.MovingPath == null || Robot.MovingPath.Count == 0) // The path to goal is block
                 {
                     Robot.RedirectToNearestCell();
                     return false;
