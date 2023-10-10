@@ -10,7 +10,7 @@ namespace _Script.Robot
     public abstract partial class Robot
     {
         
-        public class RobotMovingState : RobotState
+        public class RobotMovingStateNoServer : RobotState
         {
             protected RobotMovingTask CurrentMovingTask;
         
@@ -22,7 +22,7 @@ namespace _Script.Robot
                 Deflected = 3
             }
             
-            public RobotMovingState(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(robot, myStateEnum, executeEvents, exitEvents, enterEvents)
+            public RobotMovingStateNoServer(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(robot, myStateEnum, executeEvents, exitEvents, enterEvents)
             {
                 EnterEvents += AssignTask;
                 ExecuteEvents += Execute;
@@ -93,7 +93,6 @@ namespace _Script.Robot
                 Robot.DetectNearByRobot();
                 if (!DecideFromRobotDetection()) return; // change state during executing this function
                 
-                Robot.IsMidwayMove = true;
                 Robot.MoveAlongGrid();
             }
 
@@ -116,13 +115,21 @@ namespace _Script.Robot
                 
                 foreach (var detectedRobot in Robot.NearbyRobots)
                 {
+                    var nearestCellPosition = Grid.GetWorldPositionOfNearestCell(detectedRobot.transform.position);
+                    var nearestCell = Grid.GetCell(nearestCellPosition);
+                    dynamicObstacle.Add(nearestCell);
                     
-                    DetectDecision decision = DecideOnDetectedRobot(detectedRobot);
-                    finalDecision = (DetectDecision) Mathf.Max((int)decision, (int)finalDecision);
-
-                    dynamicObstacle.Add(Grid.GetCell(detectedRobot.LastCellPosition));
-                    if(detectedRobot.IsMidwayMove) dynamicObstacle.Add(Grid.GetCell(detectedRobot.NextCellPosition));
+                    foreach (var baseGridCell2D in nearestCell.OutDegreeCells)
+                    {
+                        var outCell = (GridXZCell<CellItem>)baseGridCell2D;
+                        var xDirection = outCell.XIndex - nearestCell.XIndex;
+                        var zDirection = outCell.YIndex - nearestCell.YIndex;
+                        if (MapManager.Instance.IsMovableFromDirection(xDirection,zDirection)) dynamicObstacle.Add(outCell);
+                    }
+                    
                 }
+                if (Robot.NearbyRobots.Count != 0) finalDecision = DetectDecision.Dodge;
+                
                 
                 switch (finalDecision)
                 {
@@ -265,7 +272,7 @@ namespace _Script.Robot
                 Vector3 nearestCellPosition = Grid.GetWorldPositionOfNearestCell(RobotTransform.position);
                 var currentStartCell = Grid.GetCell(nearestCellPosition);
 
-                Robot.MovingPath = Robot._pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle, false);
+                Robot.MovingPath = Robot._pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle, true);
 
                 if (Robot.MovingPath == null || Robot.MovingPath.Count == 0) // The path to goal is block
                 {
@@ -275,10 +282,29 @@ namespace _Script.Robot
         
                 if (nearestCellPosition == Robot.LastCellPosition)
                 {
-                    ExtractNextCellInPath();
+                    var nextNextCell = Robot.MovingPath.First.Value;
+
+                    Robot.MovingPath.RemoveFirst();
+
+                    if (Robot.MovingPath.First != null && Robot.MovingPath.First.Value == Robot.NextCell)
+                    {
+                        Robot.MovingPath.RemoveFirst();
+                    }
+                    else
+                    {
+                        Robot.LastCell = Robot.NextCell;
+                        Robot.NextCell = nextNextCell;
+                    }
+                    
                     return true;
                 }
-        
+                
+                if (nearestCellPosition == Robot.LastCellPosition && Robot.IsMidwayMove)
+                {
+                    Robot.MovingPath.RemoveFirst();
+                    return true;
+                }
+
                 if (nearestCellPosition == Robot.NextCellPosition)
                 {
                     Robot.MovingPath.RemoveFirst();

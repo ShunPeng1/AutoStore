@@ -14,7 +14,7 @@ namespace Shun_Grid_System
         where TCell : BaseGridCell2D<TItem>
     {
         public LinkedList<TCell> FirstTimeFindPath(TCell startCell, TCell endCell, double maxCost = Double.PositiveInfinity);
-        public LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartNode, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity);
+        public LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartNode, List<TCell> foundDynamicObstacles, bool resetObstacle, double maxCost = Double.PositiveInfinity);
         public Dictionary<TCell, double> FindAllCellsSmallerThanCost(TCell currentStartNode, double maxCost = Double.PositiveInfinity);
     }
 
@@ -31,7 +31,7 @@ namespace Shun_Grid_System
 
         public abstract LinkedList<TCell> FirstTimeFindPath(TCell startCell, TCell endCell, double maxCost = Double.PositiveInfinity);
 
-        public abstract LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartNode, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity);
+        public abstract LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartNode, List<TCell> foundDynamicObstacles, bool resetObstacle, double maxCost = Double.PositiveInfinity);
         public abstract Dictionary<TCell, double> FindAllCellsSmallerThanCost(TCell currentStartNode, double maxCost = Double.PositiveInfinity);
     }
 }

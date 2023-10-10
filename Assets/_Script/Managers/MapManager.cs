@@ -14,6 +14,10 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     [SerializeField] private int _width = 20, _length = 20, _stackSize = 10;
     [SerializeField] private float _cellWidthSize = 1f, _cellLengthSize = 1f, _stackDepthSize = 1f;
 
+    [Header("Global Traffic Light")] 
+    [SerializeField] private float _greenLightDuration = 10f;
+    [SerializeField] private float _yellowLightDuration = 2f;
+    
     public GridXZ<CellItem> WorldGrid;
 
     [SerializeField, HideInInspector] private List<StackFrame> _stackStorages = new List<StackFrame>();
@@ -96,16 +100,35 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
                 */
                 
                 // A 2 lane traffic like in real life where you cannot go in reverse direction in a forward lane
-                int xMultiplier = z%2 == 0 ? 1 : -1;
+                int xMultiplier = z % 2 == 0 ? 1 : -1;
                 var xAdjacentCell = WorldGrid.GetCell(cell.XIndex + xMultiplier, cell.YIndex);
                 if(xAdjacentCell != null) cell.SetDirectionalAdjacencyCell(xAdjacentCell);
                 
-                int zMultiplier = x% 2 == 0 ? -1 : 1;
+                int zMultiplier = x % 2 == 0 ? -1 : 1;
                 var zAdjacentCell = WorldGrid.GetCell(cell.XIndex , cell.YIndex + zMultiplier);
                 if(zAdjacentCell != null) cell.SetDirectionalAdjacencyCell(zAdjacentCell);
                 
             }
         }
+    }
+
+    public bool IsMovableFromDirection(int x, int z)
+    {
+        float totalLightDuration = _greenLightDuration * 2 + _yellowLightDuration * 2;
+        if (Time.time/totalLightDuration < _greenLightDuration)
+        {
+            return x == 0 && z != 0;
+        }
+        
+        if (Time.time / totalLightDuration < _greenLightDuration + _yellowLightDuration) return false;
+        
+        if (Time.time / totalLightDuration < _greenLightDuration * 2 + _yellowLightDuration)
+        {
+            return x != 0 && z == 0;
+        }
+        
+        return false;
+        
     }
 
     public void SpawnStackStorage()

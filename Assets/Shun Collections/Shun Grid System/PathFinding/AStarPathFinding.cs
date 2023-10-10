@@ -41,7 +41,7 @@ namespace Shun_Grid_System
             return FindPath(maxCost);
         }
 
-        public override LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartCell, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity)
+        public override LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartCell, List<TCell> foundDynamicObstacles, bool resetObstacle, double maxCost = Double.PositiveInfinity)
         {
             return FindPath(maxCost);
         }

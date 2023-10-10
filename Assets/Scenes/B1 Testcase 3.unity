@@ -16393,6 +16393,8 @@ MonoBehaviour:
   _cellWidthSize: 1
   _cellLengthSize: 1
   _stackDepthSize: 1
+  _greenLightDuration: 5
+  _yellowLightDuration: 1
   _stackStorages:
   - {fileID: 1759788160}
   - {fileID: 1601402693}

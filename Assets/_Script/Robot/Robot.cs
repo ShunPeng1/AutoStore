@@ -88,15 +88,15 @@ namespace _Script.Robot
         {
             RobotIdlingState idlingState = new(this, RobotStateEnum.Idling);
             
-            RobotMovingState approachingState = new(this, RobotStateEnum.Approaching);
+            RobotMovingStateNoServer approachingState = new(this, RobotStateEnum.Approaching);
             
             RobotHandlingState handlingState = new(this,RobotStateEnum.Handling);
             
-            RobotMovingState deliveringState = new(this,RobotStateEnum.Delivering);
+            RobotMovingStateNoServer deliveringState = new(this,RobotStateEnum.Delivering);
             
             RobotJammingState jammingState = new(this,RobotStateEnum.Jamming);
             
-            RobotMovingState redirectingState = new(this,RobotStateEnum.Redirecting);
+            RobotMovingStateNoServer redirectingState = new(this,RobotStateEnum.Redirecting);
             
             RobotStateMachine.AddState(idlingState);
             RobotStateMachine.AddState(approachingState);

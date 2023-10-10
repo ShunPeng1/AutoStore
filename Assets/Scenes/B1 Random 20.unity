@@ -411,6 +411,8 @@ MonoBehaviour:
   _cellWidthSize: 1
   _cellLengthSize: 1
   _stackDepthSize: 1
+  _greenLightDuration: 10
+  _yellowLightDuration: 2
   _stackStorages: []
   _stackFramePrefab: {fileID: -2770273418346727713, guid: 2c26dccba7622554ba6b7e0883699230, type: 3}
   _pathFindingAlgorithmType: 0
@@ -631,9 +633,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Bins:
-  - {fileID: -6092981407681897407, guid: 24717045b4a4f9d44be5e460121b5899, type: 3}
-  - {fileID: -503301519325198052, guid: e0d7326e4dea8b9409df40e14c01d976, type: 3}
-  - {fileID: -8146062942008891456, guid: cb7455e31017dda4b8e8e0fafffd5c2f, type: 3}
+  - {fileID: -8146062942008891456, guid: dff852179a70f3645b5f2f3b4a8c871e, type: 3}
 --- !u!1001 &694906349
 PrefabInstance:
   m_ObjectHideFlags: 0
