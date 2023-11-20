@@ -10,7 +10,7 @@ namespace Shun_State_Machine
     [Serializable]
     public class BaseStateMachine<TStateEnum> where TStateEnum : Enum 
     {
-        [ShowImmutable, SerializeField] protected BaseState<TStateEnum> CurrentBaseState = new (default);
+        [SerializeField] protected BaseState<TStateEnum> CurrentBaseState = new (default);
         private Dictionary<TStateEnum, BaseState<TStateEnum>> _states = new ();
 
         [Header("History")] 
