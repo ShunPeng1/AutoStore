@@ -155,75 +155,12 @@ namespace _Script.Robot
 
             protected virtual DetectDecision DecideOnDetectedRobot(Robot detectedRobot)
             {
-                float dotProductOf2RobotDirection = RobotUtility.DotOf2RobotMovingDirection(Robot, detectedRobot);
+
                 bool isUnsafeDistanceOf2Robot = Robot.CheckRobotSafeDistance(detectedRobot);
-                bool isBlockAHead = RobotUtility.CheckRobotBlockAHead(detectedRobot, Robot.NextCellPosition);
+
                 bool isBlockingGoal = RobotUtility.CheckRobotBlockGoal(detectedRobot, CurrentMovingTask);
-                
-                switch (detectedRobot.CurrentRobotState)
-                {
-                    /* Idle state cases */
-                    case RobotStateEnum.Idling when isBlockingGoal || isBlockAHead: // If they are standing on this robot goal or blocking ahead of this robot
-                        return TryRedirectRobot(detectedRobot);
 
-                    case RobotStateEnum.Idling: // Not blocking at all
-                        return DetectDecision.Ignore;
-                    
-                    
-                    /* Jamming state cases */
-                    case RobotStateEnum.Jamming when isBlockAHead: // Currently blocking in between the next cell
-                        //return DetectDecision.Dodge;
-                        return TryRedirectRobot(detectedRobot);
-
-                    case RobotStateEnum.Jamming: //  is not blocking ahead in between the next cell
-                        return DetectDecision.Ignore; 
-                    
-                    
-                    /* Handling states cases */
-                    case RobotStateEnum.Handling when !isBlockAHead: //  is not block ahead
-                        return DetectDecision.Ignore; 
-                    
-                    // Currently blocking in between the next cell , and they are standing on this robot goal
-                    case RobotStateEnum.Handling when isBlockingGoal:
-                        return DetectDecision.Wait;
-                    
-                    case RobotStateEnum.Handling: // Currently blocking in between the next cell, and not on this robot goal
-                        return DetectDecision.Dodge;
-                    
-
-                    /* These are the rest of moving state */
-                    case RobotStateEnum.Delivering:
-                    case RobotStateEnum.Approaching:
-                    case RobotStateEnum.Redirecting:
-                    default:
-                        if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f ) // opposite direction
-                        {
-                            if(!isBlockAHead) return DetectDecision.Ignore; // same row or column
-                    
-                            // Is block ahead
-                            if (isBlockingGoal) // If they are standing on this robot goal
-                            {
-                                return TryRedirectRobot(detectedRobot);
-
-                            }
-                            else return DetectDecision.Dodge;
-                        }
-
-                        if (Math.Abs(dotProductOf2RobotDirection - 1) < 0.01f && isBlockAHead && isUnsafeDistanceOf2Robot) 
-                            // 2 robot moving same direction and smaller than safe distance
-                        {
-                            //Debug.Log(gameObject.name + " Keep safe distance ahead with "+detectedRobot.gameObject.name);
-                            return DetectDecision.Wait;
-                        }
-                        
-                        if (dotProductOf2RobotDirection == 0) // perpendicular direction
-                        {
-                            return isBlockAHead ? DetectDecision.Wait : DetectDecision.Ignore;
-                        }
-                        
-                        return DetectDecision.Ignore;
-                }
-                
+                return DetectDecision.Deflected;
             }
 
             private DetectDecision TryRedirectRobot(Robot detectedRobot)
