@@ -23,8 +23,13 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     enum SpawnStyle
     {
         Random,
-        Fixed
+        Fixed,
+        LiftRandom,
+        LiftFixed
     }
+    [Header("Initial")] 
+    [SerializeField] private int _spawnBinLayerHeight = 5;
+    
     [SerializeField] private SpawnStyle _spawnStyle = SpawnStyle.Random;
 
     [Header("Random Spawn")] 
@@ -34,10 +39,11 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     [Header("Fixed Spawn")]
     [SerializeField] private List<BinSpawnInfo> _binSpawnInfos;
 
-    [Header("Initial Spawn")] 
-    [SerializeField] private int _spawnBinLayerHeight = 5;
+    [Header("Lift Spawn")]
+    [SerializeField] private List<Vector2Int> _liftIOCellIndex = new();
     
-
+    
+    
     private GridXZ<CellItem> _grid;
 
     private float _currentTime = 0f;
@@ -67,6 +73,8 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         {
             for (int z = 0; z < _grid.Height; z++)
             {
+                if (_liftIOCellIndex.Contains(new Vector2Int(x,z))) continue;
+                
                 var cellItem = _grid.GetCell(x, z).Item;
                 
                 for (int y = 0; y < _spawnBinLayerHeight; y++)
@@ -88,15 +96,22 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             case SpawnStyle.Random:
                 if (_currentTime >= _spawnRate) 
                 {
-                    AssignBinTransportTaskRandomly();
+                    CreateBinTaskRandomly();
                     _currentTime = 0;
                 }
                 break;
             case SpawnStyle.Fixed:
                 if (_binSpawnInfos.Count > 0 && _currentTime >= _binSpawnInfos[0].ArriveTime)
                 {
-                    CreateBinFixed(_binSpawnInfos[0]);
+                    CreateBinTaskFixed(_binSpawnInfos[0]);
                     _binSpawnInfos.RemoveAt(0);
+                }
+                break;
+            case SpawnStyle.LiftRandom:
+                if (_currentTime >= _spawnRate) 
+                {
+                    CreateBinTaskLiftRandomly();
+                    _currentTime = 0;
                 }
                 break;
             default:
@@ -138,11 +153,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         }
     }
     
-
-    /// <summary>
-    /// This function create the crate in the game world space
-    /// </summary>
-    private void AssignBinTransportTaskRandomly()
+    private void CreateBinTaskRandomly()
     {
         int sourceX = Random.Range(0, _grid.Width), sourceZ = Random.Range(0, _grid.Height);
         int destinationX = Random.Range(0, _grid.Width), destinationZ = Random.Range(0, _grid.Height);
@@ -159,13 +170,49 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         _pendingBinTransportTasks.Enqueue(task);
     }
 
-    private void CreateBinFixed(BinSpawnInfo binSpawnInfo)
+    private void CreateBinTaskFixed(BinSpawnInfo binSpawnInfo)
     {
         GridXZCell<CellItem> sourceCell = _grid.GetCell(binSpawnInfo.SourceGridIndex.x,binSpawnInfo.SourceGridIndex.y);
         GridXZCell<CellItem> destinationCell = _grid.GetCell(binSpawnInfo.DestinationGridIndex.x,binSpawnInfo.DestinationGridIndex.y);
 
         Bin transportBin = sourceCell.Item.GetBinFromTopStack(binSpawnInfo.SourceDepth);
         
+        if (transportBin == null) return;
+        
+        BinTransportTask task = new BinTransportTask(transportBin, sourceCell, destinationCell);
+        
+        _pendingBinTransportTasks.Enqueue(task);
+    }
+    
+    private void CreateBinTaskLiftRandomly()
+    {
+        var inOrOutLift = Random.Range(0,2);
+        var liftIndex = Random.Range(0, _liftIOCellIndex.Count);
+        int sourceX, sourceZ, destinationZ, destinationX;
+
+        if (inOrOutLift == 0)
+        {
+            sourceX = Random.Range(0, _grid.Width);
+            sourceZ = Random.Range(0, _grid.Height);
+            
+            destinationX = _liftIOCellIndex[liftIndex].x;
+            destinationZ = _liftIOCellIndex[liftIndex].y;
+        }
+        else
+        {
+            sourceX = _liftIOCellIndex[liftIndex].x;
+            sourceZ = _liftIOCellIndex[liftIndex].y;
+            
+            destinationX = Random.Range(0, _grid.Width);
+            destinationZ = Random.Range(0, _grid.Height);    
+        }
+        
+        
+        GridXZCell<CellItem> sourceCell = _grid.GetCell(sourceX,sourceZ);
+        GridXZCell<CellItem> destinationCell = _grid.GetCell(destinationX,destinationZ);
+
+        Bin transportBin = sourceCell.Item.GetRandomBinInStack();
+
         if (transportBin == null) return;
         
         BinTransportTask task = new BinTransportTask(transportBin, sourceCell, destinationCell);

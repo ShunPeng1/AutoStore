@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Shun_Grid_System;
 using Shun_State_Machine;
 using Shun_Unity_Editor;
@@ -28,13 +29,16 @@ namespace _Script.Robot
         
         public Vector3 NextCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(NextCell);
         public Vector3 LastCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(LastCell);
+        public Vector3 GoalCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(MovingPath.Last.Value);
+        
         public bool IsMidwayMove = true;
-        protected internal LinkedList<GridXZCell<CellItem>> MovingPath;
+        public LinkedList<GridXZCell<CellItem>> MovingPath;
         
         [Header("Movement")] 
         public float MaxMovementSpeed = 1f;
         
         private IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> _pathfindingAlgorithm;
+         
         protected List<Robot> NearbyRobots = new();
 
         [Header("Task ")] 
@@ -125,15 +129,31 @@ namespace _Script.Robot
             
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
             RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null , robotMovingTask );
-        }     
+        }
+
+        public bool RedirectRequest(Robot requestedRobot, Vector3 requestedRobotNextCellPosition, Vector3 requestedRobotGoalCellPosition)
+        {
             
+            //bool result = RedirectToOrthogonalCell(requestedRobot, requestedRobotNextCellPosition, requestedRobotGoalCellPosition);
+
+            // TODO : test this function
+            bool result = RedirectToLowestWeightCell(requestedRobot, requestedRobotNextCellPosition, requestedRobotGoalCellPosition);
             
+            if (!result)
+            {
+                RedirectToNearestCell(); // Redirect to fit the cell and wait 
+            }
+
+            return result;
+
+        }
+        
+        
         /// <summary>
         /// This function will be requested when the robot is Idle, or standing on others goal. To move to a other direction
         /// The direction is right, left, backward, prefer mostly the direction which is not blocking
         /// </summary>
-        /// <param name="requestedRobot"></param>
-        public bool RedirectToOrthogonalCell(Robot requestedRobot, Vector3 requestedRobotGoalPosition)
+        private bool RedirectToOrthogonalCell(Robot requestedRobot, Vector3 requestedRobotNextCellPosition, Vector3 requestedRobotGoalCellPosition)
         {
             if (CurrentRobotState == RobotStateEnum.Redirecting)
             {
@@ -152,10 +172,10 @@ namespace _Script.Robot
             
             
             // Check validity and detect obstacles for redirecting right, left, and backward
-            bool goRightValid = IsValidRedirectPosition(orthogonalDirection * -1, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectRightGoalCellPosition, out bool isBlockRight);
-            bool goLeftValid = IsValidRedirectPosition(orthogonalDirection, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectLeftGoalCellPosition, out bool isBlockLeft);
-            bool goBackwardValid = IsValidRedirectPosition(roundDirection * -1, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectBackwardGoalCellPosition, out bool isBlockBackward); 
-            bool goForwardValid = IsValidRedirectPosition(roundDirection, requestedRobotDistance, requestedRobotGoalPosition, out Vector3 redirectForwardGoalCellPosition, out bool isBlockForward);
+            bool goRightValid = IsValidRedirectPosition(orthogonalDirection * -1, requestedRobotDistance, requestedRobotNextCellPosition, out Vector3 redirectRightGoalCellPosition, out bool isBlockRight);
+            bool goLeftValid = IsValidRedirectPosition(orthogonalDirection, requestedRobotDistance, requestedRobotNextCellPosition, out Vector3 redirectLeftGoalCellPosition, out bool isBlockLeft);
+            bool goBackwardValid = IsValidRedirectPosition(roundDirection * -1, requestedRobotDistance, requestedRobotNextCellPosition, out Vector3 redirectBackwardGoalCellPosition, out bool isBlockBackward); 
+            bool goForwardValid = IsValidRedirectPosition(roundDirection, requestedRobotDistance, requestedRobotNextCellPosition, out Vector3 redirectForwardGoalCellPosition, out bool isBlockForward);
             
             // Determine the final redirect goal position based on validity and obstacles
             Vector3 redirectGoalCellPosition;
@@ -196,7 +216,37 @@ namespace _Script.Robot
             RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
             return true;
         }
+        
+        /// <summary>
+        /// This function will be requested when the robot is Idle, or standing on others goal. To move to a other direction
+        /// The direction is right, left, backward, prefer mostly the direction which is not blocking
+        /// </summary>
+        public bool RedirectToLowestWeightCell(Robot requestedRobot, Vector3 requestedRobotNextCellPosition, Vector3 requestedRobotGoalCellPosition)
+        {
+            if (CurrentRobotState == RobotStateEnum.Redirecting)
+            {
+                return true;  // Cannot redirect twice, but this is already redirecting
+            }
 
+            Dictionary<GridXZCell<CellItem>, double> weightCellToCosts = new();
+            double weight = 999;
+            
+            foreach (GridXZCell<CellItem> cell in requestedRobot.MovingPath)
+            {
+                weightCellToCosts[cell] = weight;
+            }
+            
+            weightCellToCosts.Add(requestedRobot.NextCell, weight);
+            weightCellToCosts.Add(requestedRobot.LastCell, weight);
+            
+            GridXZCell<CellItem> redirectCell = _pathfindingAlgorithm.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts);
+            
+            Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
+            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell,CurrentGrid.GetWorldPositionOfNearestCell(redirectCell) , SetToJam);
+            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
+            return true;
+        }
+        
         private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isBlockAhead)
         {
             var redirectIndex = CurrentGrid.GetIndex(transform.position + direction * 1);

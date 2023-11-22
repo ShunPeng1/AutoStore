@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Shun_Grid_System;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityUtilities;
 
 public class MapManager : SingletonMonoBehaviour<MapManager>
@@ -17,6 +18,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     public GridXZ<CellItem> WorldGrid;
 
     [SerializeField, HideInInspector] private List<StackFrame> _stackStorages = new List<StackFrame>();
+    
     private Vector2Int[] _adjacencyDirections = new[] // Clockwise Direction
     {
         new Vector2Int(1, 0),   // Right
@@ -27,7 +29,7 @@ public class MapManager : SingletonMonoBehaviour<MapManager>
     
     [Header("Map Prefabs")]
     [SerializeField] private StackFrame _stackFramePrefab;
-
+ 
     
     /// <summary>
     /// Using the Strategy Pattern for the robot to receive 

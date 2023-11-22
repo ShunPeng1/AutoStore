@@ -126,20 +126,91 @@ namespace Shun_Grid_System
             return RetracePath(_startCell, _endCell);
         }
     
-        /*
-        public override LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartCell, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity)
+        
+        public override TCell LowestCostCellWithWeightMap(TCell currentStartCell, Dictionary<TCell, double> weightCellToCosts)
         {
-            ResetPathFinding(currentStartCell, _endCell);
-        
-            foreach (var obstacleCell in foundDynamicObstacles)
+            Dictionary<TCell, double> dijkstraGValues = new ();
+            Priority_Queue.SimplePriorityQueue<TCell, double> dijkstraOpenCells = new (); 
+            List<TCell> lowestCostCells = new List<TCell>();
+            double lowestWeightCost = GetWeightCost(_startCell);
+            
+            dijkstraGValues[_startCell] = 0;
+            dijkstraOpenCells.Enqueue(_startCell, 0);
+            
+            // Dijkstra's algorithm to find the lowest weight cost cell from the start cell
+            while (dijkstraOpenCells.Count > 0)
             {
-                if (_dynamicObstacles.ContainsKey(obstacleCell)) continue;
-                _dynamicObstacles[obstacleCell] = Time.time;
+                TCell currentCell = dijkstraOpenCells.Dequeue();
+
+                var gValue = GetDijkstraGValue(currentCell);
+                var cellCost = gValue + GetWeightCost(currentCell);
+                if (lowestWeightCost > cellCost)
+                {
+                    lowestWeightCost = cellCost;
+                    lowestCostCells.Clear();
+                    lowestCostCells.Add(currentCell);
+                }
+                else if (lowestWeightCost == cellCost)
+                {
+                    lowestCostCells.Add(currentCell);   
+                }
+
+                if (gValue > lowestWeightCost) break;
+                
+                foreach (var baseGridCell2D in currentCell.AdjacentCells)
+                {
+                    var neighbor = (TCell)baseGridCell2D;
+                    if (neighbor is { IsObstacle: false } && _adjacentCellSelectionFunction.CheckMovableCell(currentCell, neighbor))
+                    {
+                        double tentativeCost = GetDijkstraGValue(currentCell) + GetDistanceCost(currentCell, neighbor);
+
+                        if (tentativeCost < GetDijkstraGValue(neighbor))
+                        {
+                            dijkstraGValues[neighbor] = tentativeCost;
+                            
+                            if (dijkstraOpenCells.Contains(neighbor))
+                                dijkstraOpenCells.TryRemove(neighbor);
+
+                            dijkstraOpenCells.Enqueue(neighbor, tentativeCost);
+                            
+                        }
+                    }
+                }
+                
+                
             }
-        
-            return FindPath(maxCost);
+            
+            // Choose the lowest D Star Lite G Cost Cell
+            double lowestDStarLiteGCost = double.PositiveInfinity;
+            TCell lowestDStarLiteGCostCell = lowestCostCells[0];
+
+            foreach (var currentCell in lowestCostCells)
+            {
+                double currentGCost = GetGValue(currentCell);
+
+                if (currentGCost < lowestDStarLiteGCost)
+                {
+                    lowestDStarLiteGCost = currentGCost;
+                    lowestDStarLiteGCostCell = currentCell;
+                }
+            }
+            
+            return lowestDStarLiteGCostCell;
+            
+            
+            double GetDijkstraGValue(TCell cell)
+            {
+                return dijkstraGValues.TryGetValue(cell, out double value) ? value : double.PositiveInfinity;
+            }
+            
+            double GetWeightCost(TCell cell)
+            {
+                return weightCellToCosts.TryGetValue(cell, out double value) ? value : 0;
+            }
+            
+            
         }
-        */
+        
         public override LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartCell, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity)
         {
             _km += GetDistanceCost(_startCell,currentStartCell);
@@ -193,7 +264,7 @@ namespace Shun_Grid_System
                 }
 
                 _rhsValues[updateCell] = minRhs;
-                //_predecessors[upgradeCell] = minSucc ?? (_predecessors[upgradeCell] ?? null);
+                //_predecessors[updateCell] = minSucc ?? (_predecessors[updateCell] ?? null);
                 _predecessors[updateCell] = minSucc;
 
             }

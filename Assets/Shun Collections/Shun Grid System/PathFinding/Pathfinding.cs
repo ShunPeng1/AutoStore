@@ -16,6 +16,9 @@ namespace Shun_Grid_System
         public LinkedList<TCell> FirstTimeFindPath(TCell startCell, TCell endCell, double maxCost = Double.PositiveInfinity);
         public LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartNode, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity);
         public Dictionary<TCell, double> FindAllCellsSmallerThanCost(TCell currentStartNode, double maxCost = Double.PositiveInfinity);
+
+        public TCell LowestCostCellWithWeightMap(TCell currentStartCell, Dictionary<TCell, double> weightCellToCosts);
+
     }
 
     public abstract class Pathfinding<TGrid, TCell, TItem> : IPathfindingAlgorithm<TGrid,TCell,TItem> 
@@ -33,5 +36,10 @@ namespace Shun_Grid_System
 
         public abstract LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartNode, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity);
         public abstract Dictionary<TCell, double> FindAllCellsSmallerThanCost(TCell currentStartNode, double maxCost = Double.PositiveInfinity);
+        
+        public virtual TCell LowestCostCellWithWeightMap(TCell currentStartCell, Dictionary<TCell, double> weightCellToCosts)
+        {
+            return null;
+        }
     }
 }

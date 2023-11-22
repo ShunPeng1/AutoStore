@@ -157,7 +157,7 @@ namespace _Script.Robot
                 {
                     /* Idle state cases */
                     case RobotStateEnum.Idling when isBlockingGoal || isBlockAHead: // If they are standing on this robot goal or blocking ahead of this robot
-                        return TryRedirectRobot(detectedRobot);
+                        return TryDeflectRobot(detectedRobot);
 
                     case RobotStateEnum.Idling: // Not blocking at all
                         return DetectDecision.Ignore;
@@ -166,7 +166,7 @@ namespace _Script.Robot
                     /* Jamming state cases */
                     case RobotStateEnum.Jamming when isBlockAHead: // Currently blocking in between the next cell
                         //return DetectDecision.Dodge;
-                        return TryRedirectRobot(detectedRobot);
+                        return TryDeflectRobot(detectedRobot);
 
                     case RobotStateEnum.Jamming: //  is not blocking ahead in between the next cell
                         return DetectDecision.Ignore; 
@@ -196,7 +196,7 @@ namespace _Script.Robot
                             // Is block ahead
                             if (isBlockingGoal) // If they are standing on this robot goal
                             {
-                                return TryRedirectRobot(detectedRobot);
+                                return TryDeflectRobot(detectedRobot);
 
                             }
                             else return DetectDecision.Dodge;
@@ -219,10 +219,10 @@ namespace _Script.Robot
                 
             }
 
-            private DetectDecision TryRedirectRobot(Robot detectedRobot)
+            private DetectDecision TryDeflectRobot(Robot detectedRobot)
             {
-                return detectedRobot.RedirectToOrthogonalCell(Robot, Robot.NextCellPosition) ? DetectDecision.Wait : 
-                    Robot.RedirectToOrthogonalCell(detectedRobot, detectedRobot.NextCellPosition) ? DetectDecision.Deflected : DetectDecision.Dodge;
+                return detectedRobot.RedirectRequest(Robot, Robot.NextCellPosition, Robot.GoalCellPosition) ? DetectDecision.Wait : 
+                    Robot.RedirectRequest(detectedRobot, detectedRobot.NextCellPosition,  detectedRobot.GoalCellPosition) ? DetectDecision.Deflected : DetectDecision.Dodge;
             }
             
             #endregion
