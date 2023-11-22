@@ -101,7 +101,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
                 }
                 break;
             case SpawnStyle.Fixed:
-                if (_binSpawnInfos.Count > 0 && _currentTime >= _binSpawnInfos[0].ArriveTime)
+                while (_binSpawnInfos.Count > 0 && _currentTime >= _binSpawnInfos[0].ArriveTime)
                 {
                     CreateBinTaskFixed(_binSpawnInfos[0]);
                     _binSpawnInfos.RemoveAt(0);

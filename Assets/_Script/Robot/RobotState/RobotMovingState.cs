@@ -236,12 +236,13 @@ namespace _Script.Robot
                     Robot.LastCell = Robot.NextCell;
                     return;
                 }
+
                 var nextNextCell = Robot.MovingPath.First.Value;
                 Robot.MovingPath.RemoveFirst(); // the next standing node
-                
+
                 Robot.LastCell = Robot.NextCell;
                 Robot.NextCell = nextNextCell;
-            
+
             }
 
             private bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition)

@@ -227,36 +227,6 @@ namespace _Script.Robot
             return true;
         }
         
-        /// <summary>
-        /// This function will be requested when the robot is Idle, or standing on others goal. To move to a other direction
-        /// The direction is right, left, backward, prefer mostly the direction which is not blocking
-        /// </summary>
-        public bool RedirectToLowestWeightCell(Robot requestedRobot, Vector3 requestedRobotNextCellPosition, Vector3 requestedRobotGoalCellPosition)
-        {
-            if (CurrentRobotState == RobotStateEnum.Redirecting)
-            {
-                return true;  // Cannot redirect twice, but this is already redirecting
-            }
-
-            Dictionary<GridXZCell<CellItem>, double> weightCellToCosts = new();
-            double weight = 999;
-            
-            foreach (GridXZCell<CellItem> cell in requestedRobot.MovingPath)
-            {
-                weightCellToCosts[cell] = weight;
-            }
-            
-            weightCellToCosts[requestedRobot.NextCell] = weight;
-            weightCellToCosts[requestedRobot.LastCell] = weight;
-            
-            GridXZCell<CellItem> redirectCell = _pathfindingAlgorithm.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts);
-            
-            Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
-            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell,CurrentGrid.GetWorldPositionOfNearestCell(redirectCell) , SetToJam);
-            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
-            return true;
-        }
-        
         private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isBlockAhead)
         {
             var redirectIndex = CurrentGrid.GetIndex(transform.position + direction * 1);
@@ -288,6 +258,42 @@ namespace _Script.Robot
             }
             
             return CurrentGrid.CheckValidCell(redirectIndex.x, redirectIndex.y) && exceptDirection != direction && detectedRobotGoalPosition != redirectGoalCellPosition;
+        }
+        
+        /// <summary>
+        /// This function will be requested when the robot is Idle, or standing on others goal. To move to a other direction
+        /// The direction is right, left, backward, prefer mostly the direction which is not blocking
+        /// </summary>
+        private bool RedirectToLowestWeightCell(Robot requestedRobot, Vector3 requestedRobotNextCellPosition, Vector3 requestedRobotGoalCellPosition)
+        {
+            if (CurrentRobotState == RobotStateEnum.Redirecting)
+            {
+                return true;  // Cannot redirect twice, but this is already redirecting
+            }
+
+            Dictionary<GridXZCell<CellItem>, double> weightCellToCosts = new();
+            double weight = 999;
+            
+            foreach (GridXZCell<CellItem> cell in requestedRobot.MovingPath)
+            {
+                weightCellToCosts[cell] = weight;
+            }
+            
+            weightCellToCosts[requestedRobot.NextCell] = weight;
+            weightCellToCosts[requestedRobot.LastCell] = weight;
+
+            foreach (var nearbyRobot in NearbyRobots)
+            {
+                weightCellToCosts[nearbyRobot.NextCell] = weight;
+                weightCellToCosts[nearbyRobot.LastCell] = weight;
+            }
+            
+            GridXZCell<CellItem> redirectCell = _pathfindingAlgorithm.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts);
+            
+            Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
+            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell,CurrentGrid.GetWorldPositionOfNearestCell(redirectCell) , SetToJam);
+            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
+            return true;
         }
 
         #endregion
