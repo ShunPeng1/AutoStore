@@ -38,7 +38,8 @@ namespace _Script.Robot
             {
                 _currentWaitTime += Time.fixedDeltaTime;
 
-                if (_currentWaitTime >= RobotUtility.GetTimeMoveTo1Cell(Robot) + 0.001)
+                //if (_currentWaitTime >= RobotUtility.GetTimeMoveTo1Cell(Robot) + 0.001)
+                if (_currentWaitTime >= RobotUtility.GetTimeMoveTo1Cell(Robot)/2)
                 {
                     Robot.RobotStateMachine.RestoreState();
                 }

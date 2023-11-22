@@ -284,6 +284,7 @@ namespace _Script.Robot
 
             foreach (var nearbyRobot in NearbyRobots)
             {
+                if (nearbyRobot.CurrentRobotState == RobotStateEnum.Idling) continue;
                 weightCellToCosts[nearbyRobot.NextCell] = weight;
                 weightCellToCosts[nearbyRobot.LastCell] = weight;
             }
