@@ -78,7 +78,8 @@ public class B1Robot : Robot
         Vector3 topStackPosition = (HoldingBin == null ? item.GetTopBinWorldPosition() : item.GetTopStackWorldPosition()) 
                                    + (HookTransform.position - BinHookPlaceTransform.position);
         
-        var hookMoveDuration = Mathf.Abs(topStackPosition.magnitude - TopHookCeilingTransform.position.magnitude) / HookMoveSpeed;
+        var hookMoveDistance = Mathf.Abs(topStackPosition.y - TopHookCeilingTransform.position.y);
+        var hookMoveDuration = hookMoveDistance / HookMoveSpeed;
 
         sequence.Join( HookTransform.DOMove(topStackPosition, hookMoveDuration).SetEase(HookMoveEase)) ;
         
@@ -88,8 +89,10 @@ public class B1Robot : Robot
     protected override void ContractCable(Action finishCallback)
     {
         var item = CurrentGrid.GetCell(transform.position).Item;
-        var hookMoveDuration =  Mathf.Abs(HookTransform.position.magnitude - TopHookCeilingTransform.position.magnitude) / HookMoveSpeed;
         
+        var hookMoveDistance = Mathf.Abs(HookTransform.position.y - TopHookCeilingTransform.position.y);
+        var hookMoveDuration = hookMoveDistance / HookMoveSpeed;
+
         Sequence sequence = DOTween.Sequence();
         sequence.Join( HookTransform.DOMove(TopHookCeilingTransform.position, hookMoveDuration).SetEase(HookMoveEase)) ;
         
