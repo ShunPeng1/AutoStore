@@ -132,10 +132,10 @@ namespace Shun_Grid_System
             Dictionary<TCell, double> dijkstraGValues = new ();
             Priority_Queue.SimplePriorityQueue<TCell, double> dijkstraOpenCells = new (); 
             List<TCell> lowestCostCells = new List<TCell>();
-            double lowestWeightCost = GetWeightCost(_startCell);
+            double lowestWeightCost = GetWeightCost(currentStartCell);
             
-            dijkstraGValues[_startCell] = 0;
-            dijkstraOpenCells.Enqueue(_startCell, 0);
+            dijkstraGValues[currentStartCell] = 0;
+            dijkstraOpenCells.Enqueue(currentStartCell, 0);
             
             // Dijkstra's algorithm to find the lowest weight cost cell from the start cell
             while (dijkstraOpenCells.Count > 0)

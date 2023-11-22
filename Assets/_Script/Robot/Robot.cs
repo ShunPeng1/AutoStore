@@ -29,8 +29,18 @@ namespace _Script.Robot
         
         public Vector3 NextCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(NextCell);
         public Vector3 LastCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(LastCell);
-        public Vector3 GoalCellPosition => CurrentGrid.GetWorldPositionOfNearestCell(MovingPath.Last.Value);
-        
+        public Vector3 GoalCellPosition
+        {
+            get
+            {
+                if (MovingPath == null || MovingPath.Count == 0)
+                {
+                    return transform.position;
+                }
+                return CurrentGrid.GetWorldPositionOfNearestCell(MovingPath.Last.Value);
+            }
+        }
+
         public bool IsMidwayMove = true;
         public LinkedList<GridXZCell<CellItem>> MovingPath;
         
@@ -236,8 +246,8 @@ namespace _Script.Robot
                 weightCellToCosts[cell] = weight;
             }
             
-            weightCellToCosts.Add(requestedRobot.NextCell, weight);
-            weightCellToCosts.Add(requestedRobot.LastCell, weight);
+            weightCellToCosts[requestedRobot.NextCell] = weight;
+            weightCellToCosts[requestedRobot.LastCell] = weight;
             
             GridXZCell<CellItem> redirectCell = _pathfindingAlgorithm.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts);
             
