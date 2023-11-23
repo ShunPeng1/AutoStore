@@ -73,5 +73,18 @@ namespace Shun_State_Machine
             
         }
         
+        public (BaseState<TStateEnum> enterState, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) PeakHistory()
+        {
+            if (StateHistoryStrategy == null) return (default, default, default);
+            var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore(false);
+            if (enterState != null)
+            {
+                Debug.Log($"Peak History: {enterState.MyStateEnum}");
+            }
+            else Debug.Log($"Peak History: null");
+
+            return (enterState, exitOldStateParameters, enterNewStateParameters);
+        }
+        
     }
 }
