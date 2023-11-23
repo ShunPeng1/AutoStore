@@ -18,14 +18,14 @@ namespace Shun_State_Machine
             _maxSize = maxSize;
         }
         
-        public void Save(BaseState<TStateEnum> baseState, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
+        public void Save(BaseState<TStateEnum> state, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
         {
             if (_historyStates.Count >= _maxSize)
             {
                 _historyStates.RemoveLast();
             }
 
-            _historyStates.AddFirst((baseState, exitOldStateParameters, enterNewStateParameters));
+            _historyStates.AddFirst((state, exitOldStateParameters, enterNewStateParameters));
         }
 
         public void Save(TStateEnum stateEnum, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
@@ -33,7 +33,7 @@ namespace Shun_State_Machine
             throw new NotImplementedException();
         }
 
-        public (BaseState<TStateEnum> enterStateEnum, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) Restore(bool isRemoveRestore = true)
+        public (BaseState<TStateEnum> enterState, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) Restore(bool isRemoveRestore = true)
         {
             if (_historyStates.Count != 0)
             {
