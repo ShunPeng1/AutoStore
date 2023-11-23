@@ -284,7 +284,7 @@ namespace _Script.Robot
             }
 
             Dictionary<GridXZCell<CellItem>, double> weightCellToCosts = new();
-            HashSet<GridXZCell<CellItem>> obstacles = new();
+            HashSet<GridXZCell<CellItem>> allRobotObstacles = new(), nonIdleRobotObstacle = new();
             double weight = 999;
             
             weightCellToCosts[NextCell] = weight;
@@ -293,25 +293,34 @@ namespace _Script.Robot
                 weightCellToCosts[cell] = weight;
             }
             
-            if (requestedRobot.IsMidwayMove) obstacles.Add(requestedRobot.NextCell);
-            obstacles.Add(requestedRobot.LastCell);
+            if (requestedRobot.IsMidwayMove) allRobotObstacles.Add(requestedRobot.NextCell);
+            allRobotObstacles.Add(requestedRobot.LastCell);
 
             foreach (var nearbyRobot in NearbyRobots)
             {
-                if (nearbyRobot.CurrentRobotState == RobotStateEnum.Idling) continue;
+                if (nearbyRobot.CurrentRobotState != RobotStateEnum.Idling)
+                {
+                    if (nearbyRobot.IsMidwayMove) nonIdleRobotObstacle.Add(nearbyRobot.NextCell);
+                    nonIdleRobotObstacle.Add(nearbyRobot.LastCell);
+                }
                 
-                if (nearbyRobot.IsMidwayMove) obstacles.Add(nearbyRobot.NextCell);
-                obstacles.Add(nearbyRobot.LastCell);
+                if (nearbyRobot.IsMidwayMove) allRobotObstacles.Add(nearbyRobot.NextCell);
+                allRobotObstacles.Add(nearbyRobot.LastCell);
             }
             
             DijkstraPathFinding<GridXZ<CellItem>, GridXZCell<CellItem>, CellItem> dijkstraPathFinding = new(CurrentGrid);
-            List<GridXZCell<CellItem>> candidateCells = dijkstraPathFinding.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts, obstacles);
-
+            List<GridXZCell<CellItem>> candidateCells = dijkstraPathFinding.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts, allRobotObstacles);
             GridXZCell<CellItem> redirectCell = SelectCellNearestToGoal(candidateCells, GoalCell);
             
             if (redirectCell == null || redirectCell == CurrentGrid.GetCell(transform.position))
             {
-                return false;
+                candidateCells = dijkstraPathFinding.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts, nonIdleRobotObstacle);
+                redirectCell = SelectCellNearestToGoal(candidateCells, GoalCell);
+                
+                if (redirectCell == null || redirectCell == CurrentGrid.GetCell(transform.position))
+                {
+                    return false;
+                }
             }
             
             Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
