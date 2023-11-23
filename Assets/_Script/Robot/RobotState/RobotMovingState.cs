@@ -70,6 +70,8 @@ namespace _Script.Robot
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
+                
+                //UpdateInitialPath();
 
                 if (RobotUtility.CheckArriveOnNextCell(Robot))
                 {
@@ -108,20 +110,14 @@ namespace _Script.Robot
 
             #region DETECTION_DECISION
             
-
             protected virtual bool DecideFromRobotDetection()
             {
-                List<GridXZCell<CellItem>> dynamicObstacle = new();
                 DetectDecision finalDecision = DetectDecision.Ignore; 
                 
                 foreach (var detectedRobot in Robot.NearbyRobots)
                 {
-                    
                     DetectDecision decision = DecideOnDetectedRobot(detectedRobot);
                     finalDecision = (DetectDecision) Mathf.Max((int)decision, (int)finalDecision);
-
-                    dynamicObstacle.Add(Grid.GetCell(detectedRobot.LastCellPosition));
-                    if(detectedRobot.IsMidwayMove) dynamicObstacle.Add(Grid.GetCell(detectedRobot.NextCellPosition));
                 }
                 
                 switch (finalDecision)
@@ -136,7 +132,7 @@ namespace _Script.Robot
                     
                     case DetectDecision.Dodge: // We add the detected robot cell as obstacle
                         //Debug.Log(gameObject.name +" Dodge ");
-                        return UpdateInitialPath(dynamicObstacle); // Update Path base on dynamic obstacle
+                        return UpdateInitialPath(); // Update Path base on dynamic obstacle
                      
                     case DetectDecision.Deflected:
                         return false;
@@ -222,7 +218,7 @@ namespace _Script.Robot
             private DetectDecision TryDeflectRobot(Robot detectedRobot)
             {
                 return detectedRobot.RedirectRequest(Robot, Robot.NextCellPosition, Robot.GoalCellPosition) ? DetectDecision.Wait : 
-                    Robot.RedirectRequest(detectedRobot, detectedRobot.NextCellPosition,  detectedRobot.GoalCellPosition) ? DetectDecision.Deflected : DetectDecision.Dodge;
+                    Robot.RedirectRequest(detectedRobot, Robot.NextCellPosition,  detectedRobot.GoalCellPosition) ? DetectDecision.Deflected : DetectDecision.Dodge;
             }
             
             #endregion
@@ -261,17 +257,25 @@ namespace _Script.Robot
 
             }
 
-            private bool UpdateInitialPath(List<GridXZCell<CellItem>> dynamicObstacle)
+            private bool UpdateInitialPath()
             {
+                List<GridXZCell<CellItem>> allRobotObstacleCells = Robot.GetAllRobotObstacleCells();
+                
                 Vector3 nearestCellPosition = Grid.GetWorldPositionOfNearestCell(RobotTransform.position);
                 var currentStartCell = Grid.GetCell(nearestCellPosition);
 
-                Robot.MovingPath = Robot._pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, dynamicObstacle);
+                Robot.MovingPath = Robot._pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, allRobotObstacleCells);
 
                 if (Robot.MovingPath == null) // The path to goal is block
                 {
-                    Robot.RedirectToNearestCell();
-                    return false;
+                    //List<GridXZCell<CellItem>> nonIdleRobotObstacleCells = Robot.GetNonIdleRobotObstacleCells();
+                    //Robot.MovingPath = Robot._pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, nonIdleRobotObstacleCells);
+
+                    if (Robot.MovingPath == null) // The path to goal is block
+                    {
+                        Robot.RedirectToNearestCell();
+                        return false;
+                    }
                 }
         
                 if (nearestCellPosition == Robot.LastCellPosition)

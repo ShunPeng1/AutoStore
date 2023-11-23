@@ -287,7 +287,8 @@ namespace _Script.Robot
             List<GridXZCell<CellItem>> allRobotObstacles = GetAllRobotObstacleCells();
             double weight = 999;
             
-            weightCellToCosts[NextCell] = weight;
+            weightCellToCosts[CurrentGrid.GetCell(requestedRobotNextCellPosition)] = weight;
+            weightCellToCosts[requestedRobot.NextCell] = weight;
             foreach (GridXZCell<CellItem> cell in requestedRobot.MovingPath)
             {
                 weightCellToCosts[cell] = weight;
@@ -305,11 +306,12 @@ namespace _Script.Robot
                 
                 if (redirectCell == null || redirectCell == CurrentGrid.GetCell(transform.position))
                 {
+                    Debug.Log(requestedRobot.gameObject.name + " fail to redirect " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
                     return false;
                 }
             }
             
-            Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
+            Debug.Log(requestedRobot.gameObject.name + " redirect to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell,CurrentGrid.GetWorldPositionOfNearestCell(redirectCell) , SetToJam);
             RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
             return true;
