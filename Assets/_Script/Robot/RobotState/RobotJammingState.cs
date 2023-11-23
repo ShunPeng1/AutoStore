@@ -31,15 +31,19 @@ namespace _Script.Robot
                     Robot.LastCell = Robot.NextCell;
                     Robot.IsMidwayMove = false;
                 }
-            
+                
+                var (enterState, exitOldStateParameters, enterNewStateParameters) = Robot.RobotStateMachine.PeakHistory();
+                var movingTask = enterNewStateParameters.Get<RobotMovingTask>();
+                Robot.MovingPath = Robot._pathfindingAlgorithm.FirstTimeFindPath(Robot.LastCell, Grid.GetCell(movingTask.GoalCellPosition));
+
             }
+            
 
             private void Jamming(RobotStateEnum currentState, IStateParameter enterParameters)
             {
                 _currentWaitTime += Time.fixedDeltaTime;
 
-                //if (_currentWaitTime >= RobotUtility.GetTimeMoveTo1Cell(Robot) + 0.001)
-                if (_currentWaitTime >= RobotUtility.GetTimeMoveTo1Cell(Robot)/2)
+                if (_currentWaitTime >= RobotUtility.GetTimeMoveTo1Cell(Robot) + 0.001)
                 {
                     Robot.RobotStateMachine.RestoreState();
                 }

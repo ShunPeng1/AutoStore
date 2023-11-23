@@ -43,7 +43,18 @@ namespace _Script.Robot
 
         public bool IsMidwayMove = true;
         public LinkedList<GridXZCell<CellItem>> MovingPath;
-        
+        protected GridXZCell<CellItem> GoalCell
+        {
+            get
+            {
+                if (MovingPath == null || MovingPath.Count == 0)
+                {
+                    return null;
+                }
+                return MovingPath.Last.Value;
+            }
+        }
+
         [Header("Movement")] 
         public float MaxMovementSpeed = 1f;
         
@@ -131,16 +142,8 @@ namespace _Script.Robot
         /// <param name="requestedRobot"></param>
 
         #region REDIRECT_FUNCTIONS
-        protected void RedirectToNearestCell()
-        {
-            Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
         
-            //Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
-            
-            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
-            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null , robotMovingTask );
-        }
-
+        
         public bool RedirectRequest(Robot requestedRobot, Vector3 requestedRobotNextCellPosition, Vector3 requestedRobotGoalCellPosition)
         {
             
@@ -151,13 +154,23 @@ namespace _Script.Robot
             
             if (!result)
             {
-                RedirectToNearestCell(); // Redirect to fit the cell and wait 
+                // RedirectToNearestCell(); // Redirect to fit the cell and wait 
             }
 
             return result;
 
         }
         
+        protected void RedirectToNearestCell()
+        {
+            Vector3 nearestCellPosition = CurrentGrid.GetWorldPositionOfNearestCell(transform.position);
+        
+            //Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
+            
+            RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
+            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null , robotMovingTask );
+        }
+
         
         /// <summary>
         /// This function will be requested when the robot is Idle, or standing on others goal. To move to a other direction
@@ -226,7 +239,6 @@ namespace _Script.Robot
             RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
             return true;
         }
-        
         private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isBlockAhead)
         {
             var redirectIndex = CurrentGrid.GetIndex(transform.position + direction * 1);
@@ -272,6 +284,7 @@ namespace _Script.Robot
             }
 
             Dictionary<GridXZCell<CellItem>, double> weightCellToCosts = new();
+            HashSet<GridXZCell<CellItem>> obstacles = new();
             double weight = 999;
             
             foreach (GridXZCell<CellItem> cell in requestedRobot.MovingPath)
@@ -279,22 +292,64 @@ namespace _Script.Robot
                 weightCellToCosts[cell] = weight;
             }
             
-            weightCellToCosts[requestedRobot.NextCell] = weight;
-            weightCellToCosts[requestedRobot.LastCell] = weight;
+            if (requestedRobot.IsMidwayMove) obstacles.Add(requestedRobot.NextCell);
+            obstacles.Add(requestedRobot.LastCell);
 
             foreach (var nearbyRobot in NearbyRobots)
             {
                 if (nearbyRobot.CurrentRobotState == RobotStateEnum.Idling) continue;
-                weightCellToCosts[nearbyRobot.NextCell] = weight;
-                weightCellToCosts[nearbyRobot.LastCell] = weight;
+                
+                if (nearbyRobot.IsMidwayMove) obstacles.Add(nearbyRobot.NextCell);
+                obstacles.Add(nearbyRobot.LastCell);
             }
             
-            GridXZCell<CellItem> redirectCell = _pathfindingAlgorithm.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts);
+            DijkstraPathFinding<GridXZ<CellItem>, GridXZCell<CellItem>, CellItem> dijkstraPathFinding = new(CurrentGrid);
+            List<GridXZCell<CellItem>> candidateCells = dijkstraPathFinding.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts, obstacles);
+
+            GridXZCell<CellItem> redirectCell = SelectCellNearestToGoal(candidateCells, GoalCell);
+            
+            if (redirectCell == null || redirectCell == CurrentGrid.GetCell(transform.position))
+            {
+                return false;
+            }
             
             Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell,CurrentGrid.GetWorldPositionOfNearestCell(redirectCell) , SetToJam);
             RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
             return true;
+        }
+
+        private GridXZCell<CellItem> SelectCellNearestToGoal(List<GridXZCell<CellItem>> candidateCells, GridXZCell<CellItem> goalCell)
+        {
+            if (candidateCells.Count == 0) return null;
+            
+            if (goalCell == null)
+            {
+                return candidateCells[Random.Range(0, candidateCells.Count)];
+            }
+            
+            // Choose the lowest D Star Lite G Cost Cell
+            double lowestDStarLiteGCost = double.PositiveInfinity;
+            GridXZCell<CellItem> lowestDStarLiteGCostCell = candidateCells[0];
+
+            foreach (var currentCell in candidateCells)
+            {
+                double currentGCost = GetDistanceCost(currentCell, goalCell);
+
+                if (currentGCost < lowestDStarLiteGCost)
+                {
+                    lowestDStarLiteGCost = currentGCost;
+                    lowestDStarLiteGCostCell = currentCell;
+                }
+            }
+
+            return lowestDStarLiteGCostCell;
+        }
+        
+        protected virtual double GetDistanceCost(GridXZCell<CellItem> start, GridXZCell<CellItem> end)
+        {
+            var indexDifferenceAbsolute = CurrentGrid.GetIndexDifferenceAbsolute(start, end);
+            return indexDifferenceAbsolute.x + indexDifferenceAbsolute.y;
         }
 
         #endregion
