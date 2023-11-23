@@ -33,6 +33,8 @@ namespace _Script.Robot
                 }
                 
                 var (enterState, exitOldStateParameters, enterNewStateParameters) = Robot.RobotStateMachine.PeakHistory();
+                if (enterNewStateParameters == null) return;
+
                 var movingTask = enterNewStateParameters.Get<RobotMovingTask>();
                 Robot.MovingPath = Robot._pathfindingAlgorithm.FirstTimeFindPath(Robot.LastCell, Grid.GetCell(movingTask.GoalCellPosition));
 
