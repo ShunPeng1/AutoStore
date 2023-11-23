@@ -9,10 +9,11 @@ namespace Shun_Grid_System
     {
         private IPathFindingDistanceCost _distanceCostFunction;
         private IPathFindingAdjacentCellSelection<TCell, TItem> _adjacentCellSelectionFunction;
-
+        
         private readonly Dictionary<TCell, double> _gValues = new();
         private readonly Priority_Queue.SimplePriorityQueue<TCell, double> _openCells = new();
-
+        private readonly HashSet<TCell> _visitedCells = new();
+        
 
         public DijkstraPathFinding(TGrid gridXZ,
             IPathFindingAdjacentCellSelection<TCell, TItem> adjacentCellSelectionFunction = null,
@@ -39,6 +40,7 @@ namespace Shun_Grid_System
         {
             _gValues.Clear();
             _openCells.Clear();
+            _visitedCells.Clear();
         }
         
         public override LinkedList<TCell> FirstTimeFindPath(TCell startCell, TCell endCell,
@@ -78,6 +80,9 @@ namespace Shun_Grid_System
             {
                 TCell currentCell = _openCells.Dequeue();
 
+                if (_visitedCells.Contains(currentCell)) continue;
+                _visitedCells.Add(currentCell);
+                
                 var gValue = GetDijkstraGValue(currentCell);
                 var cellCost = gValue + GetWeightCost(currentCell);
                 if (lowestWeightCost > cellCost)
