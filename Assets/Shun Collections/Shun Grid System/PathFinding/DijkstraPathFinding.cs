@@ -35,7 +35,12 @@ namespace Shun_Grid_System
             _distanceCostFunction = pathFindingDistanceCost;
         }
 
-
+        private void ResetPathfinding()
+        {
+            _gValues.Clear();
+            _openCells.Clear();
+        }
+        
         public override LinkedList<TCell> FirstTimeFindPath(TCell startCell, TCell endCell,
             double maxCost = Double.PositiveInfinity)
         {
@@ -58,9 +63,10 @@ namespace Shun_Grid_System
         public List<TCell> LowestCostCellWithWeightMap(
             TCell currentStartCell,
             Dictionary<TCell, double> weightCellToCosts, 
-            HashSet<TCell> obstacles = null)
+            List<TCell> obstacles = null)
         {
-
+            ResetPathfinding();
+            
             List<TCell> lowestCostCells = new List<TCell>();
             double lowestWeightCost = GetWeightCost(currentStartCell);
 
