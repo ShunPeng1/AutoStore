@@ -284,7 +284,7 @@ namespace _Script.Robot
             }
 
             Dictionary<GridXZCell<CellItem>, double> weightCellToCosts = new();
-            HashSet<GridXZCell<CellItem>> allRobotObstacles = new(), nonIdleRobotObstacle = new();
+            List<GridXZCell<CellItem>> allRobotObstacles = GetAllRobotObstacleCells();
             double weight = 999;
             
             weightCellToCosts[NextCell] = weight;
@@ -293,27 +293,13 @@ namespace _Script.Robot
                 weightCellToCosts[cell] = weight;
             }
             
-            if (requestedRobot.IsMidwayMove) allRobotObstacles.Add(requestedRobot.NextCell);
-            allRobotObstacles.Add(requestedRobot.LastCell);
-
-            foreach (var nearbyRobot in NearbyRobots)
-            {
-                if (nearbyRobot.CurrentRobotState != RobotStateEnum.Idling)
-                {
-                    if (nearbyRobot.IsMidwayMove) nonIdleRobotObstacle.Add(nearbyRobot.NextCell);
-                    nonIdleRobotObstacle.Add(nearbyRobot.LastCell);
-                }
-                
-                if (nearbyRobot.IsMidwayMove) allRobotObstacles.Add(nearbyRobot.NextCell);
-                allRobotObstacles.Add(nearbyRobot.LastCell);
-            }
-            
             DijkstraPathFinding<GridXZ<CellItem>, GridXZCell<CellItem>, CellItem> dijkstraPathFinding = new(CurrentGrid);
             List<GridXZCell<CellItem>> candidateCells = dijkstraPathFinding.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts, allRobotObstacles);
             GridXZCell<CellItem> redirectCell = SelectCellNearestToGoal(candidateCells, GoalCell);
             
             if (redirectCell == null || redirectCell == CurrentGrid.GetCell(transform.position))
             {
+                List<GridXZCell<CellItem>> nonIdleRobotObstacle = GetNonIdleRobotObstacleCells();
                 candidateCells = dijkstraPathFinding.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts, nonIdleRobotObstacle);
                 redirectCell = SelectCellNearestToGoal(candidateCells, GoalCell);
                 
@@ -425,6 +411,31 @@ namespace _Script.Robot
         
 
         #region DETECTION_AND_COLLIDERS
+        
+        
+        protected virtual List<GridXZCell<CellItem>> GetAllRobotObstacleCells()
+        {
+            List<GridXZCell<CellItem>> dynamicObstacle = new();
+            foreach (var detectedRobot in NearbyRobots)
+            {
+                dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
+                if(detectedRobot.IsMidwayMove) dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
+            }
+            return dynamicObstacle;
+        }
+        
+        protected virtual List<GridXZCell<CellItem>> GetNonIdleRobotObstacleCells()
+        {
+            List<GridXZCell<CellItem>> dynamicObstacle = new();
+            foreach (var detectedRobot in NearbyRobots)
+            {
+                if (detectedRobot.CurrentRobotState == RobotStateEnum.Idling) continue;
+                dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
+                if(detectedRobot.IsMidwayMove) dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
+            }
+            return dynamicObstacle;
+        }
+        
         protected abstract void DetectNearByRobot();
 
         protected abstract bool CheckRobotSafeDistance(Robot checkRobot);
