@@ -287,6 +287,7 @@ namespace _Script.Robot
             HashSet<GridXZCell<CellItem>> obstacles = new();
             double weight = 999;
             
+            weightCellToCosts[NextCell] = weight;
             foreach (GridXZCell<CellItem> cell in requestedRobot.MovingPath)
             {
                 weightCellToCosts[cell] = weight;
