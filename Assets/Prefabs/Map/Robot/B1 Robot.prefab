@@ -827,7 +827,6 @@ MonoBehaviour:
     GCost: 0
   IsMidwayMove: 1
   MaxMovementSpeed: 4
-  JamWaitTime: 0.25
   CurrentBinTransportTask:
     TargetBinDestination:
       XIndex: 0
@@ -849,6 +848,8 @@ MonoBehaviour:
     TargetBin: {fileID: 0}
     PickUpTime: 0
     CreateTaskTime: 0
+    WaitingForGoalTime: 0
+    JammingTime: 0
   HoldingBin: {fileID: 0}
   CableTransform: {fileID: 7768651563161112137}
   HookTransform: {fileID: 4196268981215322238}
@@ -859,7 +860,7 @@ MonoBehaviour:
   RobotLayerMask:
     serializedVersion: 2
     m_Bits: 256
-  HookMoveSpeed: 1
+  HookMoveSpeed: 1.6
   HookMoveEase: 10
   _cableLengthMultiply: 3.7
 --- !u!54 &6291633208248654895

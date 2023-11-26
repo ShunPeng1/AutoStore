@@ -1679,10 +1679,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49f6dea4091cb4040aeb4be00d44bd92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  _spawnBinLayerHeight: 10
   _spawnStyle: 0
   _spawnRate: 0.33333334
   _binSpawnInfos: []
-  _spawnBinLayerHeight: 10
+  _liftIOCellIndex: []
 --- !u!1001 &1194407582
 PrefabInstance:
   m_ObjectHideFlags: 0
