@@ -451,14 +451,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 961500652, guid: 8bdec204623357a4987d2089c9cd67b0, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1226002224, guid: 8bdec204623357a4987d2089c9cd67b0, type: 3}
-      propertyPath: m_AnchorMax.y
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 1748513136561078881, guid: 8bdec204623357a4987d2089c9cd67b0, type: 3}
       propertyPath: m_Pivot.x
       value: 0
@@ -594,7 +586,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Bins:
-  - {fileID: -8146062942008891456, guid: 5a4c17e06b3dbab4b9068836c05700c1, type: 3}
+  - {fileID: -6092981407681897407, guid: 24717045b4a4f9d44be5e460121b5899, type: 3}
+  - {fileID: -503301519325198052, guid: e0d7326e4dea8b9409df40e14c01d976, type: 3}
+  - {fileID: -8146062942008891456, guid: cb7455e31017dda4b8e8e0fafffd5c2f, type: 3}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -816,11 +810,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49f6dea4091cb4040aeb4be00d44bd92, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _spawnBinLayerHeight: 10
   _spawnStyle: 0
   _spawnRate: 1
   _binSpawnInfos: []
-  _liftIOCellIndex: []
+  _spawnBinLayerHeight: 10
 --- !u!1 &1231968861
 GameObject:
   m_ObjectHideFlags: 0
