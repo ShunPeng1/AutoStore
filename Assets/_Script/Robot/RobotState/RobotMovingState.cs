@@ -34,7 +34,7 @@ namespace _Script.Robot
 
                 CurrentMovingTask = enterParameters.Get<RobotMovingTask>();
                 if (CurrentMovingTask == null) return;
-
+                
                 switch (CurrentMovingTask.StartCellPosition)
                 {
                     case RobotMovingTask.StartPosition.LastCell:
@@ -108,16 +108,25 @@ namespace _Script.Robot
 
             }
 
+
             #region DETECTION_DECISION
             
             protected virtual bool DecideFromRobotDetection()
             {
-                DetectDecision finalDecision = DetectDecision.Ignore; 
+                DetectDecision finalDecision = DetectDecision.Ignore;
+                bool isWaitingForGoal = false;
                 
                 foreach (var detectedRobot in Robot.NearbyRobots)
                 {
-                    DetectDecision decision = DecideOnDetectedRobot(detectedRobot);
+                    float dotProductOf2RobotDirection = RobotUtility.DotOf2RobotMovingDirection(Robot, detectedRobot);
+                    bool isUnsafeDistanceOf2Robot = Robot.CheckRobotSafeDistance(detectedRobot);
+                    bool isBlockAHead = RobotUtility.CheckRobotBlockAHead(detectedRobot, Robot.NextCellPosition);
+                    bool isBlockingGoal = RobotUtility.CheckRobotBlockGoal(detectedRobot, CurrentMovingTask);
+                    
+                    DetectDecision decision = DecideOnDetectedRobot(detectedRobot, dotProductOf2RobotDirection, isUnsafeDistanceOf2Robot, isBlockAHead, isBlockingGoal);
                     finalDecision = (DetectDecision) Mathf.Max((int)decision, (int)finalDecision);
+                    
+                    if (isBlockingGoal && decision == DetectDecision.Wait) isWaitingForGoal = true;
                 }
                 
                 switch (finalDecision)
@@ -127,7 +136,7 @@ namespace _Script.Robot
                     
                     case DetectDecision.Wait: // We set the robot to jam state
                         //Debug.Log(gameObject.name +" Jam! ");
-                        Robot.SetToJam();
+                        Robot.SetToJam(isWaitingForGoal);
                         return false;
                     
                     case DetectDecision.Dodge: // We add the detected robot cell as obstacle
@@ -142,12 +151,8 @@ namespace _Script.Robot
                 }
             }
 
-            protected virtual DetectDecision DecideOnDetectedRobot(Robot detectedRobot)
+            protected virtual DetectDecision DecideOnDetectedRobot(Robot detectedRobot, float dotProductOf2RobotDirection, bool isUnsafeDistanceOf2Robot, bool isBlockAHead, bool isBlockingGoal)
             {
-                float dotProductOf2RobotDirection = RobotUtility.DotOf2RobotMovingDirection(Robot, detectedRobot);
-                bool isUnsafeDistanceOf2Robot = Robot.CheckRobotSafeDistance(detectedRobot);
-                bool isBlockAHead = RobotUtility.CheckRobotBlockAHead(detectedRobot, Robot.NextCellPosition);
-                bool isBlockingGoal = RobotUtility.CheckRobotBlockGoal(detectedRobot, CurrentMovingTask);
                 
                 switch (detectedRobot.CurrentRobotState)
                 {
@@ -239,6 +244,7 @@ namespace _Script.Robot
                 Robot.LastCell = Robot.NextCell;
                 Robot.NextCell = nextNextCell;
 
+                RecordPathUpdate();
             }
 
             private bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition)
@@ -248,6 +254,7 @@ namespace _Script.Robot
         
                 Robot.MovingPath = Robot._pathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
 
+                RecordPathChange();
                 if (Robot.MovingPath != null) return true; 
         
                 // No destination was found
@@ -270,14 +277,11 @@ namespace _Script.Robot
                 {
                     //List<GridXZCell<CellItem>> nonIdleRobotObstacleCells = Robot.GetNonIdleRobotObstacleCells();
                     //Robot.MovingPath = Robot._pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, nonIdleRobotObstacleCells);
-
-                    if (Robot.MovingPath == null) // The path to goal is block
-                    {
-                        Robot.RedirectToNearestCell();
-                        return false;
-                    }
+                    
+                    Robot.RedirectToNearestCell();
+                    return false;
                 }
-        
+                
                 if (nearestCellPosition == Robot.LastCellPosition)
                 {
                     ExtractNextCellInPath();
@@ -292,6 +296,8 @@ namespace _Script.Robot
 
                 //Debug.LogError( gameObject.name+" THE NEAREST CELL IS NOT LAST OR NEXT CELL "+ nearestCellPosition);
 
+                RecordPathChange();
+                
                 return false;
             }
             

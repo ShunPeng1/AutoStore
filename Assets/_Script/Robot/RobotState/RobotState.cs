@@ -17,8 +17,42 @@ namespace _Script.Robot
             Robot = robot;
             RobotTransform = Robot.transform;
             Grid = Robot.CurrentGrid;
+            
+            EnterEvents += RecordStateChange;
         }
         
+        
+        protected virtual void RecordStateChange(RobotStateEnum robotStateEnum, IStateParameter stateParameter)
+        {
+            if (Robot.CurrentBinTransportTask == null) return;
+                
+            if (Robot.CurrentRobotState == RobotStateEnum.Redirecting)
+            {
+                Robot.CurrentBinTransportTask.RedirectStateChangeCount++;    
+            }
+            else if (Robot.CurrentRobotState == RobotStateEnum.Jamming)
+            {
+                Robot.CurrentBinTransportTask.JamStateChangeCount++;
+            }
+            else
+            {
+                Robot.CurrentBinTransportTask.MainStateChangeCount++;
+            }
+        }
+        
+        protected virtual void RecordPathChange()
+        {
+            if (Robot.CurrentBinTransportTask == null) return;
+            
+            Robot.CurrentBinTransportTask.PathChangeCount++;
+        }
+        
+        protected virtual void RecordPathUpdate()
+        {
+            if (Robot.CurrentBinTransportTask == null) return;
+            
+            Robot.CurrentBinTransportTask.PathUpdateCount++;
+        }
         
     }
 }
