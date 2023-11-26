@@ -229,11 +229,19 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
             FileRecorderManager.Instance.ResultRecords.Add(
                 new FileRecorderManager.ResultRecord(
                     Time.fixedTime - binTransportTask.PickUpTime, 
+                    binTransportTask.WaitingForGoalTime,
+                    binTransportTask.JammingTime,
                     RobotUtility.GetIdealTimeDeliveryBin(robot, binTransportTask), 
                     binTransportTask.TargetBinSource.XIndex, 
                     binTransportTask.TargetBinSource.YIndex, 
                     binTransportTask.TargetBinDestination.XIndex, 
-                    binTransportTask.TargetBinDestination.YIndex ));
+                    binTransportTask.TargetBinDestination.YIndex,
+                    binTransportTask.MainStateChangeCount, 
+                    binTransportTask.RedirectStateChangeCount, 
+                    binTransportTask.JamStateChangeCount, 
+                    binTransportTask.PathChangeCount, 
+                    binTransportTask.PathUpdateCount)
+                );
     }
 
     public void ReAddInvalidBin(Bin bin)

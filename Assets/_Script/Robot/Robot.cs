@@ -62,8 +62,8 @@ namespace _Script.Robot
          
         protected List<Robot> NearbyRobots = new();
 
-        [Header("Task ")] 
-        [ShowImmutable, SerializeField] protected BinTransportTask CurrentBinTransportTask; 
+        [Header("Task")] 
+        public BinTransportTask CurrentBinTransportTask; 
         [ShowImmutable, SerializeField] protected Bin HoldingBin;
         
         [Header("Cable and Hook Transform")]
@@ -149,16 +149,8 @@ namespace _Script.Robot
             
             //bool result = RedirectToOrthogonalCell(requestedRobot, requestedRobotNextCellPosition, requestedRobotGoalCellPosition);
 
-            // TODO : test this function
-            bool result = RedirectToLowestWeightCell(requestedRobot, requestedRobotNextCellPosition, requestedRobotGoalCellPosition);
+            return RedirectToLowestWeightCell(requestedRobot, requestedRobotNextCellPosition, requestedRobotGoalCellPosition);
             
-            if (!result)
-            {
-                // RedirectToNearestCell(); // Redirect to fit the cell and wait 
-            }
-
-            return result;
-
         }
         
         protected void RedirectToNearestCell()
@@ -289,11 +281,14 @@ namespace _Script.Robot
             
             weightCellToCosts[CurrentGrid.GetCell(requestedRobotNextCellPosition)] = weight;
             weightCellToCosts[requestedRobot.NextCell] = weight;
-            foreach (GridXZCell<CellItem> cell in requestedRobot.MovingPath)
+
+            if (requestedRobot.MovingPath != null)
             {
-                weightCellToCosts[cell] = weight;
+                foreach (GridXZCell<CellItem> cell in requestedRobot.MovingPath)
+                {
+                    weightCellToCosts[cell] = weight;
+                }
             }
-            
             DijkstraPathFinding<GridXZ<CellItem>, GridXZCell<CellItem>, CellItem> dijkstraPathFinding = new(CurrentGrid);
             List<GridXZCell<CellItem>> candidateCells = dijkstraPathFinding.LowestCostCellWithWeightMap(CurrentGrid.GetCell(transform.position), weightCellToCosts, allRobotObstacles);
             GridXZCell<CellItem> redirectCell = SelectCellNearestToGoal(candidateCells, GoalCell);
@@ -376,12 +371,14 @@ namespace _Script.Robot
             RobotStateMachine.SetToState(RobotStateEnum.Approaching, null, robotMovingTask);
         }
 
-
         protected void SetToJam()
         {
-            RobotStateMachine.SetToState(RobotStateEnum.Jamming);
+            RobotStateMachine.SetToState(RobotStateEnum.Jamming, null, new RobotJammingTask(){IsWaitingForGoal = false});
         }
-        
+        protected void SetToJam(bool isWaitingForGoal)
+        {
+            RobotStateMachine.SetToState(RobotStateEnum.Jamming, null, new RobotJammingTask(){IsWaitingForGoal = isWaitingForGoal});
+        }
         
         protected void ArriveBinSource()
         {

@@ -9,16 +9,22 @@ namespace _Script.Robot
         public class RobotJammingState : RobotState
         {
             private float _currentWaitTime;
+            private bool _isWaitingForGoal;
             
             public RobotJammingState(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(robot, myStateEnum, executeEvents, exitEvents, enterEvents)
             {
                 EnterEvents += JamSetUp;
                 ExecuteEvents += Jamming;
+                ExitEvents += EndJamming;
             }
 
             private void JamSetUp(RobotStateEnum currentState, IStateParameter enterParameters)
             {
                 _currentWaitTime = 0;
+
+                var task = enterParameters.Get<RobotJammingTask>();
+                _isWaitingForGoal = task.IsWaitingForGoal;
+                
                 
                 if (Robot.LastCellPosition == RobotTransform.position)
                 {
@@ -51,6 +57,23 @@ namespace _Script.Robot
                 }
             }
             
+            
+            private void EndJamming(RobotStateEnum currentState, IStateParameter enterParameters)
+            {
+                if (Robot.CurrentBinTransportTask != null)
+                {
+                    if (_isWaitingForGoal)
+                    {
+                        Robot.CurrentBinTransportTask.WaitingForGoalTime += _currentWaitTime;
+                    }
+                    else
+                    {
+                        Robot.CurrentBinTransportTask.JammingTime += _currentWaitTime;
+                    }
+
+                }
+
+            }
         }
     }
 }

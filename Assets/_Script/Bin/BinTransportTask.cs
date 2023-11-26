@@ -19,6 +19,16 @@ public class BinTransportTask
 
     public float PickUpTime;
     public float CreateTaskTime;
+    public float WaitingForGoalTime;
+    public float JammingTime;
+    
+    public int MainStateChangeCount;
+    public int RedirectStateChangeCount;
+    public int JamStateChangeCount;
+    
+    public int PathChangeCount;
+    public int PathUpdateCount;
+    
     public BinTransportTask(Bin targetBin, GridXZCell<CellItem> targetBinSource, GridXZCell<CellItem> targetBinDestination)
     {
         TargetBin = targetBin;

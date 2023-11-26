@@ -34,20 +34,40 @@ namespace _Script.Managers
         {
             public readonly float ActualTime;
             public readonly float AssumptionTime;
-
-            public int PickUpX;
-            public int PickUpZ;
-            public int DropDownX;
-            public int DropDownZ;
+            public readonly float WaitForGoalTime;
+            public readonly float JammingTime;
             
-            public ResultRecord(float actualTime, float assumptionTime, int pickUpX, int pickUpZ, int dropDownX, int dropDownZ)
+            public readonly int PickUpX;
+            public readonly int PickUpZ;
+            public readonly int DropDownX;
+            public readonly int DropDownZ;
+            
+            public readonly int MainStateChangeCount;
+            public readonly int RedirectStateChangeCount;
+            public readonly int JamStateChangeCount;
+    
+            public readonly int PathChangeCount;
+            public readonly int PathUpdateCount;
+            
+            
+            public ResultRecord(float actualTime, float waitForGoalTime, float jammingTime, float assumptionTime, int pickUpX, int pickUpZ, int dropDownX, int dropDownZ, int mainStateChangeCount, int redirectStateChangeCount, int jamStateChangeCount, int pathChangeCount, int pathUpdateCount)
             {
                 ActualTime = actualTime;
+                WaitForGoalTime = waitForGoalTime;
+                JammingTime = jammingTime;
                 AssumptionTime = assumptionTime;
+                
                 PickUpX = pickUpX;
                 PickUpZ = pickUpZ;
                 DropDownX = dropDownX;
                 DropDownZ = dropDownZ;
+                
+                MainStateChangeCount = mainStateChangeCount;
+                RedirectStateChangeCount = redirectStateChangeCount;
+                JamStateChangeCount = jamStateChangeCount;
+                
+                PathChangeCount = pathChangeCount;
+                PathUpdateCount = pathUpdateCount;
             }
         }
 
@@ -147,9 +167,14 @@ namespace _Script.Managers
             
             foreach (var resultRecord in ResultRecords)
             {
-                tw.WriteLine(resultRecord.PickUpX + "," + resultRecord.PickUpZ + "," + 
-                             resultRecord.DropDownX + "," + resultRecord.DropDownZ + "," +
-                             resultRecord.ActualTime + "," + resultRecord.AssumptionTime );
+                tw.WriteLine(
+                    resultRecord.PickUpX + "," + resultRecord.PickUpZ + "," + 
+                    resultRecord.DropDownX + "," + resultRecord.DropDownZ + "," +
+                    resultRecord.ActualTime + ","  + resultRecord.WaitForGoalTime + "," + resultRecord.JammingTime + "," + 
+                    resultRecord.AssumptionTime + "," +
+                    resultRecord.MainStateChangeCount + "," + resultRecord.RedirectStateChangeCount + "," + resultRecord.JamStateChangeCount + "," + 
+                    resultRecord.PathChangeCount + "," + resultRecord.PathUpdateCount
+                    );
             }
 
             tw.Close();
