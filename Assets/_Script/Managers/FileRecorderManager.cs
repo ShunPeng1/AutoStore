@@ -170,8 +170,8 @@ namespace _Script.Managers
                 tw.WriteLine(
                     resultRecord.PickUpX + "," + resultRecord.PickUpZ + "," + 
                     resultRecord.DropDownX + "," + resultRecord.DropDownZ + "," +
-                    resultRecord.ActualTime + ","  + resultRecord.WaitForGoalTime + "," + resultRecord.JammingTime + "," + 
-                    resultRecord.AssumptionTime + "," +
+                    resultRecord.ActualTime + "," + resultRecord.AssumptionTime + "," + 
+                    resultRecord.WaitForGoalTime + "," + resultRecord.JammingTime + "," + 
                     resultRecord.MainStateChangeCount + "," + resultRecord.RedirectStateChangeCount + "," + resultRecord.JamStateChangeCount + "," + 
                     resultRecord.PathChangeCount + "," + resultRecord.PathUpdateCount
                     );

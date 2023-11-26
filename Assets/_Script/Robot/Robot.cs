@@ -444,7 +444,7 @@ namespace _Script.Robot
             DebugUIManager.Instance.AddCollision();
             //Debug.Log($"{gameObject.name} Collide with {other.gameObject.name}");
             #if UNITY_EDITOR
-            UnityEditor.EditorApplication.isPaused = true;
+            // UnityEditor.EditorApplication.isPaused = true;
             #endif
         }
         

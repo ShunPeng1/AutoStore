@@ -842,9 +842,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Bins:
-  - {fileID: -6092981407681897407, guid: 24717045b4a4f9d44be5e460121b5899, type: 3}
-  - {fileID: -503301519325198052, guid: e0d7326e4dea8b9409df40e14c01d976, type: 3}
-  - {fileID: -8146062942008891456, guid: cb7455e31017dda4b8e8e0fafffd5c2f, type: 3}
+  - {fileID: -8146062942008891456, guid: 5a4c17e06b3dbab4b9068836c05700c1, type: 3}
 --- !u!1001 &615759420
 PrefabInstance:
   m_ObjectHideFlags: 0
