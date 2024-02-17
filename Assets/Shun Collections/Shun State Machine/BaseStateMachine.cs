@@ -41,12 +41,15 @@ namespace Shun_State_Machine
 
         private BaseStateMachine(StateNode initialStateNode, bool onEnterCall = false, ITransitionData enterData = null)
         {
+            _nodes[initialStateNode.State.GetType()] = initialStateNode;
             CurrentState = initialStateNode;
             
             if (onEnterCall)
             {
                 initialStateNode.State.OnEnterState(enterData);
             }
+            
+            
         }
         
         public class Builder
