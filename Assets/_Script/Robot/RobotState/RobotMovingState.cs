@@ -22,17 +22,17 @@ namespace _Script.Robot
                 Deflected = 3
             }
             
-            public RobotMovingState(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(robot, myStateEnum, executeEvents, exitEvents, enterEvents)
+            public RobotMovingState(Robot robot, Action<ITransitionData> executeEvents = null, Action<ITransitionData> exitEvents = null, Action<ITransitionData> enterEvents = null) : base(robot, executeEvents, exitEvents, enterEvents)
             {
                 EnterEvents += AssignTask;
                 ExecuteEvents += Execute;
             }
 
-            private void AssignTask(RobotStateEnum lastRobotState, IStateParameter enterParameters)
+            private void AssignTask(ITransitionData enterParameters)
             {
                 if (enterParameters == null) return;
 
-                CurrentMovingTask = enterParameters.Get<RobotMovingTask>();
+                CurrentMovingTask = enterParameters.CastTo<RobotMovingTask>();
                 if (CurrentMovingTask == null) return;
                 
                 switch (CurrentMovingTask.StartCellPosition)
@@ -82,7 +82,7 @@ namespace _Script.Robot
                 }
             }
             
-            private void Execute(RobotStateEnum currentState, IStateParameter enterParameters)
+            private void Execute(ITransitionData enterParameters)
             {
                 if (RobotUtility.CheckArriveOnNextCell(Robot))
                 {
@@ -157,38 +157,35 @@ namespace _Script.Robot
                 switch (detectedRobot.CurrentRobotState)
                 {
                     /* Idle state cases */
-                    case RobotStateEnum.Idling when isBlockingGoal || isBlockAHead: // If they are standing on this robot goal or blocking ahead of this robot
+                    case RobotIdlingState when isBlockingGoal || isBlockAHead: // If they are standing on this robot goal or blocking ahead of this robot
                         return TryDeflectRobot(detectedRobot);
 
-                    case RobotStateEnum.Idling: // Not blocking at all
+                    case RobotIdlingState: // Not blocking at all
                         return DetectDecision.Ignore;
                     
                     
                     /* Jamming state cases */
-                    case RobotStateEnum.Jamming when isBlockAHead: // Currently blocking in between the next cell
+                    case RobotJammingState when isBlockAHead: // Currently blocking in between the next cell
                         //return DetectDecision.Dodge;
                         return TryDeflectRobot(detectedRobot);
 
-                    case RobotStateEnum.Jamming: //  is not blocking ahead in between the next cell
+                    case RobotJammingState: //  is not blocking ahead in between the next cell
                         return DetectDecision.Ignore; 
                     
                     
                     /* Handling states cases */
-                    case RobotStateEnum.Handling when !isBlockAHead: //  is not block ahead
+                    case RobotHandlingState when !isBlockAHead: //  is not block ahead
                         return DetectDecision.Ignore; 
                     
                     // Currently blocking in between the next cell , and they are standing on this robot goal
-                    case RobotStateEnum.Handling when isBlockingGoal:
+                    case RobotHandlingState when isBlockingGoal:
                         return DetectDecision.Wait;
                     
-                    case RobotStateEnum.Handling: // Currently blocking in between the next cell, and not on this robot goal
+                    case RobotHandlingState: // Currently blocking in between the next cell, and not on this robot goal
                         return DetectDecision.Dodge;
                     
 
                     /* These are the rest of moving state */
-                    case RobotStateEnum.Delivering:
-                    case RobotStateEnum.Approaching:
-                    case RobotStateEnum.Redirecting:
                     default:
                         if (Math.Abs(dotProductOf2RobotDirection - (-1)) < 0.01f ) // opposite direction
                         {

@@ -5,10 +5,9 @@ namespace Shun_State_Machine
     /// <summary>
     /// Using Strategy Pattern to choose a History class
     /// </summary>
-    /// <typeparam name="TStateEnum"></typeparam>
-    public interface IStateHistoryStrategy<TStateEnum> where TStateEnum : Enum
+    public interface IStateHistoryStrategy
     {
-        void Save(BaseState<TStateEnum> state, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null);
-        (BaseState<TStateEnum> enterState, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) Restore(bool isRemoveRestore = true);
+        void Save(IState transitionState, ITransitionData transitionData);
+        (IState transitionState, ITransitionData transitionData) Restore(bool isRemoveRestore = true);
     }
 }

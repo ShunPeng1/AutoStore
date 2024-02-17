@@ -18,9 +18,16 @@ namespace _Script.Robot
         public int Id;
 
         [Header("Robot State Machine")] 
-        [ShowImmutable, SerializeField] protected BaseStateMachine<RobotStateEnum> RobotStateMachine = new ();
-        public RobotStateEnum CurrentRobotState => RobotStateMachine.GetState();
-        private IStateHistoryStrategy<RobotStateEnum> _stateHistoryStrategy;
+        [ShowImmutable, SerializeField] protected BaseStateMachine RobotStateMachine;
+
+        private RobotIdlingState _idlingState;
+        private RobotMovingState _approachingState;
+        private RobotHandlingState _handlingState;
+        private RobotMovingState _deliveringState;
+        private RobotJammingState _jammingState;
+        private RobotRedirectingState _redirectingState;
+        public IState CurrentRobotState => RobotStateMachine.GetCurrentState();
+
         
         [Header("Grid")]
         protected internal GridXZ<CellItem> CurrentGrid;
@@ -91,7 +98,7 @@ namespace _Script.Robot
 
         private void FixedUpdate()
         {
-            RobotStateMachine.ExecuteState();
+            RobotStateMachine.FixedUpdate();
         }
 
         private void InitializeGrid()
@@ -104,34 +111,30 @@ namespace _Script.Robot
         private void InitializeStrategy()
         {
             _pathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
-            _stateHistoryStrategy = new RobotStateHistoryStrategy();
         }
 
         protected abstract void InitializeComponents();
         
         private void InitializeState()
         {
-            RobotIdlingState idlingState = new(this, RobotStateEnum.Idling);
+            _idlingState = new(this);
+            _approachingState = new(this);
+            _handlingState = new(this);
+            _deliveringState = new(this);
+            _jammingState = new(this);
+            _redirectingState = new(this);
             
-            RobotMovingState approachingState = new(this, RobotStateEnum.Approaching);
+            RobotStateMachine = new BaseStateMachine.Builder()
+                .WithInitialState(_idlingState)
+                .WithHistoryStrategy(new RobotStateHistoryStrategy())
+                .Build();
+
             
-            RobotHandlingState handlingState = new(this,RobotStateEnum.Handling);
-            
-            RobotMovingState deliveringState = new(this,RobotStateEnum.Delivering);
-            
-            RobotJammingState jammingState = new(this,RobotStateEnum.Jamming);
-            
-            RobotMovingState redirectingState = new(this,RobotStateEnum.Redirecting);
-            
-            RobotStateMachine.AddState(idlingState);
-            RobotStateMachine.AddState(approachingState);
-            RobotStateMachine.AddState(handlingState);
-            RobotStateMachine.AddState(deliveringState);
-            RobotStateMachine.AddState(jammingState);
-            RobotStateMachine.AddState(redirectingState);
-            
-            //RobotStateMachine.CurrentBaseState = idleState;
-            RobotStateMachine.SetHistoryStrategy(_stateHistoryStrategy);
+            RobotStateMachine.AddOrOverwriteState(_approachingState);
+            RobotStateMachine.AddOrOverwriteState(_handlingState);
+            RobotStateMachine.AddOrOverwriteState(_deliveringState);
+            RobotStateMachine.AddOrOverwriteState(_jammingState);
+            RobotStateMachine.AddOrOverwriteState(_redirectingState);
         }
 
         #endregion
@@ -160,7 +163,7 @@ namespace _Script.Robot
             //Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
             
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
-            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null , robotMovingTask );
+            RobotStateMachine.SetToState(_redirectingState, robotMovingTask );
         }
 
         
@@ -170,7 +173,7 @@ namespace _Script.Robot
         /// </summary>
         private bool RedirectToOrthogonalCell(Robot requestedRobot, Vector3 requestedRobotNextCellPosition, Vector3 requestedRobotGoalCellPosition)
         {
-            if (CurrentRobotState == RobotStateEnum.Redirecting)
+            if (CurrentRobotState is RobotRedirectingState)
             {
                 return true;  // Cannot redirect twice, but this is already redirecting
             }
@@ -228,7 +231,7 @@ namespace _Script.Robot
 
             //Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(redirectGoalCellPosition));
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
-            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
+            RobotStateMachine.SetToState(_redirectingState, robotMovingTask );
             return true;
         }
         private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isBlockAhead)
@@ -244,16 +247,12 @@ namespace _Script.Robot
                 {
                     switch (nearbyRobot.CurrentRobotState)
                     {
-                        case RobotStateEnum.Idling:
+                        case RobotJammingState _:
                             isBlockAhead = false;
                             break;
-                        case RobotStateEnum.Handling:
+                        case RobotHandlingState _:
                             isBlockAhead = true;
                             return false;
-                        case RobotStateEnum.Delivering:
-                        case RobotStateEnum.Approaching:
-                        case RobotStateEnum.Jamming:
-                        case RobotStateEnum.Redirecting:
                         default:
                             isBlockAhead = true;
                             break;
@@ -270,7 +269,7 @@ namespace _Script.Robot
         /// </summary>
         private bool RedirectToLowestWeightCell(Robot requestedRobot, Vector3 requestedRobotNextCellPosition, Vector3 requestedRobotGoalCellPosition)
         {
-            if (CurrentRobotState == RobotStateEnum.Redirecting)
+            if (CurrentRobotState is RobotRedirectingState)
             {
                 return true;  // Cannot redirect twice, but this is already redirecting
             }
@@ -308,7 +307,7 @@ namespace _Script.Robot
             
             Debug.Log(requestedRobot.gameObject.name + " redirect to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell,CurrentGrid.GetWorldPositionOfNearestCell(redirectCell) , SetToJam);
-            RobotStateMachine.SetToState(RobotStateEnum.Redirecting, null, robotMovingTask );
+            RobotStateMachine.SetToState(_redirectingState, robotMovingTask );
             return true;
         }
 
@@ -368,21 +367,21 @@ namespace _Script.Robot
             Vector3 goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell( CurrentBinTransportTask.TargetBinSource );
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinSource, 0);
         
-            RobotStateMachine.SetToState(RobotStateEnum.Approaching, null, robotMovingTask);
+            RobotStateMachine.SetToState(_approachingState, robotMovingTask);
         }
 
         protected void SetToJam()
         {
-            RobotStateMachine.SetToState(RobotStateEnum.Jamming, null, new RobotJammingTask(){IsWaitingForGoal = false});
+            RobotStateMachine.SetToState(_jammingState,new RobotJammingTask(){IsWaitingForGoal = false});
         }
         protected void SetToJam(bool isWaitingForGoal)
         {
-            RobotStateMachine.SetToState(RobotStateEnum.Jamming, null, new RobotJammingTask(){IsWaitingForGoal = isWaitingForGoal});
+            RobotStateMachine.SetToState(_jammingState,new RobotJammingTask(){IsWaitingForGoal = isWaitingForGoal});
         }
         
         protected void ArriveBinSource()
         {
-            RobotStateMachine.SetToState(RobotStateEnum.Handling);
+            RobotStateMachine.SetToState(_handlingState);
         }
         
         
@@ -390,7 +389,7 @@ namespace _Script.Robot
         {
             DistributionManager.Instance.ArriveDestination(this, CurrentBinTransportTask);
             
-            RobotStateMachine.SetToState(RobotStateEnum.Handling);
+            RobotStateMachine.SetToState(_handlingState);
         }
         
 
@@ -428,7 +427,7 @@ namespace _Script.Robot
             List<GridXZCell<CellItem>> dynamicObstacle = new();
             foreach (var detectedRobot in NearbyRobots)
             {
-                if (detectedRobot.CurrentRobotState == RobotStateEnum.Idling) continue;
+                if (detectedRobot.CurrentRobotState is RobotIdlingState) continue;
                 dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.LastCellPosition));
                 if(detectedRobot.IsMidwayMove) dynamicObstacle.Add(CurrentGrid.GetCell(detectedRobot.NextCellPosition));
             }

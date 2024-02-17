@@ -9,13 +9,13 @@ namespace _Script.Robot
     {
         public class RobotHandlingState : RobotState
         {
-            public RobotHandlingState(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(robot, myStateEnum, executeEvents, exitEvents, enterEvents)
+            public RobotHandlingState(Robot robot, Action<ITransitionData> executeEvents = null, Action<ITransitionData> exitEvents = null, Action<ITransitionData> enterEvents = null) : base(robot, executeEvents, exitEvents, enterEvents)
             {
                 EnterEvents += BeginHandling;
                 ExecuteEvents += HandleCable;
             }
 
-            private void BeginHandling(RobotStateEnum arg1, IStateParameter arg2)
+            private void BeginHandling(ITransitionData arg2)
             {
                 if (Robot.HoldingBin == null)
                 {
@@ -28,7 +28,7 @@ namespace _Script.Robot
 
             }
             
-            private void HandleCable(RobotStateEnum arg1, IStateParameter arg2)
+            private void HandleCable(ITransitionData arg2)
             {
                 Robot.MoveCable();
             }
@@ -77,7 +77,7 @@ namespace _Script.Robot
             private void SetToIdlingState()
             {
                 Robot.CurrentBinTransportTask = null;
-                Robot.RobotStateMachine.SetToState(RobotStateEnum.Idling);
+                Robot.RobotStateMachine.SetToState(Robot._idlingState);
             }
 
             private void SetToDeliveringState()
@@ -88,7 +88,7 @@ namespace _Script.Robot
                 
                 RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, Robot.ArriveBinDestination, 0);
                 
-                Robot.RobotStateMachine.SetToState(RobotStateEnum.Delivering, null, robotMovingTask);
+                Robot.RobotStateMachine.SetToState(Robot._deliveringState, robotMovingTask);
 
             }
             

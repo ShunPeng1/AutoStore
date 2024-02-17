@@ -1,84 +1,230 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using Shun_Unity_Editor;
+using System.Linq;
 using UnityEngine;
-using UnityUtilities;
 
 namespace Shun_State_Machine
 {
     [Serializable]
-    public class BaseStateMachine<TStateEnum> where TStateEnum : Enum 
+    public class BaseStateMachine
     {
-        [SerializeField] protected BaseState<TStateEnum> CurrentBaseState = new (default);
-        private Dictionary<TStateEnum, BaseState<TStateEnum>> _states = new ();
+        [SerializeField] protected StateNode CurrentState = default;
+        private Dictionary<Type, StateNode> _nodes = new();
+        private HashSet<ITransition> _anyStateTransitions = new();
 
-        [Header("History")] 
-        protected IStateHistoryStrategy<TStateEnum> StateHistoryStrategy;
+        private ITransitionData _lastTransitionData;
 
-        public void SetHistoryStrategy(IStateHistoryStrategy<TStateEnum> historyStrategy = null)
-        {
-            StateHistoryStrategy = historyStrategy;
-        }
+        [Header("History")] protected IStateHistoryStrategy StateHistoryStrategy;
 
-        public void ExecuteState(IStateParameter parameters = null)
+        protected class StateNode
         {
-            CurrentBaseState.ExecuteState(parameters);
-        }
-        public void AddState(BaseState<TStateEnum> baseState)
-        {
-            _states[baseState.MyStateEnum] = baseState;
-        }
+            public IState State { get; }
+            public HashSet<ITransition> Transitions { get; }
 
-        public void RemoveState(TStateEnum stateEnum)
-        {
-            _states.Remove(stateEnum);
-        }
-
-        public void SetToState(TStateEnum stateEnum, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
-        {
-            if (_states.TryGetValue(stateEnum, out BaseState<TStateEnum> nextState))
+            public StateNode(IState state, HashSet<ITransition> transitions = null)
             {
-                StateHistoryStrategy?.Save(nextState, exitOldStateParameters, enterNewStateParameters);
-                SwitchState(nextState, exitOldStateParameters, enterNewStateParameters);
+                State = state;
+                Transitions = transitions ?? new HashSet<ITransition>();
             }
-            else
+
+            public void AddTransition(IState to, IPredicate condition)
             {
-                Debug.LogWarning($"State {stateEnum} not found in state machine.");
+                Transitions.Add(new Transition(to, condition));
+            }
+
+            public void RemoveTransition(IState to, IPredicate condition)
+            {
+                Transitions.RemoveWhere(transition => transition.ToState == to && transition.Condition == condition);
+            }
+        }
+
+        private BaseStateMachine(StateNode initialStateNode, bool onEnterCall = false, ITransitionData enterData = null)
+        {
+            CurrentState = initialStateNode;
+            
+            if (onEnterCall)
+            {
+                initialStateNode.State.OnEnterState(enterData);
             }
         }
         
-        public TStateEnum GetState()
+        public class Builder
         {
-            return CurrentBaseState.MyStateEnum;
+            StateNode _initialStateNode;
+            bool _onEnterCall;
+            ITransitionData _enterData;
+            
+            IStateHistoryStrategy _stateHistoryStrategy;
+            
+            
+            public BaseStateMachine Build()
+            {
+                var stateMachine = new BaseStateMachine(_initialStateNode, _onEnterCall, _enterData)
+                    {
+                        StateHistoryStrategy = _stateHistoryStrategy
+                    };
+                return stateMachine;
+            }
+            
+            public Builder WithInitialState(IState initialState, bool onEnterCall = false, ITransitionData enterData = null)
+            {
+                _initialStateNode = new StateNode(initialState);
+                _onEnterCall = onEnterCall;
+                _enterData = enterData;
+                
+                return this;
+            }
+            
+            public Builder WithHistoryStrategy(IStateHistoryStrategy historyStrategy = null)
+            {
+                _stateHistoryStrategy = historyStrategy;
+                return this;
+            }
+            
+            
+        }
+        
+        public void Update(ITransitionData parameter = null)
+        {
+            var transition = GetTransition();
+
+            if (transition != null)
+            {
+                TransitionData transitionData = new TransitionData()
+                {
+                    FromState = CurrentState.State,
+                    Transition = transition
+                };
+                SetToState(transition.ToState, transitionData);
+                return;
+            }
+            CurrentState?.State.UpdateState();
+            
+        }
+        
+        public void FixedUpdate(ITransitionData parameter = null)
+        {
+            var transition = GetTransition();
+            
+            if (transition != null)
+            {
+                TransitionData transitionData = new TransitionData()
+                {
+                    FromState = CurrentState.State,
+                    Transition = transition
+                };
+                SetToState(transition.ToState, transitionData);
+                return;
+            }
+            CurrentState?.State.FixedUpdateState();
         }
 
-        private void SwitchState(BaseState<TStateEnum> nextState , IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
+        private ITransition GetTransition()
         {
-            CurrentBaseState.OnExitState(nextState.MyStateEnum,exitOldStateParameters);
-            TStateEnum lastStateEnum = CurrentBaseState.MyStateEnum;
-            CurrentBaseState = nextState;
-            nextState.OnEnterState(lastStateEnum,enterNewStateParameters);
+            foreach (var transition in _anyStateTransitions.Where(transition => transition.Condition.Evaluate()))
+            {
+                return transition;
+            }
+
+            return CurrentState?.Transitions.FirstOrDefault(transition => transition.Condition.Evaluate());
+        }
+        
+
+        public void AddOrOverwriteState(IState baseState, HashSet<ITransition> transitions = null)
+        {
+            _nodes[baseState.GetType()] = new StateNode(baseState, transitions);
+        }
+        
+        public void RemoveState(IState stateEnum)
+        {
+            _nodes.Remove(stateEnum.GetType());
+        }
+        
+        public void AddTransition(IState fromState, IState toState, IPredicate predicate)
+        {
+            GetOrAddNode(fromState).AddTransition(toState, predicate);
+        }
+        
+        public void AddAnyTransition(IState toState, IPredicate predicate)
+        {
+            _anyStateTransitions.Add(new Transition(toState, predicate));
+        }
+        
+        public void RemoveTransition(IState fromState, IState toState, IPredicate predicate)
+        {
+            GetOrAddNode(fromState).RemoveTransition(toState, predicate);
+        }
+        
+        public void RemoveAnyTransition(IState toState, IPredicate predicate)
+        {
+            _anyStateTransitions.RemoveWhere(transition => transition.ToState == toState && transition.Condition == predicate);
+        }
+        
+        private StateNode GetOrAddNode(IState state)
+        {
+            var node = _nodes.GetValueOrDefault(state.GetType());
+            
+            if (node == null)
+            {
+                node = new StateNode(state);
+                _nodes[state.GetType()] = node;
+            }
+            
+            return node;
+        }
+        public void SetToState(IState toState, ITransitionData transitionData = null)
+        {
+            if (toState == null || toState == CurrentState.State) return;
+            
+            if (_nodes.TryGetValue(toState.GetType(), out StateNode nextState))
+            {
+                StateHistoryStrategy?.Save(nextState.State, transitionData);
+                SwitchState(nextState, transitionData);
+            }
+            else
+            {
+                Debug.LogWarning($"State {toState.GetType()} not found in state machine.");
+            }
+        }
+        
+        public IState GetCurrentState()
+        {
+            return CurrentState?.State;
+        }
+        
+        public Type GetCurrentStateType()
+        {
+            return CurrentState?.State.GetType();
         }
         
         public void RestoreState()
         {
             if (StateHistoryStrategy == null) return;
-            var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore();
+            var (enterState, exitOldStateParameters) = StateHistoryStrategy.Restore();
             if (enterState != null)
             {
-                SetToState(enterState.MyStateEnum, exitOldStateParameters, enterNewStateParameters);
+                SetToState(enterState, exitOldStateParameters);
             }
             else SetToState(default);
             
         }
-        
-        public (BaseState<TStateEnum> enterState, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) PeakHistory()
+
+        public (IState transitedState, ITransitionData transitionData) PeakHistory()
         {
-            if (StateHistoryStrategy == null) return (default, default, default);
-            var (enterState, exitOldStateParameters,enterNewStateParameters) = StateHistoryStrategy.Restore(false);
-            return (enterState, exitOldStateParameters, enterNewStateParameters);
+            if (StateHistoryStrategy == null) return (default, default);
+            var (enterState, exitOldStateParameters) = StateHistoryStrategy.Restore(false);
+            return (enterState, exitOldStateParameters);
         }
+
+        private void SwitchState(StateNode nextState, ITransitionData transitionData = null)
+        {
+            CurrentState.State.OnExitState(transitionData);
+            var lastStateEnum = CurrentState;
+            CurrentState = nextState;
+            nextState.State.OnEnterState(transitionData);
+        }
+
         
     }
 }

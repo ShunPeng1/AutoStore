@@ -26,7 +26,7 @@ public class RobotVisual : RobotComponentDependence
 
     void ShowPath()
     {
-        if (Robot.CurrentRobotState == RobotStateEnum.Idling || Robot.MovingPath == null)
+        if (Robot.CurrentRobotState is Robot.RobotIdlingState || Robot.MovingPath == null)
         {
             _lineRenderer.positionCount = 0;
             return;

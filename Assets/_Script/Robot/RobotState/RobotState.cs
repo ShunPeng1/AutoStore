@@ -6,13 +6,17 @@ using UnityEngine;
 namespace _Script.Robot
 {
     
-    public class RobotState : BaseState<RobotStateEnum>
+    public class RobotState : IState
     {
         protected readonly Robot Robot;
         protected readonly Transform RobotTransform;
         protected readonly GridXZ<CellItem> Grid;
 
-        public RobotState(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(myStateEnum, executeEvents, exitEvents, enterEvents)
+        public event Action<ITransitionData> EnterEvents;
+        public event Action<ITransitionData> ExecuteEvents;
+        public event Action<ITransitionData> ExitEvents;
+        
+        public RobotState(Robot robot, Action<ITransitionData> executeEvents = null, Action<ITransitionData> exitEvents = null, Action<ITransitionData> enterEvents = null)
         {
             Robot = robot;
             RobotTransform = Robot.transform;
@@ -22,15 +26,15 @@ namespace _Script.Robot
         }
         
         
-        protected virtual void RecordStateChange(RobotStateEnum robotStateEnum, IStateParameter stateParameter)
+        protected virtual void RecordStateChange(ITransitionData stateParameter)
         {
             if (Robot.CurrentBinTransportTask == null) return;
                 
-            if (Robot.CurrentRobotState == RobotStateEnum.Redirecting)
+            if (Robot.CurrentRobotState is Robot.RobotRedirectingState)
             {
                 Robot.CurrentBinTransportTask.RedirectStateChangeCount++;    
             }
-            else if (Robot.CurrentRobotState == RobotStateEnum.Jamming)
+            else if (Robot.CurrentRobotState is Robot.RobotJammingState)
             {
                 Robot.CurrentBinTransportTask.JamStateChangeCount++;
             }
@@ -53,6 +57,25 @@ namespace _Script.Robot
             
             Robot.CurrentBinTransportTask.PathUpdateCount++;
         }
-        
+
+        public virtual void OnEnterState(ITransitionData enterTransitionData = null)
+        {
+            EnterEvents?.Invoke(enterTransitionData);
+        }
+
+        public virtual void OnExitState(ITransitionData exitTransitionData = null)
+        {
+            ExitEvents?.Invoke(exitTransitionData);
+        }
+
+        public virtual void UpdateState()
+        {
+            Debug.Log("Not Implemented");
+        }
+
+        public virtual void FixedUpdateState()
+        {
+            ExecuteEvents?.Invoke(null);
+        }
     }
 }

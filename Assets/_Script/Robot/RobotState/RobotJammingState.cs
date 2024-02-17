@@ -11,18 +11,18 @@ namespace _Script.Robot
             private float _currentWaitTime;
             private bool _isWaitingForGoal;
             
-            public RobotJammingState(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(robot, myStateEnum, executeEvents, exitEvents, enterEvents)
+            public RobotJammingState(Robot robot, Action<ITransitionData> executeEvents = null, Action<ITransitionData> exitEvents = null, Action<ITransitionData> enterEvents = null) : base(robot, executeEvents, exitEvents, enterEvents)
             {
                 EnterEvents += JamSetUp;
                 ExecuteEvents += Jamming;
                 ExitEvents += EndJamming;
             }
 
-            private void JamSetUp(RobotStateEnum currentState, IStateParameter enterParameters)
+            private void JamSetUp(ITransitionData enterParameters)
             {
                 _currentWaitTime = 0;
 
-                var task = enterParameters.Get<RobotJammingTask>();
+                var task = enterParameters.CastTo<RobotJammingTask>();
                 _isWaitingForGoal = task.IsWaitingForGoal;
                 
                 
@@ -38,16 +38,16 @@ namespace _Script.Robot
                     Robot.IsMidwayMove = false;
                 }
                 
-                var (enterState, exitOldStateParameters, enterNewStateParameters) = Robot.RobotStateMachine.PeakHistory();
-                if (enterNewStateParameters == null) return;
+                var (transitedState, transitionData) = Robot.RobotStateMachine.PeakHistory();
+                if (transitionData == null) return;
 
-                var movingTask = enterNewStateParameters.Get<RobotMovingTask>();
+                var movingTask = transitionData.CastTo<RobotMovingTask>();
                 Robot.MovingPath = Robot._pathfindingAlgorithm.FirstTimeFindPath(Robot.LastCell, Grid.GetCell(movingTask.GoalCellPosition));
 
             }
             
 
-            private void Jamming(RobotStateEnum currentState, IStateParameter enterParameters)
+            private void Jamming(ITransitionData enterParameters)
             {
                 _currentWaitTime += Time.fixedDeltaTime;
 
@@ -58,7 +58,7 @@ namespace _Script.Robot
             }
             
             
-            private void EndJamming(RobotStateEnum currentState, IStateParameter enterParameters)
+            private void EndJamming(ITransitionData enterParameters)
             {
                 if (Robot.CurrentBinTransportTask != null)
                 {

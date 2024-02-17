@@ -4,91 +4,27 @@ using UnityEngine;
 namespace Shun_State_Machine
 {
     [Serializable]
-    public class BaseState<TStateEnum> where TStateEnum : Enum
+    public class BaseState : IState
     {
-        [Header("State Machine ")]
-        public TStateEnum MyStateEnum;
-        protected object[] Objects;
-        
-        protected Action<TStateEnum, IStateParameter> EnterEvents;
-        protected Action<TStateEnum, IStateParameter> ExecuteEvents;
-        protected Action<TStateEnum, IStateParameter> ExitEvents;
-
-        public BaseState(TStateEnum myStateEnum,
-            Action<TStateEnum, IStateParameter> executeEvents = null,
-            Action<TStateEnum, IStateParameter> exitEvents = null,
-            Action<TStateEnum, IStateParameter> enterEvents = null)
+        public void OnEnterState(ITransitionData enterTransitionData = null)
         {
-            MyStateEnum = myStateEnum;
-            EnterEvents = enterEvents;
-            ExecuteEvents = executeEvents;
-            ExitEvents = exitEvents;
-        }
-        
-        public enum StateEvent
-        {
-            EnterState,
-            ExitState,
-            ExecuteState
+            Debug.Log("Enter State");
         }
 
-        public virtual void OnExitState(TStateEnum enterState = default, IStateParameter parameters = null)
+        public void OnExitState(ITransitionData exitTransitionData = null)
         {
-            ExitEvents?.Invoke(enterState, parameters);
-        }
-        
-        public virtual void OnEnterState(TStateEnum exitState = default, IStateParameter parameters = null)
-        {
-            EnterEvents?.Invoke(exitState, parameters);
+            Debug.Log("Exit State");
         }
 
-        public virtual void ExecuteState(IStateParameter parameters = null)
+        public void UpdateState()
         {
-            ExecuteEvents?.Invoke(MyStateEnum, parameters);
+            Debug.Log("Update State");
         }
 
-        public void SubscribeToState(StateEvent stateEvent, Action<TStateEnum, IStateParameter>[] actions )
+        public void FixedUpdateState()
         {
-            foreach (var action in actions)
-            {
-                switch (stateEvent)
-                {
-                    case StateEvent.EnterState:
-                        EnterEvents += action;
-                        break;
-                    case StateEvent.ExitState:
-                        ExitEvents += action;
-                        break;
-                    case StateEvent.ExecuteState:
-                        ExecuteEvents += action;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(stateEvent), stateEvent, null);
-                }
-            }
+            Debug.Log("Fixed Update State");
         }
-
-        private void UnsubscribeToState(StateEvent stateEvent, Action<TStateEnum, IStateParameter>[] actions )
-        {
-            foreach (var action in actions)
-            {
-                switch (stateEvent)
-                {
-                    case StateEvent.EnterState:
-                        EnterEvents -= action;
-                        break;
-                    case StateEvent.ExitState:
-                        ExitEvents -= action;
-                        break;
-                    case StateEvent.ExecuteState:
-                        ExecuteEvents -= action;
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException(nameof(stateEvent), stateEvent, null);
-                }
-            }
-        }
-        
     }
     
 }

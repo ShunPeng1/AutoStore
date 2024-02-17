@@ -7,8 +7,11 @@ using Shun_State_Machine;
 using UnityEngine;
 
 
-public class RobotMovingTask : IStateParameter
+public class RobotMovingTask : ITransitionData
 {
+    public IState FromState { get; set; }
+    public ITransition Transition { get; set; }
+    
     public StartPosition StartCellPosition;
     public Vector3 GoalCellPosition;
     public readonly Action GoalArrivalAction;
@@ -28,5 +31,5 @@ public class RobotMovingTask : IStateParameter
         GoalArrivalAction = goalArrivalAction;
         Priority = priority;
     }
-    
+
 }

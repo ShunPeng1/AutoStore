@@ -2,26 +2,25 @@
 
 namespace _Script.Robot
 {
-    public class RobotStateHistoryStrategy : IStateHistoryStrategy<RobotStateEnum>
+    public class RobotStateHistoryStrategy : IStateHistoryStrategy
     {
-        private BaseState<RobotStateEnum> _oldState;
-        private IStateParameter _exitOldStateParameters = null;
-        private IStateParameter _enterNewStateParameters = null;
-            
-        public void Save(BaseState<RobotStateEnum> state, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
-        {
-            if (state.MyStateEnum is RobotStateEnum.Jamming or RobotStateEnum.Redirecting) return;
-            
-            _oldState = state;
-            _exitOldStateParameters = exitOldStateParameters;
-            _enterNewStateParameters = enterNewStateParameters;
+        private IState _oldState;
+        private ITransitionData _exitOldStateParameters = null;
+        
 
+        public void Save(IState transitionState, ITransitionData transitionData)
+        {
+            if (transitionState is Robot.RobotJammingState or Robot.RobotRedirectingState) return;
+            
+            _oldState = transitionState;
+            _exitOldStateParameters = transitionData;
         }
 
-        public (BaseState<RobotStateEnum> enterState, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) Restore(
-            bool isRemoveRestore = true)
+        public (IState transitionState, ITransitionData transitionData) Restore(bool isRemoveRestore = true)
         {
-            return (_oldState, _exitOldStateParameters, _enterNewStateParameters);
+            return (_oldState, _exitOldStateParameters);
         }
+
+        
     }
 }

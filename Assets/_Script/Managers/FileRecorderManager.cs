@@ -19,14 +19,14 @@ namespace _Script.Managers
             public float CurrentTime;
             public Vector3 LastCellPosition;
             public Vector3 GoalCellPosition;
-            public RobotStateEnum RobotStateEnum;
+            public string RobotState;
             public bool IsBetween2Cell;
-            public RobotRecord(float currentTime, Vector3 lastCellPosition, Vector3 goalCellPosition, RobotStateEnum robotStateEnum, bool isBetween2Cell)
+            public RobotRecord(float currentTime, Vector3 lastCellPosition, Vector3 goalCellPosition, string robotState, bool isBetween2Cell)
             {
                 CurrentTime = currentTime;
                 LastCellPosition = lastCellPosition;
                 GoalCellPosition = goalCellPosition;
-                RobotStateEnum = robotStateEnum;
+                RobotState = robotState;
                 IsBetween2Cell = isBetween2Cell;
             }
         }
@@ -85,7 +85,7 @@ namespace _Script.Managers
                 _robotRecordsDictionary[robot] = new List<RobotRecord>();
             }
 
-            StartCoroutine("MyUpdate");
+            StartCoroutine(nameof(MyUpdate));
         }
 
         // Update is called once per frame
@@ -100,7 +100,7 @@ namespace _Script.Managers
                         Time.time,
                         robot.LastCellPosition,
                         Vector3.zero, // Have changed
-                        robot.CurrentRobotState, robot.IsMidwayMove);
+                        robot.CurrentRobotState.ToString(), robot.IsMidwayMove);
                     _robotRecordsDictionary[robot].Add(record);
                 }
 
@@ -118,7 +118,7 @@ namespace _Script.Managers
             
                 foreach (var robotRecord in robotRecords)
                 {
-                    writer.WriteLine($"Time: {robotRecord.CurrentTime} CurrentCell: ({robotRecord.LastCellPosition.x},{robotRecord.LastCellPosition.z}) GoalCell: ({robotRecord.GoalCellPosition.x},{robotRecord.GoalCellPosition.z}) CurrentState: {robotRecord.RobotStateEnum.ToString()}");
+                    writer.WriteLine($"Time: {robotRecord.CurrentTime} CurrentCell: ({robotRecord.LastCellPosition.x},{robotRecord.LastCellPosition.z}) GoalCell: ({robotRecord.GoalCellPosition.x},{robotRecord.GoalCellPosition.z}) CurrentState: {robotRecord.RobotState.ToString()}");
                 }
                 writer.WriteLine();
             }
@@ -148,7 +148,7 @@ namespace _Script.Managers
                 foreach (var robotRecord in robotRecords)
                 {
                     tw.WriteLine( robot.Id  +","+ robotRecord.CurrentTime.ToString() + "," +  robotRecord.LastCellPosition.x + "," + robotRecord.LastCellPosition.z + "," + 
-                    robotRecord.GoalCellPosition.x +"," +  robotRecord.GoalCellPosition.z + "," + robotRecord.RobotStateEnum.ToString() + "," + robotRecord.IsBetween2Cell);
+                    robotRecord.GoalCellPosition.x +"," +  robotRecord.GoalCellPosition.z + "," + robotRecord.RobotState.ToString() + "," + robotRecord.IsBetween2Cell);
                 }
                 tw.WriteLine();
             }

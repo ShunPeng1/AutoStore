@@ -8,46 +8,43 @@ namespace Shun_State_Machine
     /// This is a StateHistory using a stack, save and restore form the top of the stack
     /// </summary>
     /// <typeparam name="TStateEnum"></typeparam>
-    public class StackStateHistoryStrategy<TStateEnum> : IStateHistoryStrategy<TStateEnum> where TStateEnum : Enum
+    public class StackStateHistoryStrategy : IStateHistoryStrategy
     {
         private int _maxSize = 0;
-        private LinkedList<(BaseState<TStateEnum>, IStateParameter, IStateParameter)> _historyStates = new(); // act as a stack
+        private LinkedList<(IState, ITransitionData)> _historyStates = new(); // act as a stack
 
         public StackStateHistoryStrategy(int maxSize = 100)
         {
             _maxSize = maxSize;
         }
-        
-        public void Save(BaseState<TStateEnum> state, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
+
+        public void Save(IState transitionState, ITransitionData transitionData)
         {
             if (_historyStates.Count >= _maxSize)
             {
                 _historyStates.RemoveLast();
             }
 
-            _historyStates.AddFirst((state, exitOldStateParameters, enterNewStateParameters));
+            _historyStates.AddFirst((transitionState, transitionData));
         }
 
-        public void Save(TStateEnum stateEnum, IStateParameter exitOldStateParameters = null, IStateParameter enterNewStateParameters = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public (BaseState<TStateEnum> enterState, IStateParameter exitOldStateParameters, IStateParameter enterNewStateParameters) Restore(bool isRemoveRestore = true)
+        (IState transitionState, ITransitionData transitionData) IStateHistoryStrategy.Restore(bool isRemoveRestore)
         {
             if (_historyStates.Count != 0)
             {
-                var (lastState, exitOldStateParameters, enterNewStateParameters) = _historyStates.First.Value;
+                var (lastState, lastTransitionData) = _historyStates.First.Value;
                  
                 if(isRemoveRestore) _historyStates.RemoveFirst();
                 
-                return (lastState, exitOldStateParameters, enterNewStateParameters);
+                return (lastState, lastTransitionData);
             }
             else
             {
                 Debug.LogError("No state in the history state machine");
-                return (default, default, default);
+                return (default, default);
             }
         }
+
+        
     }
 }

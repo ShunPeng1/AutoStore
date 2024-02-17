@@ -134,7 +134,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
             foreach (var robot in _robots)
             {
-                if (robot.CurrentRobotState != RobotStateEnum.Idling) continue;
+                if (robot.CurrentRobotState is not Robot.RobotIdlingState) continue;
                 
                 int reach = RobotUtility.GetDistanceFromRobotToBinSource(_grid, robot, binTransportTask);
                 

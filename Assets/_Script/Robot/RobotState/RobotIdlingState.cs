@@ -7,13 +7,13 @@ namespace _Script.Robot
     {
         public class RobotIdlingState : RobotState
         {
-            public RobotIdlingState(Robot robot, RobotStateEnum myStateEnum, Action<RobotStateEnum, IStateParameter> executeEvents = null, Action<RobotStateEnum, IStateParameter> exitEvents = null, Action<RobotStateEnum, IStateParameter> enterEvents = null) : base(robot, myStateEnum, executeEvents, exitEvents, enterEvents)
+            public RobotIdlingState(Robot robot, Action<ITransitionData> executeEvents = null, Action<ITransitionData> exitEvents = null, Action<ITransitionData> enterEvents = null) : base(robot, executeEvents, exitEvents, enterEvents)
             {
                 EnterEvents += MoveIntoCell;
 
             }
             
-            private void MoveIntoCell(RobotStateEnum currentState, IStateParameter enterParameters)
+            private void MoveIntoCell(ITransitionData enterParameters)
             {
                 if (Robot.transform.position != Robot.LastCellPosition) 
                     Robot.RedirectToNearestCell();
