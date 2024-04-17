@@ -17,7 +17,7 @@ Ba-Thinh Vuong
 
 ## Demo
 Youtube : [https://youtu.be/h62QCPjr55s](https://www.youtube.com/watch?v=qGcfNC027ak) (Old video)
-DOI: https://www.doi.org/XXXXXXX.XXXXXXX (Not yet published).
+DOI: [https://www.doi.org/XXXXXXX.XXXXXXX](https://doi.org/10.1145/3654522.3654593).
 Paper : [EFFICIENT ALGORITHMS ON DYNAMIC OBSTACLE AVOIDANCE FOR MULTI-ROBOT AGENTS IN AUTOMATED WAREHOUSE SYSTEM (AUTOSTORE).pdf](https://github.com/ShunPeng1/AutoStore/files/14317999/EFFICIENT.ALGORITHMS.ON.DYNAMIC.OBSTACLE.AVOIDANCE.FOR.MULTI-ROBOT.AGENTS.IN.AUTOMATED.WAREHOUSE.SYSTEM.AUTOSTORE.pdf)
 
 ## Installation guide
