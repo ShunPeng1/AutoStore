@@ -9,10 +9,10 @@ The paper have been accepted by ICIIT Conference on 2024, February 23–25, 2023
 The escalating demand for manufacturing and transportation of goods underscores the imperative for continuous advancements in storage systems to enhance space and labor efficiency. In response to the growing needs of industries, storage solutions must undergo ongoing development to keep pace with the dynamic landscape of production and logistics. Optimizing space utilization becomes paramount as the volume of goods being manufactured and transported surges. The autonomous warehouse model was created as a method to intelligently arrange goods to conserve space and boost working speed. The AutoStore system, a cube-shaped warehouse, is operated entirely by robots. In this scientific research, we propose the application of a series of algorithms to manage the behaviors of robots within an AutoStore system. These behaviors include path-finding and object manipulation (dragging and dropping), aimed at efficiently maneuvering the entry and retrieval of items from the warehouse. The research addresses a set of robot behaviors for application in the AutoStore system. Constructing an AutoStore system demands optimization in managing robot behaviors, by using Hierarchical Finite State Machine(HFSM) . We apply the D* Lite path-finding algorithm to find the initial path, update it locally based on inputs from the ultrasonic sensor, and then submit the path to the server. By focusing on behavior optimization, we aim to enhance the efficiency of automated inventory management. The outcomes of this research hold the potential for implementation in a practical AutoStore system, aiding in the optimal utilization of storage space and maximizing operational efficiency. This research focuses on both establishing fundamental robot behaviors in the AutoStore system and optimizing these behaviors, thereby refining and advancing the overall system.
 
 ## Authors
-Tan-Thuan Banh
-Xuan-Trieu Nguyen
-Trong-Nhan Le
-Thanh-Binh Tran
+Tan-Thuan Banh, 
+Xuan-Trieu Nguyen, 
+Trong-Nhan Le, 
+Thanh-Binh Tran, 
 Ba-Thinh Vuong
 
 ## Demo
