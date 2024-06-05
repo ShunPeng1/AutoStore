@@ -772,7 +772,9 @@ GameObject:
   - component: {fileID: 7121835824611503911}
   - component: {fileID: 6291633208248654895}
   - component: {fileID: 6291633208248654896}
-  - component: {fileID: 6118560559227604877}
+  - component: {fileID: 3220776251463597856}
+  - component: {fileID: 7444127891002217982}
+  - component: {fileID: 8387477647979625369}
   m_Layer: 8
   m_Name: B1 Robot
   m_TagString: Untagged
@@ -811,9 +813,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Id: 0
-  RobotStateMachine:
-    CurrentBaseState:
-      MyStateEnum: 0
   NextCell:
     XIndex: 0
     YIndex: 0
@@ -919,7 +918,7 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.9, y: 0.9, z: 0.9}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6118560559227604877
+--- !u!114 &3220776251463597856
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -928,11 +927,45 @@ MonoBehaviour:
   m_GameObject: {fileID: 6291633208248654893}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bbbe47e10faa25f4d83ff99f81a50ecf, type: 3}
+  m_Script: {fileID: 11500000, guid: edf64652e1a441e2b02693cf4905f182, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _robotBodyRenderer: {fileID: 5739721277341501080}
+  _robot: {fileID: 7121835824611503911}
   _lineRenderer: {fileID: 3908041089777982755}
+--- !u!114 &7444127891002217982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6291633208248654893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 213e634d15a67aa49bd7e7152b84e2ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _renderers:
+  - {fileID: 3908041089777982755}
+  - {fileID: 5739721277341501080}
+--- !u!114 &8387477647979625369
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6291633208248654893}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a7325503475846ab907dbc8d90df4f42, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cableTransform: {fileID: 7768651563161112137}
+  _hookTransform: {fileID: 4196268981215322238}
+  _topHookCeilingTransform: {fileID: 1744688609652427514}
+  _binHookPlaceTransform: {fileID: 2379798995017419950}
+  _hookMoveSpeed: 1.6
+  _hookMoveEase: 10
+  _cableLengthMultiply: 3.7
 --- !u!1 &6381403863837777251
 GameObject:
   m_ObjectHideFlags: 0

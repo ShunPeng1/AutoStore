@@ -23,7 +23,7 @@ public class B1Robot : Robot
     private float _minBlockAheadAngle => Mathf.Atan((CastRadius + BoxColliderSize/2)/(0.5f + BoxColliderSize/2)) * Mathf.PI;
     private float _maxBlockAheadAngle = 45f;
 
-    [Header("Robot Hook and Cable")] 
+    [Header("Robot Hook and Cable")]     
     [SerializeField] protected float HookMoveSpeed = 2f;
     [SerializeField] protected Ease HookMoveEase = Ease.InOutCubic;
     [SerializeField] private float _cableLengthMultiply = 3.8f; 
