@@ -7,11 +7,7 @@ namespace _Script.Robot
         [SerializeField] private Robot _robot;
         [SerializeField] private LineRenderer _lineRenderer;
         
-        private void Awake()
-        {
-            _lineRenderer = GetComponent<LineRenderer>();
-            
-        }
+        
         
         private void Update()
         {

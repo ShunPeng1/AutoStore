@@ -75,3 +75,4 @@ crashlytics-build.properties
 # Python virtual environment
 venv/
 .mypy_cache/
+/Assets/OutputRecord

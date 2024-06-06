@@ -776,7 +776,7 @@ GameObject:
   - component: {fileID: 7444127891002217982}
   - component: {fileID: 8387477647979625369}
   m_Layer: 8
-  m_Name: B1 Robot
+  m_Name: B1 Robot RI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
