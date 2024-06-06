@@ -5,6 +5,7 @@ using System.Linq;
 using _Script.Robot;
 using DG.Tweening;
 using Shun_Grid_System;
+using Shun_State_Machine;
 using UnityEngine;
 using UnityEngine.Serialization;
 using Random = UnityEngine.Random;
@@ -35,6 +36,29 @@ public class B1Robot : Robot
         BoxCollider = GetComponent<Collider>();
 
         _cableInitialScale = CableTransform.localScale;
+    }
+
+    protected override void InitializeState()
+    {
+        IdlingState = new(this);
+        ApproachingState = new(this);
+        HandlingState = new(this);
+        DeliveringState = new(this);
+        JammingState = new(this);
+        RedirectingState = new(this);
+            
+        RobotStateMachine = new BaseStateMachine.Builder()
+            .WithInitialState(IdlingState)
+            .WithHistoryStrategy(new RobotStateHistoryStrategy())
+            .Build();
+
+            
+        RobotStateMachine.AddOrOverwriteState(ApproachingState);
+        RobotStateMachine.AddOrOverwriteState(HandlingState);
+        RobotStateMachine.AddOrOverwriteState(DeliveringState);
+        RobotStateMachine.AddOrOverwriteState(JammingState);
+        RobotStateMachine.AddOrOverwriteState(RedirectingState);
+
     }
 
 

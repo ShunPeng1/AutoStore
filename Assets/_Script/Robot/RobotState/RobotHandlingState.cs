@@ -77,7 +77,7 @@ namespace _Script.Robot
             private void SetToIdlingState()
             {
                 Robot.CurrentBinTransportTask = null;
-                Robot.RobotStateMachine.SetToState(Robot._idlingState);
+                Robot.RobotStateMachine.SetToState(Robot.IdlingState);
             }
 
             private void SetToDeliveringState()
@@ -88,7 +88,7 @@ namespace _Script.Robot
                 
                 RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, Robot.ArriveBinDestination, 0);
                 
-                Robot.RobotStateMachine.SetToState(Robot._deliveringState, robotMovingTask);
+                Robot.RobotStateMachine.SetToState(Robot.DeliveringState, robotMovingTask);
 
             }
             

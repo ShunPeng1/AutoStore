@@ -20,12 +20,12 @@ namespace _Script.Robot
         [Header("Robot State Machine")] 
         [ShowImmutable, SerializeField] protected BaseStateMachine RobotStateMachine;
 
-        private RobotIdlingState _idlingState;
-        private RobotMovingState _approachingState;
-        private RobotHandlingState _handlingState;
-        private RobotMovingState _deliveringState;
-        private RobotJammingState _jammingState;
-        private RobotRedirectingState _redirectingState;
+        protected RobotIdlingState IdlingState;
+        protected RobotMovingState ApproachingState;
+        protected RobotHandlingState HandlingState;
+        protected RobotMovingState DeliveringState;
+        protected RobotJammingState JammingState;
+        protected RobotRedirectingState RedirectingState;
         public IState CurrentRobotState => RobotStateMachine.GetCurrentState();
 
         
@@ -114,28 +114,8 @@ namespace _Script.Robot
         }
 
         protected abstract void InitializeComponents();
-        
-        private void InitializeState()
-        {
-            _idlingState = new(this);
-            _approachingState = new(this);
-            _handlingState = new(this);
-            _deliveringState = new(this);
-            _jammingState = new(this);
-            _redirectingState = new(this);
-            
-            RobotStateMachine = new BaseStateMachine.Builder()
-                .WithInitialState(_idlingState)
-                .WithHistoryStrategy(new RobotStateHistoryStrategy())
-                .Build();
 
-            
-            RobotStateMachine.AddOrOverwriteState(_approachingState);
-            RobotStateMachine.AddOrOverwriteState(_handlingState);
-            RobotStateMachine.AddOrOverwriteState(_deliveringState);
-            RobotStateMachine.AddOrOverwriteState(_jammingState);
-            RobotStateMachine.AddOrOverwriteState(_redirectingState);
-        }
+        protected abstract void InitializeState();
 
         #endregion
 
@@ -163,7 +143,7 @@ namespace _Script.Robot
             //Debug.Log( gameObject.name+ " Redirect To Nearest Cell " + nearestCellPosition);
             
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell, nearestCellPosition, SetToJam);
-            RobotStateMachine.SetToState(_redirectingState, robotMovingTask );
+            RobotStateMachine.SetToState(RedirectingState, robotMovingTask );
         }
 
         
@@ -231,7 +211,7 @@ namespace _Script.Robot
 
             //Debug.Log(requestedRobot.gameObject.name + " requested to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(redirectGoalCellPosition));
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell, redirectGoalCellPosition, SetToJam);
-            RobotStateMachine.SetToState(_redirectingState, robotMovingTask );
+            RobotStateMachine.SetToState(RedirectingState, robotMovingTask );
             return true;
         }
         private bool IsValidRedirectPosition(Vector3 direction, Vector3 exceptDirection, Vector3 detectedRobotGoalPosition, out Vector3 redirectGoalCellPosition, out bool isBlockAhead)
@@ -307,7 +287,7 @@ namespace _Script.Robot
             
             Debug.Log(requestedRobot.gameObject.name + " redirect to move " + gameObject.name + " from " + CurrentGrid.GetIndex(transform.position) + " to " + CurrentGrid.GetIndex(CurrentGrid.GetWorldPositionOfNearestCell(redirectCell)));
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NearestCell,CurrentGrid.GetWorldPositionOfNearestCell(redirectCell) , SetToJam);
-            RobotStateMachine.SetToState(_redirectingState, robotMovingTask );
+            RobotStateMachine.SetToState(RedirectingState, robotMovingTask );
             return true;
         }
 
@@ -367,21 +347,21 @@ namespace _Script.Robot
             Vector3 goalCellPosition = CurrentGrid.GetWorldPositionOfNearestCell( CurrentBinTransportTask.TargetBinSource );
             RobotMovingTask robotMovingTask = new RobotMovingTask(RobotMovingTask.StartPosition.NextCell, goalCellPosition, ArriveBinSource, 0);
         
-            RobotStateMachine.SetToState(_approachingState, robotMovingTask);
+            RobotStateMachine.SetToState(ApproachingState, robotMovingTask);
         }
 
         protected void SetToJam()
         {
-            RobotStateMachine.SetToState(_jammingState,new RobotJammingTask(){IsWaitingForGoal = false});
+            RobotStateMachine.SetToState(JammingState,new RobotJammingTask(){IsWaitingForGoal = false});
         }
         protected void SetToJam(bool isWaitingForGoal)
         {
-            RobotStateMachine.SetToState(_jammingState,new RobotJammingTask(){IsWaitingForGoal = isWaitingForGoal});
+            RobotStateMachine.SetToState(JammingState,new RobotJammingTask(){IsWaitingForGoal = isWaitingForGoal});
         }
         
         protected void ArriveBinSource()
         {
-            RobotStateMachine.SetToState(_handlingState);
+            RobotStateMachine.SetToState(HandlingState);
         }
         
         
@@ -389,7 +369,7 @@ namespace _Script.Robot
         {
             DistributionManager.Instance.ArriveDestination(this, CurrentBinTransportTask);
             
-            RobotStateMachine.SetToState(_handlingState);
+            RobotStateMachine.SetToState(HandlingState);
         }
         
 
