@@ -64,9 +64,6 @@ namespace _Script.Robot
 
         [Header("Movement")] 
         public float MaxMovementSpeed = 1f;
-        
-        private IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> _pathfindingAlgorithm;
-         
         protected List<Robot> NearbyRobots = new();
 
         [Header("Task")] 
@@ -91,7 +88,6 @@ namespace _Script.Robot
         private void Start()
         {
             InitializeGrid();
-            InitializeStrategy();
             InitializeComponents();
             InitializeState();
         }
@@ -106,11 +102,6 @@ namespace _Script.Robot
             CurrentGrid = MapManager.Instance.WorldGrid;
             
             LastCell = NextCell = CurrentGrid.GetCell(transform.position);
-        }
-
-        private void InitializeStrategy()
-        {
-            _pathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
         }
 
         protected abstract void InitializeComponents();

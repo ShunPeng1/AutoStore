@@ -13,6 +13,7 @@ namespace _Script.Robot
         public class RobotMovingState : RobotState
         {
             protected RobotMovingTask CurrentMovingTask;
+            private IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> _pathfindingAlgorithm;
         
             protected enum DetectDecision
             {
@@ -26,6 +27,8 @@ namespace _Script.Robot
             {
                 EnterEvents += AssignTask;
                 ExecuteEvents += Execute;
+                
+                _pathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
             }
 
             private void AssignTask(ITransitionData enterParameters)
@@ -249,7 +252,7 @@ namespace _Script.Robot
                 var startCell = Grid.GetCell(startPosition);
                 var endCell = Grid.GetCell(endPosition);
         
-                Robot.MovingPath = Robot._pathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
+                Robot.MovingPath = _pathfindingAlgorithm.FirstTimeFindPath(startCell, endCell);
 
                 RecordPathChange();
                 if (Robot.MovingPath != null) return true; 
@@ -268,7 +271,7 @@ namespace _Script.Robot
                 Vector3 nearestCellPosition = Grid.GetWorldPositionOfNearestCell(RobotTransform.position);
                 var currentStartCell = Grid.GetCell(nearestCellPosition);
 
-                Robot.MovingPath = Robot._pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, allRobotObstacleCells);
+                Robot.MovingPath = _pathfindingAlgorithm.UpdatePathWithDynamicObstacle(currentStartCell, allRobotObstacleCells);
 
                 if (Robot.MovingPath == null) // The path to goal is block
                 {

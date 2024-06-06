@@ -76,3 +76,4 @@ crashlytics-build.properties
 venv/
 .mypy_cache/
 /Assets/OutputRecord
+/Assets/OutputRecord

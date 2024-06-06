@@ -1,4 +1,5 @@
 ﻿using System;
+using Shun_Grid_System;
 using Shun_State_Machine;
 using UnityEngine;
 
@@ -8,6 +9,8 @@ namespace _Script.Robot
     {
         public class RobotJammingState : RobotState
         {
+            private IPathfindingAlgorithm<GridXZ<CellItem>,GridXZCell<CellItem>, CellItem> _pathfindingAlgorithm;
+            
             private float _currentWaitTime;
             private bool _isWaitingForGoal;
             
@@ -16,6 +19,8 @@ namespace _Script.Robot
                 EnterEvents += JamSetUp;
                 ExecuteEvents += Jamming;
                 ExitEvents += EndJamming;
+                
+                _pathfindingAlgorithm = MapManager.Instance.GetPathFindingAlgorithm();
             }
 
             private void JamSetUp(ITransitionData enterParameters)
@@ -42,7 +47,7 @@ namespace _Script.Robot
                 if (transitionData == null) return;
 
                 var movingTask = transitionData.CastTo<RobotMovingTask>();
-                Robot.MovingPath = Robot._pathfindingAlgorithm.FirstTimeFindPath(Robot.LastCell, Grid.GetCell(movingTask.GoalCellPosition));
+                Robot.MovingPath = _pathfindingAlgorithm.FirstTimeFindPath(Robot.LastCell, Grid.GetCell(movingTask.GoalCellPosition));
 
             }
             

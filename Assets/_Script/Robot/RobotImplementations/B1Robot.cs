@@ -30,6 +30,7 @@ public class B1Robot : Robot
     [SerializeField] private float _cableLengthMultiply = 3.8f; 
     private Vector3 _cableInitialScale;
     
+    
     protected override void InitializeComponents()
     {
         Rigidbody = GetComponent<Rigidbody>();
