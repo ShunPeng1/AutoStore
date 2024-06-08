@@ -32,6 +32,7 @@ namespace Shun_Grid_System
         private Dictionary<TCell, TCell> _predecessors = new (); // predecessors[x] = the cell that comes before x on the best path from the start to x
         private Dictionary<TCell, float> _dynamicObstacles = new(); // dynamicObstacle[x] = the cell that is found obstacle after find path and its found time
         
+        private const double TOLERANCE = 0.0001;
         
         public DStarLitePathFinding(TGrid gridXZ, IPathFindingAdjacentCellSelection<TCell, TItem> adjacentCellSelectionFunction = null, PathFindingCostFunction costFunctionType = PathFindingCostFunction.Manhattan) : base(gridXZ)
         {
@@ -86,7 +87,7 @@ namespace Shun_Grid_System
         {
             while (_openCells.Count > 0 &&
                    (CalculateKey(TryDequeue(out TCell currentCell)) < CalculateKey(_startCell) ||
-                    GetRhsValue(_startCell) != GetGValue(_startCell)))
+                    Math.Abs(GetRhsValue(_startCell) - GetGValue(_startCell)) > TOLERANCE))
             {
                 
                 //Debug.Log("DStar current Cell" + currentCell.XIndex + " " + currentCell.ZIndex);
@@ -125,10 +126,9 @@ namespace Shun_Grid_System
 
             return RetracePath(_startCell, _endCell);
         }
-    
-        
-       
-        
+
+
+
         public override LinkedList<TCell> UpdatePathWithDynamicObstacle(TCell currentStartCell, List<TCell> foundDynamicObstacles, double maxCost = Double.PositiveInfinity)
         {
             _km += GetDistanceCost(_startCell,currentStartCell);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using _Script.Managers;
 using _Script.Robot;
 using Shun_Grid_System;
@@ -24,14 +25,29 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     {
         Random,
         Fixed,
-        LiftRandom,
-        LiftFixed
+        LiftRandom
     }
+
+    enum AssignStyle
+    {
+        Nearest,
+        Exact,
+        Snap,
+    }
+
+    enum TaskStyle
+    {
+        Continuous,
+        Wave
+    }
+    
     [Header("Initial")] 
     [SerializeField] private int _spawnBinLayerHeight = 5;
     
     [SerializeField] private SpawnStyle _spawnStyle = SpawnStyle.Random;
-
+    [SerializeField] private TaskStyle _taskStyle = TaskStyle.Continuous;
+    [SerializeField] private AssignStyle _assignStyle = AssignStyle.Snap;
+    
     [Header("Random Spawn")] 
     [SerializeField, Range(0.001f, 100f)] private float _spawnRate = 5f;
     
@@ -48,10 +64,9 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
 
     private float _currentTime = 0f;
     private Robot[] _robots;
-
-    private Dictionary<Bin, BinTransportTask> _deliveringBinsByBinTransportTasks = new ();
-    private Queue<BinTransportTask> _pendingBinTransportTasks = new();
-
+    
+    private readonly Queue<BinTransportTask> _pendingBinTransportTasks = new();
+    private readonly Dictionary<BinTransportTask, Robot> _binTransportTaskRobotMap = new();
     
     void Start()
     {
@@ -65,6 +80,7 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         });
 
         InitializeSpawnBin();
+        
     }
 
     void InitializeSpawnBin()
@@ -88,6 +104,35 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     }
 
     void Update()
+    {
+        switch (_taskStyle)
+        {
+            case TaskStyle.Continuous:
+                SpawnContinuous();
+                break;
+            case TaskStyle.Wave:
+                if (_robots.All((robot => robot.CurrentRobotState is Robot.RobotIdlingState)))
+                {
+                    SpawnWave();
+                }
+                
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        AssignMission();
+    }
+
+    private void SpawnWave()
+    {
+        for (int i = 0; i < _robots.Length; i++)
+        {
+            CreateBinTaskRandomly();       
+        }
+        
+    }
+
+    private void SpawnContinuous()
     {
         _currentTime += Time.deltaTime;
 
@@ -114,11 +159,11 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
                     _currentTime = 0;
                 }
                 break;
+            
             default:
                 throw new ArgumentOutOfRangeException();
         }
 
-        AssignMission();
     }
 
     /// <summary>
@@ -129,28 +174,68 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
         while (_pendingBinTransportTasks.Count > 0)
         {
             var binTransportTask = _pendingBinTransportTasks.Peek();
-            Robot shortestReachRobot = null;
-            int shortestReach = int.MaxValue;
-
-            foreach (var robot in _robots)
+            
+            Robot assignRobot = _assignStyle switch
             {
-                if (robot.CurrentRobotState is not Robot.RobotIdlingState) continue;
-                
-                int reach = RobotUtility.GetDistanceFromRobotToBinSource(_grid, robot, binTransportTask);
-                
-                if (reach >= shortestReach) continue;
-                shortestReachRobot = robot;
-                shortestReach = reach;
-            }
+                AssignStyle.Nearest => GetNearestRobot(binTransportTask),
+                AssignStyle.Exact => _robots.FirstOrDefault(robot => robot.CurrentRobotState is Robot.RobotIdlingState),
+                AssignStyle.Snap => SnapBinUnderRobot(binTransportTask),
+                _ => throw new ArgumentOutOfRangeException()
+            };
 
-            if (shortestReachRobot == null) break;
-
+            if (assignRobot == null) return;
+            
             _pendingBinTransportTasks.Dequeue();
-            binTransportTask.SetMobilizedRobot(new []{shortestReachRobot});
+            binTransportTask.SetMobilizedRobot(assignRobot);
                         
-            shortestReachRobot.ApproachBin(binTransportTask);
+            assignRobot.ApproachBin(binTransportTask);
+            
+            _binTransportTaskRobotMap.Add(binTransportTask, assignRobot);
 
         }
+    }
+
+    private Robot SnapBinUnderRobot(BinTransportTask binTransportTask)
+    {
+        foreach (var robot in _robots)
+        {
+            if (robot.CurrentRobotState is not Robot.RobotIdlingState) continue;
+            
+            int startX = robot.NextCell.XIndex;
+            int startZ = robot.NextCell.YIndex;
+            
+            GridXZCell<CellItem> startCell = _grid.GetCell(startX,startZ);
+            
+            Bin transportBin = startCell.Item.GetRandomBinInStack();
+
+            if (transportBin == null) continue;
+
+            binTransportTask.TargetBinSource = robot.NextCell;
+            binTransportTask.TargetBin = transportBin;
+
+            return robot;
+        }
+        
+        return GetNearestRobot(binTransportTask);
+    }
+
+    private Robot GetNearestRobot(BinTransportTask binTransportTask)
+    {
+        Robot shortestReachRobot = null;
+        int shortestReach = int.MaxValue;
+
+        foreach (var robot in _robots)
+        {
+            if (robot.CurrentRobotState is not Robot.RobotIdlingState) continue;
+                
+            int reach = RobotUtility.GetDistanceFromRobotToBinSource(_grid, robot, binTransportTask);
+                
+            if (reach >= shortestReach) continue;
+            shortestReachRobot = robot;
+            shortestReach = reach;
+        }
+
+        return shortestReachRobot;
     }
     
     private void CreateBinTaskRandomly()
@@ -223,15 +308,21 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
     
     public void ArriveDestination(Robot robot, BinTransportTask binTransportTask)
     {
+        _binTransportTaskRobotMap.Remove(binTransportTask);
+        
+        
         DebugUIManager.Instance.AddFinish();
-
+        
         if (FileRecorderManager.InstanceOptional != null ) 
             FileRecorderManager.Instance.ResultRecords.Add(
                 new FileRecorderManager.ResultRecord(
+                    binTransportTask.CreateTaskTime,
                     Time.fixedTime - binTransportTask.PickUpTime, 
                     binTransportTask.WaitingForGoalTime,
                     binTransportTask.JammingTime,
                     RobotUtility.GetIdealTimeDeliveryBin(robot, binTransportTask), 
+                    binTransportTask.RobotStartCells[0].XIndex,
+                    binTransportTask.RobotStartCells[0].YIndex,
                     binTransportTask.TargetBinSource.XIndex, 
                     binTransportTask.TargetBinSource.YIndex, 
                     binTransportTask.TargetBinDestination.XIndex, 
@@ -240,8 +331,12 @@ public class DistributionManager : SingletonMonoBehaviour<DistributionManager>
                     binTransportTask.RedirectStateChangeCount, 
                     binTransportTask.JamStateChangeCount, 
                     binTransportTask.PathChangeCount, 
-                    binTransportTask.PathUpdateCount)
+                    binTransportTask.PathUpdateCount, 
+                    binTransportTask.PathTurnCount,
+                    binTransportTask.TotalDistance)
                 );
+        
+        
     }
 
     public void ReAddInvalidBin(Bin bin)

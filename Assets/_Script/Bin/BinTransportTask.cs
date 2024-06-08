@@ -74,7 +74,7 @@ public class BinTransportTask
         MobilizedRobots[0] = robot;
         
         RobotStartCells = new GridXZCell<CellItem>[1];
-        RobotStartCells[0] = robot.LastCell;
+        RobotStartCells[0] = robot.NextCell;
     }
     
 
