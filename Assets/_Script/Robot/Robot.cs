@@ -367,12 +367,15 @@ namespace _Script.Robot
         #endregion
 
         #region MOVEMENT
-        protected virtual void MoveAlongGrid()
+        protected virtual Vector3 MoveAlongGrid()
         {
             // Move
-            transform.position = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
-            
+            var lastPosition = transform.position;
+            var nextPosition = Vector3.MoveTowards(transform.position, NextCellPosition, MaxMovementSpeed * Time.fixedDeltaTime);
+            transform.position = nextPosition;
             IsMidwayMove = true;
+            
+            return nextPosition - lastPosition;
         }
         
         
