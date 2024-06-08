@@ -32,11 +32,15 @@ namespace _Script.Managers
         }
         public class ResultRecord
         {
+            public readonly float StartTime;
             public readonly float ActualTime;
             public readonly float AssumptionTime;
             public readonly float WaitForGoalTime;
             public readonly float JammingTime;
             
+            
+            public readonly int StartX;
+            public readonly int StartZ;
             public readonly int PickUpX;
             public readonly int PickUpZ;
             public readonly int DropDownX;
@@ -48,15 +52,27 @@ namespace _Script.Managers
     
             public readonly int PathChangeCount;
             public readonly int PathUpdateCount;
+            public readonly int PathTurnCount;
+            
+            public readonly Vector3 TotalDistance;
             
             
-            public ResultRecord(float actualTime, float waitForGoalTime, float jammingTime, float assumptionTime, int pickUpX, int pickUpZ, int dropDownX, int dropDownZ, int mainStateChangeCount, int redirectStateChangeCount, int jamStateChangeCount, int pathChangeCount, int pathUpdateCount)
+            public ResultRecord(
+                float startTime, float actualTime, float waitForGoalTime, float jammingTime, float assumptionTime, 
+                int startX, int startZ, int pickUpX, int pickUpZ, int dropDownX, int dropDownZ, 
+                int mainStateChangeCount, int redirectStateChangeCount, int jamStateChangeCount, int pathChangeCount, int pathUpdateCount,int pathTurnCount, 
+                Vector3 totalDistance)
             {
+                
+                StartTime = startTime;
                 ActualTime = actualTime;
                 WaitForGoalTime = waitForGoalTime;
                 JammingTime = jammingTime;
                 AssumptionTime = assumptionTime;
                 
+                
+                StartX = startX;
+                StartZ = startZ;
                 PickUpX = pickUpX;
                 PickUpZ = pickUpZ;
                 DropDownX = dropDownX;
@@ -68,6 +84,9 @@ namespace _Script.Managers
                 
                 PathChangeCount = pathChangeCount;
                 PathUpdateCount = pathUpdateCount;
+                PathTurnCount = pathTurnCount;
+                
+                TotalDistance = totalDistance;
             }
         }
 
@@ -159,7 +178,7 @@ namespace _Script.Managers
             string filePath = Application.dataPath + "/OutputRecord/" + SceneManager.GetActiveScene().name + ".csv";
             // neu chua co file thi tao cac cot
             TextWriter tw = new StreamWriter(filePath, false);
-            tw.WriteLine("Time, Finish");
+            tw.WriteLine("StartX, StartZ, PickUpX, PickUpZ, DropDownX, DropDownZ, StartTime, ActualTime, AssumptionTime, WaitForGoalTime, JammingTime, MainStateChangeCount, RedirectStateChangeCount, JamStateChangeCount, PathChangeCount, PathUpdateCount, PathTurnCount, TotalDistanceX, TotalDistanceZ");
             tw.Close();
 
             tw = new StreamWriter(filePath, true);
@@ -168,12 +187,14 @@ namespace _Script.Managers
             foreach (var resultRecord in ResultRecords)
             {
                 tw.WriteLine(
+                    resultRecord.StartX + "," + resultRecord.StartZ + "," +
                     resultRecord.PickUpX + "," + resultRecord.PickUpZ + "," + 
                     resultRecord.DropDownX + "," + resultRecord.DropDownZ + "," +
-                    resultRecord.ActualTime + "," + resultRecord.AssumptionTime + "," + 
+                    resultRecord.StartTime + "," + resultRecord.ActualTime + "," + resultRecord.AssumptionTime + "," + 
                     resultRecord.WaitForGoalTime + "," + resultRecord.JammingTime + "," + 
                     resultRecord.MainStateChangeCount + "," + resultRecord.RedirectStateChangeCount + "," + resultRecord.JamStateChangeCount + "," + 
-                    resultRecord.PathChangeCount + "," + resultRecord.PathUpdateCount
+                    resultRecord.PathChangeCount + "," + resultRecord.PathUpdateCount + "," + resultRecord.PathTurnCount + "," +
+                    resultRecord.TotalDistance.x + "," + resultRecord.TotalDistance.z
                     );
             }
 

@@ -8,6 +8,7 @@ using UnityEngine;
 [Serializable]
 public class BinTransportTask
 {
+    public GridXZCell<CellItem>[] RobotStartCells;
     public GridXZCell<CellItem> TargetBinDestination;
     public GridXZCell<CellItem> TargetBinSource;
     
@@ -16,6 +17,7 @@ public class BinTransportTask
 
     public List<Bin> MigratedBins = new ();
     public Bin TargetBin;
+
 
     public float PickUpTime;
     public float CreateTaskTime;
@@ -26,8 +28,11 @@ public class BinTransportTask
     public int RedirectStateChangeCount;
     public int JamStateChangeCount;
     
+    public int PathTurnCount;
     public int PathChangeCount;
     public int PathUpdateCount;
+    
+    public Vector3 TotalDistance = Vector3.zero;
     
     public BinTransportTask(Bin targetBin, GridXZCell<CellItem> targetBinSource, GridXZCell<CellItem> targetBinDestination)
     {
@@ -61,10 +66,29 @@ public class BinTransportTask
     {
         
     }
+    
+    
+    public void SetMobilizedRobot(Robot robot)
+    {
+        MobilizedRobots = new Robot[1];
+        MobilizedRobots[0] = robot;
+        
+        RobotStartCells = new GridXZCell<CellItem>[1];
+        RobotStartCells[0] = robot.LastCell;
+    }
+    
 
     public void SetMobilizedRobot(Robot [] robots)
     {
         MobilizedRobots = robots;
+        
+        RobotStartCells = new GridXZCell<CellItem>[robots.Length];
+
+        foreach (var robot in robots)
+        {
+            RobotStartCells[Array.IndexOf(robots, robot)] = robot.LastCell;
+        }
+        
     }
 
 

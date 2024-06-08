@@ -31,6 +31,7 @@ public class B1Robot : Robot
     private Vector3 _cableInitialScale;
     
     
+    
     protected override void InitializeComponents()
     {
         Rigidbody = GetComponent<Rigidbody>();
