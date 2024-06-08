@@ -99,7 +99,10 @@ namespace _Script.Robot
                 if (!DecideFromRobotDetection()) return; // change state during executing this function
                 
                 Robot.IsMidwayMove = true;
-                Robot.MoveAlongGrid();
+                
+                Vector3 distance = Robot.MoveAlongGrid();
+                
+                RecordDistance(distance);   
             }
 
             protected virtual bool CheckArriveGoalCell()
@@ -239,12 +242,30 @@ namespace _Script.Robot
                 }
 
                 var nextNextCell = Robot.MovingPath.First.Value;
+                var lastCell = Robot.LastCell;
+                var nextCell = Robot.NextCell;
+                
                 Robot.MovingPath.RemoveFirst(); // the next standing node
-
+                
                 Robot.LastCell = Robot.NextCell;
                 Robot.NextCell = nextNextCell;
 
                 RecordPathUpdate();
+                
+                CheckTurn(lastCell, nextCell, nextNextCell);
+                
+            }
+
+            private void CheckTurn(GridXZCell<CellItem> lastCell, GridXZCell<CellItem> nextCell, GridXZCell<CellItem> nextNextCell)
+            {
+                var lastCellPosition = Grid.GetWorldPositionOfNearestCell(lastCell);
+                var nextCellPosition = Grid.GetWorldPositionOfNearestCell(nextCell);
+                var nextNextCellPosition = Grid.GetWorldPositionOfNearestCell(nextNextCell);
+
+                if (nextCellPosition - lastCellPosition == nextNextCellPosition - nextCellPosition) return;
+                
+                
+                RecordPathTurn();
             }
 
             private bool CreateInitialPath(Vector3 startPosition, Vector3 endPosition)

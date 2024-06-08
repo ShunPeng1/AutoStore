@@ -43,6 +43,20 @@ namespace _Script.Robot
                 Robot.CurrentBinTransportTask.MainStateChangeCount++;
             }
         }
+
+        protected void RecordDistance(Vector3 distance)
+        {
+            if (Robot.CurrentBinTransportTask == null) return;
+                
+            Robot.CurrentBinTransportTask.TotalDistance += new Vector3(Mathf.Abs(distance.x), Mathf.Abs(distance.y), Mathf.Abs(distance.z));
+        }
+        
+        protected virtual void RecordPathTurn()
+        {
+            if (Robot.CurrentBinTransportTask == null) return;
+            
+            Robot.CurrentBinTransportTask.PathTurnCount++;
+        }
         
         protected virtual void RecordPathChange()
         {
