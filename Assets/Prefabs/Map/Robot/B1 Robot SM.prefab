@@ -829,6 +829,7 @@ MonoBehaviour:
   IsMidwayMove: 1
   MaxMovementSpeed: 2
   CurrentBinTransportTask:
+    RobotStartCells: []
     TargetBinDestination:
       XIndex: 0
       YIndex: 0
@@ -854,8 +855,10 @@ MonoBehaviour:
     MainStateChangeCount: 0
     RedirectStateChangeCount: 0
     JamStateChangeCount: 0
+    PathTurnCount: 0
     PathChangeCount: 0
     PathUpdateCount: 0
+    TotalDistance: {x: 0, y: 0, z: 0}
   HoldingBin: {fileID: 0}
   CableTransform: {fileID: 7768651563161112137}
   HookTransform: {fileID: 4196268981215322238}
@@ -866,7 +869,7 @@ MonoBehaviour:
   RobotLayerMask:
     serializedVersion: 2
     m_Bits: 256
-  HookMoveSpeed: 1.6
+  HookMoveSpeed: 1000
   HookMoveEase: 10
   _cableLengthMultiply: 3.7
 --- !u!54 &6291633208248654895

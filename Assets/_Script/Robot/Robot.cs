@@ -122,7 +122,6 @@ namespace _Script.Robot
         {
             
             //bool result = RedirectToOrthogonalCell(requestedRobot, requestedRobotNextCellPosition, requestedRobotGoalCellPosition);
-
             return RedirectToLowestWeightCell(requestedRobot, requestedRobotNextCellPosition, requestedRobotGoalCellPosition);
             
         }
